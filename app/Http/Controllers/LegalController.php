@@ -28,17 +28,20 @@ class LegalController extends Controller
     {
         $pendingRequests = DocumentRequest::with(['document.uploader', 'requester'])
             ->where('status', 'pending')
+            ->whereHas('document')
             ->latest()
             ->get();
             
         $approvedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
             ->where('status', 'approved')
+            ->whereHas('document')
             ->latest()
             ->take(10)
             ->get();
             
         $deniedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
             ->where('status', 'denied')
+            ->whereHas('document')
             ->latest()
             ->take(10)
             ->get();
@@ -72,8 +75,114 @@ class LegalController extends Controller
 
     public function store(Request $request)
     {
-        // Legal doesn't create documents, only approves requests
-        return redirect()->route('legal.index');
+        $request->validate([
+            'case_title' => 'required|string|max:255',
+            'case_description' => 'nullable|string',
+            'legal_document' => 'required|file|mimes:pdf,doc,docx,txt|max:10240'
+        ]);
+
+        // Handle file upload
+        $file = $request->file('legal_document');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $filePath = $file->storeAs('legal_documents', $fileName, 'public');
+
+        // Extract text from document for AI analysis
+        $documentText = '';
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if ($extension === 'txt') {
+            $documentText = file_get_contents($file->getRealPath());
+        } elseif ($extension === 'pdf') {
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf = $parser->parseFile($file->getRealPath());
+            $documentText = $pdf->getText();
+        } elseif ($extension === 'docx') {
+            $phpWord = \PhpOffice\PhpWord\IOFactory::load($file->getRealPath());
+            $text = '';
+            foreach ($phpWord->getSections() as $section) {
+                $elements = $section->getElements();
+                foreach ($elements as $element) {
+                    if (method_exists($element, 'getText')) {
+                        $text .= $element->getText() . ' ';
+                    }
+                }
+            }
+            $documentText = $text;
+        }
+
+        // Use AI to determine category
+        $category = 'general';
+        $aiAnalysis = null;
+        
+        if ($documentText) {
+            try {
+                $geminiService = new \App\Services\GeminiService();
+                $aiAnalysis = $geminiService->analyzeDocument($documentText);
+                
+                // Check if analysis was successful (including fallback)
+                if (!$aiAnalysis['error']) {
+                    $category = $aiAnalysis['category'];
+                    // Log the AI analysis for debugging
+                    \Log::info('AI Analysis Result:', [
+                        'category' => $category,
+                        'full_analysis' => $aiAnalysis,
+                        'is_fallback' => $aiAnalysis['fallback'] ?? false
+                    ]);
+                } else {
+                    \Log::error('AI Analysis Error:', $aiAnalysis);
+                    // Even if AI fails, try to use fallback
+                    $category = 'general';
+                }
+            } catch (\Exception $e) {
+                \Log::error('AI analysis failed: ' . $e->getMessage());
+                $category = 'general';
+            }
+        }
+        
+        // Log the final category being saved
+        \Log::info('Document being saved with category:', [
+            'title' => $request->case_title,
+            'category' => $category,
+            'ai_analysis' => $aiAnalysis
+        ]);
+
+        // Create document record with AI-determined category
+        $document = Document::create([
+            'title' => $request->case_title,
+            'description' => $request->case_description,
+            'category' => $category,
+            'file_path' => $filePath,
+            'uploaded_by' => Auth::id(),
+            'status' => 'archived',
+            'source' => 'legal_management', // Mark as created through Legal Management
+        ]);
+
+        // Store AI analysis data if available
+        if ($aiAnalysis && !$aiAnalysis['error']) {
+            $document->update([
+                'ai_analysis' => json_encode($aiAnalysis)
+            ]);
+        }
+
+        // Get proper display name for success message
+        $categoryDisplayNames = [
+            'memorandum' => 'Memorandum',
+            'contract' => 'Contract',
+            'subpoena' => 'Subpoena',
+            'affidavit' => 'Affidavit',
+            'cease_desist' => 'Cease & Desist',
+            'legal_notice' => 'Legal Notice',
+            'policy' => 'Policy',
+            'legal_brief' => 'Legal Brief',
+            'financial' => 'Financial Document',
+            'compliance' => 'Compliance Document',
+            'report' => 'Report',
+            'general' => 'Legal General'
+        ];
+
+        $displayCategory = $categoryDisplayNames[$category] ?? ucfirst($category);
+        
+        return redirect()->route('legal.index')->with('success', 'Legal case added successfully and classified as ' . $displayCategory . '!');
     }
 
     public function show($id)
@@ -140,6 +249,11 @@ class LegalController extends Controller
         
         if ($documentRequest->status !== 'pending') {
             return redirect()->back()->with('error', 'This request has already been processed.');
+        }
+
+        // Check if document exists
+        if (!$documentRequest->document) {
+            return redirect()->back()->with('error', 'Document not found for this request.');
         }
 
         // Extract text and classify document
@@ -234,6 +348,7 @@ class LegalController extends Controller
     {
         $pendingRequests = DocumentRequest::with(['document.uploader', 'requester'])
             ->where('status', 'pending')
+            ->whereHas('document')
             ->latest()
             ->get();
             
@@ -244,19 +359,68 @@ class LegalController extends Controller
     {
         $approvedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
             ->where('status', 'approved')
+            ->whereHas('document')
             ->latest()
             ->paginate(20);
             
         return view('legal.approved', compact('approvedRequests'));
     }
 
-    public function deniedRequests()
+        public function deniedRequests()
     {
         $deniedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
             ->where('status', 'denied')
+            ->whereHas('document')
             ->latest()
             ->paginate(20);
-            
+
         return view('legal.denied', compact('deniedRequests'));
+    }
+
+    public function categoryDocuments($category)
+    {
+        // Map URL categories to database categories
+        $categoryMapping = [
+            'memorandums' => 'memorandum',
+            'contracts' => 'contract',
+            'subpoenas' => 'subpoena',
+            'affidavits' => 'affidavit',
+            'cease-desist' => 'cease_desist',
+            'legal-notices' => 'legal_notice',
+            'policies' => 'policy',
+            'legal-briefs' => 'legal_brief',
+            'financial' => 'financial',
+            'compliance' => 'compliance',
+            'reports' => 'report'
+        ];
+
+        $dbCategory = $categoryMapping[$category] ?? 'general';
+        
+        // Get documents for this category (only from Legal Management)
+        $documents = Document::with('uploader')
+            ->where('category', $dbCategory)
+            ->where('source', 'legal_management')
+            ->latest()
+            ->paginate(20);
+
+        // Get category display name
+        $categoryDisplayNames = [
+            'memorandum' => 'Memorandums',
+            'contract' => 'Contracts',
+            'subpoena' => 'Subpoenas',
+            'affidavit' => 'Affidavits',
+            'cease_desist' => 'Cease & Desist',
+            'legal_notice' => 'Legal Notices',
+            'policy' => 'Policies',
+            'legal_brief' => 'Legal Briefs',
+            'financial' => 'Financial Documents',
+            'compliance' => 'Compliance Documents',
+            'report' => 'Reports',
+            'general' => 'General Legal Documents'
+        ];
+
+        $categoryName = $categoryDisplayNames[$dbCategory] ?? 'Legal Documents';
+
+        return view('legal.category', compact('documents', 'categoryName', 'category'));
     }
 } 
