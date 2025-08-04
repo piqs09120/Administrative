@@ -11,19 +11,8 @@ use App\Notifications\DocumentRequestStatusNotification;
 use App\Models\AccessLog;
 use Illuminate\Support\Facades\Http;
 
-
 class LegalController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            if (!auth()->check() || strtolower(auth()->user()->role) !== 'administrator') {
-                abort(403, 'Only Administrators can access this section.');
-            }
-            return $next($request);
-        })->only(['index', 'approveRequest', 'denyRequest']);
-    }
-
     public function index()
     {
         $pendingRequests = DocumentRequest::with(['document.uploader', 'requester'])
@@ -423,4 +412,4 @@ class LegalController extends Controller
 
         return view('legal.category', compact('documents', 'categoryName', 'category'));
     }
-} 
+}
