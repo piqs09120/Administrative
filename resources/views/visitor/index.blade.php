@@ -9,7 +9,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   @vite(['resources/css/soliera.css'])
-  @fluxAppearance
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -42,12 +41,15 @@
               <span id="currentTime" class="text-base font-medium text-gray-700"></span>
             </div>
             
-            <!-- Utility Icons - Like in the image -->
-            <div class="dropdown dropdown-end mr-2">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-circle" onclick="toggleDarkMode()">
-                <i id="darkModeIcon" data-lucide="moon" class="w-6 h-6 text-gray-600"></i>
-              </div>
-            </div>
+            <!-- Moon Icon (Dark Mode Toggle) -->
+            <button id="darkModeToggle" class="p-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors">
+                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                </svg>
+                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="white">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+                </svg>
+            </button>
             <div class="dropdown dropdown-end">
               <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
                 <i data-lucide="user" class="w-6 h-6 text-gray-600"></i>
@@ -941,57 +943,53 @@
       timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
-    // Initialize dark mode from localStorage
-    function initializeDarkMode() {
-      const darkMode = localStorage.getItem('darkMode');
-      const html = document.documentElement;
-      const body = document.body;
-      const icon = document.getElementById('darkModeIcon');
-      const header = document.querySelector('header');
-      const sidebar = document.getElementById('sidebar');
-      const main = document.querySelector('main');
+    // Dark mode functionality
+    function setupDarkMode() {
+      const toggle = document.getElementById('darkModeToggle');
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
       
-      if (darkMode === 'true') {
-        html.classList.add('dark');
-        body.classList.add('dark');
-        icon.setAttribute('data-lucide', 'sun');
-        icon.classList.remove('text-gray-600', 'text-white');
-        icon.classList.add('text-yellow-500');
-        
-        const button = icon.closest('.btn');
-        if (button) {
-          button.classList.remove('bg-blue-600', 'bg-blue-700', 'text-white');
-          button.classList.add('btn-ghost');
+      function updateIcons() {
+        if(document.documentElement.classList.contains('dark')) {
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        } else {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
         }
-        
-        header.classList.remove('bg-white', 'border-gray-200');
-        header.classList.add('dark:bg-gray-800', 'dark:border-gray-700');
-        
-        if (sidebar) sidebar.classList.add('dark:bg-gray-900');
-        if (main) main.classList.add('dark:bg-gray-900');
+      }
+      
+      // Initial state
+      const isDarkMode = localStorage.getItem('darkMode') === 'true';
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
       } else {
-        html.classList.remove('dark');
-        body.classList.remove('dark');
-        icon.setAttribute('data-lucide', 'moon');
-        icon.classList.remove('text-yellow-500', 'text-white');
-        icon.classList.add('text-gray-600');
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+      }
+      updateIcons();
+      
+      toggle.addEventListener('click', function() {
+        console.log('Dark mode toggle clicked!');
         
-        const button = icon.closest('.btn');
-        if (button) {
-          button.classList.remove('bg-blue-600', 'bg-blue-700', 'text-white');
-          button.classList.add('btn-ghost');
+        // Direct toggle without relying on global function
+        if (document.documentElement.classList.contains('dark')) {
+          // Switch to light mode
+          document.documentElement.classList.remove('dark');
+          document.body.classList.remove('dark');
+          localStorage.setItem('darkMode', 'false');
+          console.log('Switched to LIGHT mode');
+        } else {
+          // Switch to dark mode
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+          localStorage.setItem('darkMode', 'true');
+          console.log('Switched to DARK mode');
         }
         
-        header.classList.remove('dark:bg-gray-800', 'dark:border-gray-700');
-        header.classList.add('bg-white', 'border-gray-200');
-        
-        if (sidebar) sidebar.classList.remove('dark:bg-gray-900');
-        if (main) main.classList.remove('dark:bg-gray-900');
-      }
-      
-      if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-      }
+        updateIcons();
+      });
     }
 
     // Logout function
@@ -1003,7 +1001,7 @@
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      initializeDarkMode();
+      setupDarkMode();
       updateDateTime();
       setupSearch();
       

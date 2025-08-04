@@ -10,7 +10,11 @@ class Document extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'description', 'file_path', 'status', 'uploaded_by'
+        'title', 'description', 'department', 'author', 'file_path', 'status', 'uploaded_by', 'ai_analysis', 'category', 'source'
+    ];
+
+    protected $casts = [
+        'ai_analysis' => 'array'
     ];
 
     public function uploader() {

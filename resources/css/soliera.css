@@ -40,3 +40,121 @@
   background: rgba(255,255,255,0.2);
   border-radius: 3px;
 }
+
+/* Dark mode styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.dark .bg-white {
+  background-color: #1f2937;
+}
+
+.dark .text-gray-800 {
+  color: #f9fafb;
+}
+
+.dark .text-gray-700 {
+  color: #e5e7eb;
+}
+
+.dark .text-gray-600 {
+  color: #d1d5db;
+}
+
+.dark .text-gray-500 {
+  color: #9ca3af;
+}
+
+.dark .border-gray-200 {
+  border-color: #374151;
+}
+
+.dark .bg-gray-50 {
+  background-color: #111827;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1f2937;
+}
+
+.dark .bg-gray-200 {
+  background-color: #374151;
+}
+
+/* Dark mode sidebar */
+.dark #sidebar {
+  background: linear-gradient(to bottom, #111827, #1f2937);
+  border-color: #374151;
+}
+
+/* Dark mode header */
+.dark header {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+/* Dark mode main content */
+.dark main {
+  background-color: #111827;
+}
+
+/* Dark mode cards */
+.dark .card {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+/* Dark mode tables */
+.dark .table {
+  background-color: #1f2937;
+}
+
+.dark .table th {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+.dark .table td {
+  border-color: #374151;
+}
+
+/* Dark mode inputs */
+.dark .input {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark .input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+/* Dark mode buttons */
+.dark .btn-ghost {
+  color: #f9fafb;
+}
+
+.dark .btn-ghost:hover {
+  background-color: #374151;
+}
+
+/* Dark mode dropdowns */
+.dark .dropdown-content {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .dropdown-content a {
+  color: #f9fafb;
+}
+
+.dark .dropdown-content a:hover {
+  background-color: #374151;
+}

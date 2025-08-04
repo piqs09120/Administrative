@@ -2,18 +2,13 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\RoomController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TableController;
-use App\Http\Controllers\ComplianceController;
-use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\AccessController;
-use App\Http\Controllers\StaffController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\VisitorController;
@@ -50,7 +45,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     
     // Hotel Management
-    Route::resource('rooms', RoomController::class);
     Route::resource('reservations', ReservationController::class);
     Route::resource('guests', GuestController::class);
     
@@ -81,6 +75,8 @@ Route::middleware(['auth'])->group(function () {
     // Document Management Routes
     Route::post('/document/{id}/request-release', [DocumentController::class, 'requestRelease'])->name('document.request-release');
     Route::get('/document/{id}/download', [DocumentController::class, 'download'])->name('document.download');
+    Route::post('/document/{id}/analyze', [DocumentController::class, 'analyze'])->name('document.analyze');
+    Route::post('/document/analyze-upload', [DocumentController::class, 'analyzeUpload'])->name('document.analyze');
     
     // Legal Approval Routes
     Route::post('/legal/{id}/approve', [LegalController::class, 'approveRequest'])->name('legal.approve');
@@ -88,6 +84,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/legal/pending', [LegalController::class, 'pendingRequests'])->name('legal.pending');
     Route::get('/legal/approved', [LegalController::class, 'approvedRequests'])->name('legal.approved');
     Route::get('/legal/denied', [LegalController::class, 'deniedRequests'])->name('legal.denied');
+    
+    // Legal Document Categories
+    Route::get('/legal/category/{category}', [LegalController::class, 'categoryDocuments'])->name('legal.category');
 
     
 
@@ -96,9 +95,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
     Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
 
-    // Financial Export Routes
-    Route::get('/finance/export/excel', [App\Http\Controllers\FinanceController::class, 'exportExcel'])->name('finance.export.excel');
-    Route::get('/finance/export/pdf', [App\Http\Controllers\FinanceController::class, 'exportPdf'])->name('finance.export.pdf');
+
+
 
     // Visitor Export Routes
     Route::get('/visitor/export/excel', [App\Http\Controllers\VisitorController::class, 'exportExcel'])->name('visitor.export.excel');

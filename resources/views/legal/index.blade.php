@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Legal Management - Soliera</title>
+  <link rel="icon" href="swt.jpg" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   @vite(['resources/css/soliera.css'])
-  @fluxAppearance
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -41,12 +41,15 @@
               <span id="currentTime" class="text-base font-medium text-gray-700"></span>
             </div>
             
-            <!-- Utility Icons - Like in the image -->
-            <div class="dropdown dropdown-end mr-2">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-circle" onclick="toggleDarkMode()">
-                <i id="darkModeIcon" data-lucide="moon" class="w-6 h-6 text-gray-600"></i>
-              </div>
-            </div>
+            <!-- Moon Icon (Dark Mode Toggle) -->
+            <button id="darkModeToggle" class="p-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors">
+                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                </svg>
+                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="white">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+                </svg>
+            </button>
             <div class="dropdown dropdown-end">
               <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
                 <i data-lucide="user" class="w-6 h-6 text-gray-600"></i>
@@ -89,7 +92,7 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Pending Requests -->
-          <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+          <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-blue-100 text-sm font-medium">Pending Requests</p>
@@ -102,7 +105,7 @@
           </div>
 
           <!-- Pending Facility Reservations -->
-          <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+          <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-green-100 text-sm font-medium">Pending Reservations</p>
@@ -115,7 +118,7 @@
           </div>
 
           <!-- Approved Today -->
-          <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+          <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-purple-100 text-sm font-medium">Approved Today</p>
@@ -128,7 +131,7 @@
           </div>
 
           <!-- Denied Today -->
-          <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+          <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-orange-100 text-sm font-medium">Denied Today</p>
@@ -302,7 +305,12 @@
                         {{ \Carbon\Carbon::parse($reservation->updated_at)->format('M d, Y H:i') }}
                       </p>
                     </div>
-                    <div class="badge badge-success badge-lg">Approved</div>
+                    <div class="flex items-center space-x-2">
+                      <div class="badge badge-success badge-lg">Approved</div>
+                      <button onclick="deleteFacilityReservation({{ $reservation->id }})" class="btn btn-error btn-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </div>
                   </div>
                   @if($reservation->remarks)
                     <div class="text-sm text-gray-600 mt-2 italic">
@@ -320,7 +328,7 @@
         </div>
 
         <!-- Recently Denied Facility Reservations -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
           <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
             <i data-lucide="x-circle" class="w-6 h-6 text-red-500 mr-3"></i>
             Recently Denied Facility Reservations
@@ -342,7 +350,12 @@
                         {{ \Carbon\Carbon::parse($reservation->updated_at)->format('M d, Y H:i') }}
                       </p>
                     </div>
-                    <div class="badge badge-error badge-lg">Denied</div>
+                    <div class="flex items-center space-x-2">
+                      <div class="badge badge-error badge-lg">Denied</div>
+                      <button onclick="deleteFacilityReservation({{ $reservation->id }})" class="btn btn-error btn-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </div>
                   </div>
                   @if($reservation->remarks)
                     <div class="text-sm text-gray-600 mt-2 italic">
@@ -358,75 +371,198 @@
             </div>
           @endif
         </div>
+
+        <!-- Legal Document Folders -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-2">Legal Document Folders</h3>
+              <p class="text-gray-600">Browse legal documents by AI classification. Documents are automatically organized by category.</p>
+            </div>
+            <div class="flex space-x-3">
+              <a href="{{ route('legal.create') }}" class="btn btn-warning">
+                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                ADD NEW CASE
+              </a>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Memorandums -->
+            <a href="{{ route('legal.category', 'memorandums') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-blue-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Memorandums</h4>
+                <p class="text-2xl font-bold text-blue-600">{{ \App\Models\Document::where('category', 'memorandum')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Contracts -->
+            <a href="{{ route('legal.category', 'contracts') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-green-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Contracts</h4>
+                <p class="text-2xl font-bold text-green-600">{{ \App\Models\Document::where('category', 'contract')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Subpoenas -->
+            <a href="{{ route('legal.category', 'subpoenas') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-red-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Subpoenas</h4>
+                <p class="text-2xl font-bold text-red-600">{{ \App\Models\Document::where('category', 'subpoena')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Affidavits -->
+            <a href="{{ route('legal.category', 'affidavits') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-purple-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Affidavits</h4>
+                <p class="text-2xl font-bold text-purple-600">{{ \App\Models\Document::where('category', 'affidavit')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Cease & Desist -->
+            <a href="{{ route('legal.category', 'cease-desist') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-orange-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Cease & Desist</h4>
+                <p class="text-2xl font-bold text-orange-600">{{ \App\Models\Document::where('category', 'cease_desist')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Legal Notices -->
+            <a href="{{ route('legal.category', 'legal-notices') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-yellow-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Legal Notices</h4>
+                <p class="text-2xl font-bold text-yellow-600">{{ \App\Models\Document::where('category', 'legal_notice')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Policies -->
+            <a href="{{ route('legal.category', 'policies') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-indigo-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Policies</h4>
+                <p class="text-2xl font-bold text-indigo-600">{{ \App\Models\Document::where('category', 'policy')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Legal Briefs -->
+            <a href="{{ route('legal.category', 'legal-briefs') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-pink-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Legal Briefs</h4>
+                <p class="text-2xl font-bold text-pink-600">{{ \App\Models\Document::where('category', 'legal_brief')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Financial Documents -->
+            <a href="{{ route('legal.category', 'financial') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-emerald-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Financial</h4>
+                <p class="text-2xl font-bold text-emerald-600">{{ \App\Models\Document::where('category', 'financial')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Compliance Documents -->
+            <a href="{{ route('legal.category', 'compliance') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-teal-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Compliance</h4>
+                <p class="text-2xl font-bold text-teal-600">{{ \App\Models\Document::where('category', 'compliance')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+
+            <!-- Reports -->
+            <a href="{{ route('legal.category', 'reports') }}" class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer block">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="folder" class="w-8 h-8 text-cyan-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Reports</h4>
+                <p class="text-2xl font-bold text-cyan-600">{{ \App\Models\Document::where('category', 'report')->where('source', 'legal_management')->count() }} documents</p>
+              </div>
+            </a>
+          </div>
+        </div>
       </main>
     </div>
   </div>
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality - works on entire screen
-    function toggleDarkMode() {
-      const html = document.documentElement;
-      const body = document.body;
-      const icon = document.getElementById('darkModeIcon');
-      const header = document.querySelector('header');
-      const sidebar = document.getElementById('sidebar');
-      const main = document.querySelector('main');
+    // Dark mode functionality
+    function setupDarkMode() {
+      const toggle = document.getElementById('darkModeToggle');
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
       
-      if (html.classList.contains('dark')) {
-        // Switch to light mode
-        html.classList.remove('dark');
-        body.classList.remove('dark');
-        localStorage.setItem('darkMode', 'false');
-        icon.setAttribute('data-lucide', 'moon');
-        icon.classList.remove('text-yellow-500');
-        icon.classList.add('text-gray-600');
-        
-        // Update header styles
-        header.classList.remove('dark:bg-gray-800', 'dark:border-gray-700');
-        header.classList.add('bg-white', 'border-gray-200');
-        
-        // Update sidebar styles
-        if (sidebar) {
-          sidebar.classList.remove('dark:bg-gray-900');
+      function updateIcons() {
+        if(document.documentElement.classList.contains('dark')) {
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        } else {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
         }
-        
-        // Update main content styles
-        if (main) {
-          main.classList.remove('dark:bg-gray-900');
-        }
-        
-        console.log('Switched to LIGHT mode');
+      }
+      
+      // Initial state
+      const isDarkMode = localStorage.getItem('darkMode') === 'true';
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
       } else {
-        // Switch to dark mode
-        html.classList.add('dark');
-        body.classList.add('dark');
-        localStorage.setItem('darkMode', 'true');
-        icon.setAttribute('data-lucide', 'sun');
-        icon.classList.remove('text-gray-600');
-        icon.classList.add('text-yellow-500');
-        
-        // Update header styles
-        header.classList.remove('bg-white', 'border-gray-200');
-        header.classList.add('dark:bg-gray-800', 'dark:border-gray-700');
-        
-        // Update sidebar styles
-        if (sidebar) {
-          sidebar.classList.add('dark:bg-gray-900');
-        }
-        
-        // Update main content styles
-        if (main) {
-          main.classList.add('dark:bg-gray-900');
-        }
-        
-        console.log('Switched to DARK mode');
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
       }
+      updateIcons();
       
-      // Recreate the icon
-      if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-      }
+      toggle.addEventListener('click', function() {
+        console.log('Dark mode toggle clicked!');
+        
+        // Direct toggle without relying on global function
+        if (document.documentElement.classList.contains('dark')) {
+          // Switch to light mode
+          document.documentElement.classList.remove('dark');
+          document.body.classList.remove('dark');
+          localStorage.setItem('darkMode', 'false');
+          console.log('Switched to LIGHT mode');
+        } else {
+          // Switch to dark mode
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+          localStorage.setItem('darkMode', 'true');
+          console.log('Switched to DARK mode');
+        }
+        
+        updateIcons();
+      });
     }
 
     // Real-time date and time
@@ -462,68 +598,9 @@
       }
     }
 
-    // Initialize dark mode from localStorage
-    function initializeDarkMode() {
-      const darkMode = localStorage.getItem('darkMode');
-      const html = document.documentElement;
-      const body = document.body;
-      const icon = document.getElementById('darkModeIcon');
-      const header = document.querySelector('header');
-      const sidebar = document.getElementById('sidebar');
-      const main = document.querySelector('main');
-      
-      if (darkMode === 'true') {
-        html.classList.add('dark');
-        body.classList.add('dark');
-        icon.setAttribute('data-lucide', 'sun');
-        icon.classList.remove('text-gray-600');
-        icon.classList.add('text-yellow-500');
-        
-        header.classList.remove('bg-white', 'border-gray-200');
-        header.classList.add('dark:bg-gray-800', 'dark:border-gray-700');
-        
-        // Update sidebar styles
-        if (sidebar) {
-          sidebar.classList.add('dark:bg-gray-900');
-        }
-        
-        // Update main content styles
-        if (main) {
-          main.classList.add('dark:bg-gray-900');
-        }
-        
-        console.log('Initialized DARK mode');
-      } else {
-        html.classList.remove('dark');
-        body.classList.remove('dark');
-        icon.setAttribute('data-lucide', 'moon');
-        icon.classList.remove('text-yellow-500');
-        icon.classList.add('text-gray-600');
-        
-        header.classList.remove('dark:bg-gray-800', 'dark:border-gray-700');
-        header.classList.add('bg-white', 'border-gray-200');
-        
-        // Update sidebar styles
-        if (sidebar) {
-          sidebar.classList.remove('dark:bg-gray-900');
-        }
-        
-        // Update main content styles
-        if (main) {
-          main.classList.remove('dark:bg-gray-900');
-        }
-        
-        console.log('Initialized LIGHT mode');
-      }
-      
-      if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-      }
-    }
-
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      initializeDarkMode();
+      setupDarkMode();
       updateDateTime();
       setupSearch();
       
@@ -542,6 +619,32 @@
       if (confirm('Are you sure you want to deny this request?')) {
         // Add your denial logic here
         console.log('Denying request:', requestId);
+      }
+    }
+
+    function deleteFacilityReservation(reservationId) {
+      if (confirm('Are you sure you want to delete this facility reservation? This action cannot be undone.')) {
+        // Create a form to submit the delete request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/facility_reservations/${reservationId}`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        
+        // Add method override for DELETE
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = 'DELETE';
+        
+        form.appendChild(csrfToken);
+        form.appendChild(methodField);
+        document.body.appendChild(form);
+        form.submit();
       }
     }
   </script>

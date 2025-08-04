@@ -10,7 +10,6 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
-    
     <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest" defer></script>
@@ -25,64 +24,67 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col dark:bg-gray-900 transition-all duration-300 ease-in-out overflow-visible">
             <!-- Header -->
-            <header class="bg-white dark:bg-gray-800 border-b border-blue-600 px-6 py-3 flex items-center justify-between shadow-sm overflow-visible z-50">
+            <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-6 flex items-center justify-between shadow-sm overflow-visible z-50">
                 <div class="flex items-center">
-                    <button @click="sidebarCollapsed = !sidebarCollapsed" class="mr-4 p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-700 transition-colors">
-                        <i data-lucide="menu" class="w-6 h-6 text-blue-900"></i>
+                    <button @click="sidebarCollapsed = !sidebarCollapsed" class="mr-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i data-lucide="menu" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                     </button>
-                    <h2 class="text-lg font-medium text-gray-800 dark:text-white">
+                    <h2 class="text-3xl font-bold text-gray-800 dark:text-white ml-4">
                         @yield('page-title', 'Dashboard')
                     </h2>
                 </div>
-                <div class="flex items-center gap-4 overflow-visible">
+                <div class="flex items-center space-x-4">
+                    <!-- Search Bar -->
                     <div class="relative">
-                        <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-colors" />
-                        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400 dark:text-gray-500"></i>
+                        <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-colors w-64" />
+                        <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
                     </div>
-                    <!-- DateTime -->
-                    <div x-data="{ date: '', time: '' }" x-init="setInterval(() => { const now = new Date(); date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }, 1000)" class="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg transition-colors">
-                        <div class="flex items-center gap-1 text-gray-600 dark:text-gray-300">
-                            <i data-lucide="calendar" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
-                            <span class="text-sm font-medium" x-text="date"></span>
-                        </div>
-                        <div class="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
-                        <div class="flex items-center gap-1 text-gray-600 dark:text-gray-300">
-                            <i data-lucide="clock" class="w-4 h-4 text-green-600 dark:text-green-400"></i>
-                            <span class="text-sm font-medium" x-text="time"></span>
-                        </div>
+                    
+                    <!-- Date and Time -->
+                    <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-lg">
+                        <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
+                        <span class="text-base font-medium text-gray-700 dark:text-gray-300" x-data="{ date: '' }" x-init="setInterval(() => { const now = new Date(); date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }, 1000)" x-text="date"></span>
+                        <div class="w-px h-5 bg-gray-300 dark:bg-gray-600"></div>
+                        <i data-lucide="clock" class="w-5 h-5 text-green-500"></i>
+                        <span class="text-base font-medium text-gray-700 dark:text-gray-300" x-data="{ time: '' }" x-init="setInterval(() => { const now = new Date(); time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }); }, 1000)" x-text="time"></span>
                     </div>
-                    <!-- Dark mode toggle -->
+                    
+                    <!-- Blue Moon Icon (Dark Mode Toggle) -->
                     <button @click="darkMode = !darkMode" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <template x-if="darkMode">
-                            <i data-lucide="sun" class="w-5 h-5 text-yellow-400"></i>
+                            <i data-lucide="sun" class="w-6 h-6 text-yellow-500"></i>
                         </template>
                         <template x-if="!darkMode">
-                            <i data-lucide="moon" class="w-5 h-5 text-gray-600"></i>
+                            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="moon" class="w-4 h-4 text-white"></i>
+                            </div>
                         </template>
                     </button>
-                    <!-- User Dropdown -->
-                    <div class="dropdown dropdown-end z-50">
-                        <label tabindex="0" class="p-2 cursor-pointer">
-                            <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
-                                <i data-lucide="user" class="w-2.5 h-2.5"></i>
-                            </div>
-                        </label>
-                        <ul tabindex="0" class="dropdown-content menu mt-1 z-50 w-36 bg-white shadow border text-sm">
+                    
+                    <!-- User Profile Icon -->
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                            <i data-lucide="user" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white dark:bg-gray-800 rounded-lg w-52 border border-gray-200 dark:border-gray-700">
                             <li>
-                                <a href="{{ route('profile.edit') }}" class="flex items-center px-2 py-1">
-                                    <i data-lucide="user" class="w-2.5 h-2.5 mr-1"></i>Profile
+                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+                                    <i data-lucide="user" class="w-4 h-4 text-gray-600"></i>
+                                    <span>Profile</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-2 py-1">
-                                    <i data-lucide="settings" class="w-2.5 h-2.5 mr-1"></i>Settings
+                                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+                                    <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+                                    <span>Settings</span>
                                 </a>
                             </li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="flex items-center px-2 py-1 w-full text-left">
-                                        <i data-lucide="log-out" class="w-2.5 h-2.5 mr-1"></i>Sign out
+                                    <button type="submit" class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left">
+                                        <i data-lucide="log-out" class="w-4 h-4 text-gray-600"></i>
+                                        <span>Sign out</span>
                                     </button>
                                 </form>
                             </li>
