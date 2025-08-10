@@ -170,16 +170,14 @@
           </div>
         </div>
         <div>
-          <p class="font-medium text-white">{{ Auth::user()->name ?? 'John Smith' }}</p>
-          <p class="text-xs text-white">{{ Auth::user()->role ?? 'Front Desk Manager' }}</p>
+          <p class="font-medium text-white">John Smith</p>
         </div>
       </div>
     </li>
     
     <!-- Menu Items -->
     <li>
-      <a href="{{ route('profile.show') }}" class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
-        <i data-lucide="user" class="w-4 h-4"></i>
+      <a class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
         <span>Profile</span>
       </a>
     </li>

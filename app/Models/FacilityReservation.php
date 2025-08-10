@@ -30,11 +30,8 @@ class FacilityReservation extends Model
         'legal_comment',
         // New workflow fields
         'requester_name',
-        'requester_department',
         'requester_contact',
-        'availability_checked',
-        'availability_checked_at',
-        'availability_conflicts',
+
         'workflow_stage',
         'workflow_log',
         'digital_passes_generated',
@@ -53,8 +50,7 @@ class FacilityReservation extends Model
         'end_time' => 'datetime',
         'legal_reviewed_at' => 'datetime',
         // New workflow casts
-        'availability_checked' => 'boolean',
-        'availability_checked_at' => 'datetime',
+
         'workflow_log' => 'array',
         'digital_passes_generated' => 'boolean',
         'digital_pass_data' => 'array',

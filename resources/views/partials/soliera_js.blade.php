@@ -183,56 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
   displayPhilippineTime();
 });
 
-  // Dark mode functionality
-  function setupDarkMode() {
-    const toggle = document.getElementById('darkModeToggle');
-    const sunIcon = document.getElementById('sunIcon');
-    const moonIcon = document.getElementById('moonIcon');
-    
-    if (!toggle) return; // Exit if toggle doesn't exist
-    
-    function updateIcons() {
-      if(document.documentElement.classList.contains('dark')) {
-        if (sunIcon) sunIcon.classList.remove('hidden');
-        if (moonIcon) moonIcon.classList.add('hidden');
-      } else {
-        if (sunIcon) sunIcon.classList.add('hidden');
-        if (moonIcon) moonIcon.classList.remove('hidden');
-      }
-    }
-    
-    // Initial state
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
-    updateIcons();
-    
-    toggle.addEventListener('click', function() {
-      console.log('Dark mode toggle clicked!');
-      
-      // Direct toggle without relying on global function
-      if (document.documentElement.classList.contains('dark')) {
-        // Switch to light mode
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-        localStorage.setItem('darkMode', 'false');
-        console.log('Switched to LIGHT mode');
-      } else {
-        // Switch to dark mode
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-        localStorage.setItem('darkMode', 'true');
-        console.log('Switched to DARK mode');
-      }
-      
-      updateIcons();
-    });
-  }
+
 
   // Real-time date and time (fallback for pages without Philippine time)
   function updateDateTime() {

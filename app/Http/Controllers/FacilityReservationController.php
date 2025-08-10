@@ -68,7 +68,6 @@ class FacilityReservationController extends Controller
             'status' => 'pending',
             // Auto-populate requester information from authenticated user
             'requester_name' => Auth::user()->name,
-            'requester_department' => Auth::user()->department ?? 'Not specified',
             'requester_contact' => Auth::user()->email,
             'workflow_stage' => 'submitted'
         ]);
@@ -98,9 +97,8 @@ class FacilityReservationController extends Controller
                     'Document stored and indexed in secure repository', $storeResult['index']);
             }
             
-            // Send document to Gemini AI for classification (queued in background)
-            $reservation->logWorkflowStep('document_sent_to_ai', 'Document sent to Gemini AI for classification');
-            \App\Jobs\ProcessReservationDocument::dispatch($reservation->id);
+            // Simple document processing
+            $reservation->logWorkflowStep('document_processed', 'Document uploaded and stored');
         }
 
         // Step 3: If no document uploaded, proceed directly to approval workflow

@@ -55,14 +55,10 @@ class NotifySecurityTeam implements ShouldQueue
                 }
             }
 
-            // Update reservation
-            $reservation->update([
-                'security_notified' => true,
-                'security_notified_at' => now()
-            ]);
-
+            // Log the notification in workflow
             $reservation->updateWorkflowStage('security_notified', 
-                'Security team notified of upcoming visitor access');
+                'Security team notified of upcoming visitor access. ' . 
+                $securityTeam->count() . ' team members notified.');
 
             Log::info('Security team notified successfully', [
                 'reservation_id' => $reservation->id,
