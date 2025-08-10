@@ -110,9 +110,7 @@ class AccessController extends Controller
     
     public function security()
     {
-        if (!auth()->check() || strtolower(auth()->user()->role) !== 'administrator') {
-            abort(403, 'Only Administrators can access security settings.');
-        }
+        // Role restrictions removed - all users can access security settings
         $securitySettings = [
             'password_policy' => [
                 'min_length' => 8,

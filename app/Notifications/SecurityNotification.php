@@ -35,7 +35,8 @@ class SecurityNotification extends Notification implements ShouldQueue
             ->greeting('Security Alert')
             ->line('A facility reservation with visitor access has been approved and requires your attention.')
             ->line('**Facility:** ' . $this->reservation->facility->name)
-            ->line('**Date & Time:** ' . $this->reservation->start_time->format('M j, Y g:i A') . ' - ' . $this->reservation->end_time->format('g:i A'))
+            ->line('**Start Time:** ' . $this->reservation->start_time->format('m/d/Y h:i A'))
+            ->line('**End Time:** ' . $this->reservation->end_time->format('m/d/Y h:i A'))
             ->line('**Purpose:** ' . ($this->reservation->purpose ?: 'Not specified'))
             ->line('**Reserved by:** ' . $this->reservation->reserver->name);
 

@@ -9,14 +9,7 @@ class FacilitiesController extends Controller
 {
     public function __construct()
     {
-        // Restrict mutating actions to administrators
-        $this->middleware(function ($request, $next) {
-            $role = strtolower(auth()->user()->role ?? '');
-            if (!in_array($role, ['administrator'])) {
-                abort(403, 'Only Administrators can manage facilities.');
-            }
-            return $next($request);
-        })->only(['create', 'store', 'edit', 'update', 'destroy']);
+        // Role restrictions removed - all users can now manage facilities
     }
 
     public function index()

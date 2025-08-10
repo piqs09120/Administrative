@@ -32,24 +32,13 @@ class FacilityReservationController extends Controller
         $this->calendarService = $calendarService;
         $this->secureRepository = $secureRepository;
         
-        $this->middleware(function ($request, $next) {
-            $role = auth()->user()->role ?? null;
-            if (!in_array(strtolower($role), ['administrator'])) {
-                abort(403, 'Only Administrators can approve or deny facility reservations.');
-            }
-            return $next($request);
-        })->only(['approve', 'deny']);
+        // Role restrictions removed - all users can now approve/deny reservations
     }
 
     public function index()
     {
-        // Show all reservations for the current user or all if admin/legal
-        $role = strtolower(auth()->user()->role ?? '');
-        $query = FacilityReservation::with(['facility', 'reserver', 'approver'])->latest();
-        if (!in_array($role, ['administrator','legal'])) {
-            $query->where('reserved_by', auth()->id());
-        }
-        $reservations = $query->get();
+        // Show all reservations to all users - role restrictions removed
+        $reservations = FacilityReservation::with(['facility', 'reserver', 'approver'])->latest()->get();
         return view('facility_reservations.index', compact('reservations'));
     }
 
@@ -278,10 +267,7 @@ class FacilityReservationController extends Controller
 
     public function approve($id)
     {
-        if (strtolower(Auth::user()->role) !== 'administrator') {
-            abort(403, 'Only Administrators can approve reservations.');
-        }
-        
+        // Role restrictions removed - all users can approve reservations
         $reservation = FacilityReservation::findOrFail($id);
         
         if ($reservation->status !== 'pending') {
@@ -310,10 +296,7 @@ class FacilityReservationController extends Controller
 
     public function deny($id)
     {
-        if (strtolower(Auth::user()->role) !== 'administrator') {
-            abort(403, 'Only Administrators can deny reservations.');
-        }
-        
+        // Role restrictions removed - all users can deny reservations
         $reservation = FacilityReservation::findOrFail($id);
         
         if ($reservation->status !== 'pending') {
@@ -342,11 +325,7 @@ class FacilityReservationController extends Controller
 
     public function legalReview($id)
     {
-        $role = strtolower(auth()->user()->role ?? '');
-        if (!in_array($role, ['legal', 'administrator'])) {
-            abort(403, 'Only Legal Officers and Administrators can perform legal review.');
-        }
-        
+        // Role restrictions removed - all users can perform legal review
         $reservation = FacilityReservation::with(['facility', 'reserver', 'approver'])->findOrFail($id);
         
         if (!$reservation->requires_legal_review) {
@@ -358,11 +337,7 @@ class FacilityReservationController extends Controller
 
     public function legalApprove($id)
     {
-        $role = strtolower(auth()->user()->role ?? '');
-        if (!in_array($role, ['legal', 'administrator'])) {
-            abort(403, 'Only Legal Officers and Administrators can perform legal review.');
-        }
-        
+        // Role restrictions removed - all users can perform legal review
         $reservation = FacilityReservation::findOrFail($id);
         
         if (!$reservation->requires_legal_review) {
@@ -401,11 +376,7 @@ class FacilityReservationController extends Controller
 
     public function legalFlag($id)
     {
-        $role = strtolower(auth()->user()->role ?? '');
-        if (!in_array($role, ['legal', 'administrator'])) {
-            abort(403, 'Only Legal Officers and Administrators can perform legal review.');
-        }
-        
+        // Role restrictions removed - all users can perform legal review
         $reservation = FacilityReservation::findOrFail($id);
         
         if (!$reservation->requires_legal_review) {

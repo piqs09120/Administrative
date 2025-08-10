@@ -34,13 +34,19 @@ class FacilityReservationStatusNotification extends Notification implements Shou
         switch ($this->reservation->status) {
             case 'pending':
                 $mail->line('Your facility reservation request has been submitted and is being processed.')
+                     ->line('**Facility:** ' . $this->reservation->facility->name)
+                     ->line('**Start Time:** ' . $this->reservation->start_time->format('m/d/Y h:i A'))
+                     ->line('**End Time:** ' . $this->reservation->end_time->format('m/d/Y h:i A'))
+                     ->line('**Purpose:** ' . ($this->reservation->purpose ?: 'Not specified'))
                      ->line('Our system is automatically checking facility availability and processing any documents you provided.');
                 break;
             
             case 'approved':
                 $mail->line('🎉 Great news! Your facility reservation has been approved.')
                      ->line('**Facility:** ' . $this->reservation->facility->name)
-                     ->line('**Date & Time:** ' . $this->reservation->start_time->format('M j, Y g:i A') . ' - ' . $this->reservation->end_time->format('g:i A'));
+                     ->line('**Start Time:** ' . $this->reservation->start_time->format('m/d/Y h:i A'))
+                     ->line('**End Time:** ' . $this->reservation->end_time->format('m/d/Y h:i A'))
+                     ->line('**Purpose:** ' . ($this->reservation->purpose ?: 'Not specified'));
                 
                 if ($this->reservation->isAutoApproved()) {
                     $mail->line('✅ This reservation was automatically approved by our system.');
@@ -53,7 +59,11 @@ class FacilityReservationStatusNotification extends Notification implements Shou
                 break;
             
             case 'denied':
-                $mail->line('❌ Unfortunately, your facility reservation request has been denied.');
+                $mail->line('❌ Unfortunately, your facility reservation request has been denied.')
+                     ->line('**Facility:** ' . $this->reservation->facility->name)
+                     ->line('**Start Time:** ' . $this->reservation->start_time->format('m/d/Y h:i A'))
+                     ->line('**End Time:** ' . $this->reservation->end_time->format('m/d/Y h:i A'))
+                     ->line('**Purpose:** ' . ($this->reservation->purpose ?: 'Not specified'));
                 
                 if ($this->reservation->hasAvailabilityConflicts()) {
                     $mail->line('**Reason:** The facility is not available for your requested time period.')
