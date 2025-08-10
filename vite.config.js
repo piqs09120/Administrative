@@ -6,9 +6,16 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/soliera.css',
+                'resources/css/sidebar-collapse.css',
                 'resources/js/app.js'
             ],
             refresh: true,
         }),
     ],
+    server: {
+        hmr: {
+            host: 'localhost',
+        },
+    }
 });

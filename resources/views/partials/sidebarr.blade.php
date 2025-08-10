@@ -1,15 +1,12 @@
-<div class="bg-[#001f54] pt-5 pb-4 flex flex-col fixed md:relative h-full transition-all duration-300 ease-in-out shadow-xl transform -translate-x-full md:transform-none md:translate-x-0 w-64" id="sidebar">
+<div class="bg-[#001f54] pt-5 pb-4 flex flex-col fixed md:relative h-full transition-all duration-300 ease-in-out shadow-xl transform -translate-x-full md:transform-none md:translate-x-0" id="sidebar">
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between flex-shrink-0 px-4 mb-6 text-center">
       <h1 class="text-xl font-bold text-white items-center gap-2">
          <img id="sidebar-logo" src="{{asset('images/logo/logofinal.png')}}" alt="" >
          <img id="sonly" class="hidden w-full h-25" src="{{asset('images/logo/sonly.png')}}" alt="">
-        
       </h1>
     </div>
 
-     
-    
     <!-- Navigation Menu -->
     <div class="flex-1 flex flex-col overflow-y-auto">
       <nav class="flex-1 px-2 space-y-1">
@@ -145,7 +142,7 @@
           </div>
         </div>
 
-        <!-- User Management (moved under Document Management) -->
+        <!-- User Management -->
         <div class="collapse group">
           <input type="checkbox" class="peer" {{ request()->routeIs('access.*') ? 'checked' : '' }} /> 
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('access.*') ? 'bg-blue-700' : '' }}">
@@ -185,7 +182,7 @@
           </div>
         </div>
 
-        <!-- Help & Support (moved under Document Management) -->
+        <!-- Help & Support -->
         <div class="collapse group">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group">
@@ -216,7 +213,6 @@
     </div>
   </div>
   <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
 
 <style>
   /* Mobile styles */
@@ -296,12 +292,11 @@
   }
   
   #sidebar-logo {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
-#sidebar.loaded #sidebar-logo {
-  opacity: 1;
-}
-
-</style> 
+  #sidebar.loaded #sidebar-logo {
+    opacity: 1;
+  }
+</style>

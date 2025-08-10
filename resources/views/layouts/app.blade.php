@@ -10,14 +10,19 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
+    
+    <!-- DaisyUI and Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/soliera.css', 'resources/css/sidebar-collapse.css', 'resources/js/app.js'])
 </head>
-<body class="bg-base-200 min-h-screen overflow-visible" x-data="{ sidebarCollapsed: false, darkMode: false, showLogout: false }" :class="{ 'dark': darkMode, 'sidebar-collapsed': sidebarCollapsed }">
+<body class="bg-base-200 min-h-screen overflow-visible">
     <div class="flex w-full min-h-screen transition-colors duration-300 ease-in-out overflow-visible">
         <!-- Sidebar -->
         @include('partials.sidebarr')
@@ -25,8 +30,6 @@
         <div class="flex-1 flex flex-col dark:bg-gray-900 transition-all duration-300 ease-in-out overflow-visible">
             <!-- Header -->
             @include('partials.navbar')
-            <!-- Logout Modal -->
-            <!-- (Removed old logout modal) -->
             <!-- Page Content -->
             <main class="flex-1 p-6">
                 @if(session('success'))
@@ -45,27 +48,9 @@
             </main>
         </div>
     </div>
-    <!-- Alpine.js for interactivity -->
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script>
-      function lucideInit() {
-        if (window.lucide && window.lucide.createIcons) {
-          window.lucide.createIcons();
-        }
-      }
-      document.addEventListener('DOMContentLoaded', lucideInit);
-      document.addEventListener('alpine:init', lucideInit);
-      document.addEventListener('htmx:afterSwap', lucideInit);
-      window.addEventListener('pageshow', lucideInit);
-      window.addEventListener('popstate', lucideInit);
-    </script>
-    <style>
-    .sidebar-collapsed #sidebar {
-    width: 5rem !important;
-}
-.sidebar-collapsed .sidebar-text {
-    display: none !important;
-}
-</style>
+    @stack('scripts')
 </body>
 </html>

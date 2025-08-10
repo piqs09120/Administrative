@@ -179,32 +179,6 @@ displayPhilippineTime();
 setInterval(displayPhilippineTime, 1000);
 
 // Add event listener to ensure the function runs after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  displayPhilippineTime();
-});
-
-
-
-  // Real-time date and time (fallback for pages without Philippine time)
-  function updateDateTime() {
-    const now = new Date();
-    const dateElement = document.getElementById('currentDate');
-    const timeElement = document.getElementById('currentTime');
-    
-    const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
-    
-    if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-    if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
-  }
-  
-  // Initialize when DOM loads
-  document.addEventListener('DOMContentLoaded', function() {
-    initSidebar();
-    setupDarkMode();
-    updateDateTime();
-    
-    // Update time every second
-    setInterval(updateDateTime, 1000);
-  });
+ // Initialize when DOM loads
+ document.addEventListener('DOMContentLoaded', initSidebar);
 </script>
