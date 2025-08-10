@@ -331,11 +331,22 @@
         </div>
       `;
 
-      fetch('{{ route("document.analyze") }}', {
+      fetch('{{ route("document.analyze-upload") }}', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       })
-      .then(response => response.json())
+      .then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok) {
+          const fallback = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Server error' };
+          return fallback;
+        }
+        if (!contentType.includes('application/json')) {
+          return { success: false, message: 'Unexpected response from server' };
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.success) {
           // Update AI analysis results

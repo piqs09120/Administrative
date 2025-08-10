@@ -352,12 +352,21 @@
         aiCategoryField.classList.add('bg-blue-50', 'border-blue-300');
       }
 
-      fetch('{{ route("document.analyze") }}', {
+      fetch('{{ route("document.analyze-upload") }}', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       })
-      .then(response => {
+      .then(async response => {
         console.log('Response status:', response.status);
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok) {
+          const fallback = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Server error' };
+          return fallback;
+        }
+        if (!contentType.includes('application/json')) {
+          return { success: false, message: 'Unexpected response from server' };
+        }
         return response.json();
       })
       .then(data => {
@@ -449,7 +458,7 @@
               <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
               <h3 class="font-medium text-red-800">AI Analysis Failed</h3>
             </div>
-            <p class="text-sm text-red-600">Network error occurred</p>
+            <p class="text-sm text-red-600">Network error occurred. Please check your connection or try again.</p>
           </div>
         `;
       });

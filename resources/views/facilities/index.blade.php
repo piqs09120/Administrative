@@ -143,25 +143,56 @@
                     </div>
                   </div>
 
-                  <div class="flex space-x-2">
-                    <a href="{{ route('facilities.show', $facility->id) }}" class="btn btn-sm btn-outline flex-1">
-                      <i data-lucide="eye" class="w-4 h-4 mr-1"></i>View
+                  <div class="grid grid-cols-2 gap-3 mt-4">
+                    <!-- View Button -->
+                    <a href="{{ route('facilities.show', $facility->id) }}" 
+                       class="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center">
+                      <i data-lucide="eye" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
+                      <span class="relative z-10">VIEW</span>
+                      <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                     </a>
-                    <a href="{{ route('facilities.edit', $facility->id) }}" class="btn btn-sm btn-outline flex-1">
-                      <i data-lucide="edit" class="w-4 h-4 mr-1"></i>Edit
+
+                    <!-- Edit Button -->
+                    <a href="{{ route('facilities.edit', $facility->id) }}" 
+                       class="group relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center">
+                      <i data-lucide="edit" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
+                      <span class="relative z-10">EDIT</span>
+                      <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                     </a>
+
                     @if($facility->status === 'available')
-                      <a href="{{ route('facility_reservations.create') }}?facility={{ $facility->id }}" class="btn btn-sm btn-primary flex-1">
-                        <i data-lucide="calendar-plus" class="w-4 h-4 mr-1"></i>Reserve
+                      <!-- Reserve Button -->
+                      <a href="{{ route('facility_reservations.create') }}?facility={{ $facility->id }}" 
+                         class="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center">
+                        <i data-lucide="calendar-plus" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
+                        <span class="relative z-10">RESERVE</span>
+                        <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                       </a>
+
+                      <!-- Delete Button -->
+                      <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this facility? This action cannot be undone.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center w-full">
+                          <i data-lucide="trash-2" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
+                          <span class="relative z-10">DELETE</span>
+                          <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                        </button>
+                      </form>
+                    @else
+                      <!-- Delete Button (Full Width for Occupied Facilities) -->
+                      <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST" class="col-span-2" onsubmit="return confirm('Are you sure you want to delete this facility? This action cannot be undone.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center w-full">
+                          <i data-lucide="trash-2" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
+                          <span class="relative z-10">DELETE</span>
+                          <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                        </button>
+                      </form>
                     @endif
-                    <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Are you sure you want to delete this facility? This action cannot be undone.');">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline btn-error w-full flex items-center justify-center">
-                        <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>Delete
-                      </button>
-                    </form>
                   </div>
                 </div>
               @endforeach

@@ -81,7 +81,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/document/{id}/request-release', [DocumentController::class, 'requestRelease'])->name('document.request-release');
     Route::get('/document/{id}/download', [DocumentController::class, 'download'])->name('document.download');
     Route::post('/document/{id}/analyze', [DocumentController::class, 'analyze'])->name('document.analyze');
-    Route::post('/document/analyze-upload', [DocumentController::class, 'analyzeUpload'])->name('document.analyze');
+    // Use a unique name for the upload analysis endpoint to avoid name collisions
+    Route::post('/document/analyze-upload', [DocumentController::class, 'analyzeUpload'])->name('document.analyze-upload');
     
     // Legal Approval Routes
     Route::post('/legal/{id}/approve', [LegalController::class, 'approveRequest'])->name('legal.approve');
