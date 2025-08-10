@@ -16,62 +16,8 @@
     @include('partials.sidebarr')
     <!-- Main content -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <!-- Header - Exactly like Document Management -->
-      <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <button onclick="toggleSidebar()" class="btn btn-ghost btn-sm hover:bg-base-300 transition-all hover:scale-105">
-              <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-            <h1 class="text-3xl font-bold text-gray-800 ml-4">Facility Reservations</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <!-- Search Bar - Like in Document Management -->
-            <div class="relative">
-              <input type="text" id="searchInput" placeholder="Search..." class="input input-bordered input-md w-64 pl-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-              <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            </div>
-            
-            <!-- Date and Time - Like in Document Management -->
-            <div class="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-lg">
-              <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
-              <span id="currentDate" class="text-base font-medium text-gray-700"></span>
-              <div class="w-px h-5 bg-gray-300"></div>
-              <i data-lucide="clock" class="w-5 h-5 text-green-500"></i>
-              <span id="currentTime" class="text-base font-medium text-gray-700"></span>
-            </div>
-            
-            <!-- Moon Icon (Dark Mode Toggle) - Like in Document Management -->
-            <button id="darkModeToggle" class="p-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors">
-                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" />
-                </svg>
-                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="white">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-                </svg>
-            </button>
-            <div class="dropdown dropdown-end">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-                <i data-lucide="user" class="w-6 h-6 text-gray-600"></i>
-              </div>
-              <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white rounded-lg w-52 border border-gray-200">
-                <li><a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                  <i data-lucide="user" class="w-4 h-4 text-gray-600"></i>
-                  <span>Profile</span>
-                </a></li>
-                <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                  <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
-                  <span>Settings</span>
-                </a></li>
-                <li><a href="#" onclick="logout()" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                  <i data-lucide="log-out" class="w-4 h-4 text-gray-600"></i>
-                  <span>Sign out</span>
-                </a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </header>
+      <!-- Header -->
+      @include('partials.navbar')
 
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
@@ -97,12 +43,55 @@
           </a>
         </div>
 
+        <!-- AI Processing Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-blue-100 text-sm">Total Reservations</p>
+                <p class="text-2xl font-bold">{{ $reservations->count() }}</p>
+              </div>
+              <i data-lucide="calendar" class="w-8 h-8 text-blue-200"></i>
+            </div>
+          </div>
+          
+          <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-green-100 text-sm">Auto-Approved</p>
+                <p class="text-2xl font-bold">{{ $reservations->where('auto_approved_at', '!=', null)->count() }}</p>
+              </div>
+              <i data-lucide="check-circle" class="w-8 h-8 text-green-200"></i>
+            </div>
+          </div>
+          
+          <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-purple-100 text-sm">AI Processed</p>
+                <p class="text-2xl font-bold">{{ $reservations->where('ai_classification', '!=', null)->count() }}</p>
+              </div>
+              <i data-lucide="brain" class="w-8 h-8 text-purple-200"></i>
+            </div>
+          </div>
+          
+          <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-orange-100 text-sm">Pending Review</p>
+                <p class="text-2xl font-bold">{{ $reservations->where('status', 'pending')->count() }}</p>
+              </div>
+              <i data-lucide="clock" class="w-8 h-8 text-orange-200"></i>
+            </div>
+          </div>
+        </div>
+
         <!-- Facility Reservations Table -->
         <div class="bg-white rounded-xl shadow-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-bold text-gray-800 flex items-center">
               <i data-lucide="calendar" class="w-6 h-6 text-blue-500 mr-3"></i>
-              Reservation Directory
+              AI-Enhanced Reservation Directory
             </h3>
             <div class="flex items-center space-x-2">
               <span class="text-sm text-gray-500">Total: {{ $reservations->count() }} reservations</span>
@@ -118,6 +107,7 @@
                   <th>Start</th>
                   <th>End</th>
                   <th>Status</th>
+                  <th>AI Analysis</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -131,6 +121,7 @@
                         </div>
                         <div>
                           <div class="font-semibold">{{ $reservation->facility->name ?? 'N/A' }}</div>
+                          <div class="text-sm text-gray-500">{{ $reservation->facility->location ?? 'N/A' }}</div>
                         </div>
                       </div>
                     </td>
@@ -157,42 +148,104 @@
                       </div>
                     </td>
                     <td>
-                      <span class="badge badge-{{ $reservation->status === 'pending' ? 'warning' : ($reservation->status === 'approved' ? 'success' : ($reservation->status === 'denied' ? 'error' : 'neutral')) }} badge-lg">
-                        {{ ucfirst($reservation->status) }}
-                      </span>
+                      <div class="flex items-center gap-2">
+                        @if($reservation->status === 'approved')
+                          <span class="badge badge-success gap-1">
+                            <i data-lucide="check" class="w-3 h-3"></i>
+                            Approved
+                          </span>
+                          @if($reservation->auto_approved_at)
+                            <span class="badge badge-info badge-xs">Auto</span>
+                          @endif
+                        @elseif($reservation->status === 'denied')
+                          <span class="badge badge-error gap-1">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                            Denied
+                          </span>
+                        @else
+                          <span class="badge badge-warning gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            Pending
+                          </span>
+                        @endif
+                        
+                        @if($reservation->requires_legal_review)
+                          <span class="badge badge-warning badge-xs">Legal</span>
+                        @endif
+                        
+                        @if($reservation->requires_visitor_coordination)
+                          <span class="badge badge-info badge-xs">Visitor</span>
+                        @endif
+                      </div>
+                    </td>
+                    <td>
+                      @if($reservation->ai_classification)
+                        <div class="text-sm">
+                          <div class="font-medium text-blue-600">
+                            {{ ucfirst($reservation->getAiClassification('category') ?? 'Unknown') }}
+                          </div>
+                          @if($reservation->getAiClassification('fallback'))
+                            <div class="text-xs text-gray-500">Fallback Analysis</div>
+                          @endif
+                        </div>
+                      @elseif($reservation->ai_error)
+                        <div class="text-sm text-red-600">
+                          <i data-lucide="alert-triangle" class="w-3 h-3 inline mr-1"></i>
+                          AI Error
+                        </div>
+                      @else
+                        <div class="text-sm text-gray-500">No Document</div>
+                      @endif
                     </td>
                     <td>
                       <div class="flex items-center gap-2">
-                        <a href="{{ route('facility_reservations.show', $reservation->id) }}" class="btn btn-sm btn-outline">
-                          <i data-lucide="eye" class="w-4 h-4 mr-1"></i>View
+                        <a href="{{ route('facility_reservations.show', $reservation->id) }}" 
+                           class="btn btn-sm btn-outline">
+                          <i data-lucide="eye" class="w-4 h-4"></i>
                         </a>
-                        @if($reservation->status === 'pending')
-                          <form action="{{ route('facility_reservations.approve', $reservation->id) }}" method="POST" style="display:inline;">
+                        
+                        @if($reservation->status === 'pending' && auth()->user()->role === 'administrator')
+                          <form action="{{ route('facility_reservations.approve', $reservation->id) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="btn btn-success btn-sm">
-                              <i data-lucide="check" class="w-4 h-4 mr-1"></i>Approve
+                            <button type="submit" class="btn btn-sm btn-success">
+                              <i data-lucide="check" class="w-4 h-4"></i>
                             </button>
                           </form>
-                          <form action="{{ route('facility_reservations.deny', $reservation->id) }}" method="POST" style="display:inline;">
+                          
+                          <form action="{{ route('facility_reservations.deny', $reservation->id) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="btn btn-error btn-sm">
-                              <i data-lucide="x" class="w-4 h-4 mr-1"></i>Deny
+                            <button type="submit" class="btn btn-sm btn-error">
+                              <i data-lucide="x" class="w-4 h-4"></i>
                             </button>
                           </form>
                         @endif
+                        
+                        @if($reservation->document_path)
+                          <a href="{{ Storage::url($reservation->document_path) }}" 
+                             target="_blank" 
+                             class="btn btn-sm btn-outline">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                          </a>
+                        @endif
+                        <form action="{{ route('facility_reservations.destroy', $reservation->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this reservation? This action cannot be undone.');">
+                          @csrf
+                          @method('DELETE')
+                          <button type="submit" class="btn btn-sm btn-outline btn-error">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </button>
+                        </form>
                       </div>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="6" class="text-center py-8">
+                    <td colspan="7" class="text-center py-8">
                       <div class="flex flex-col items-center">
-                        <i data-lucide="calendar" class="w-16 h-16 text-gray-300 mb-4"></i>
+                        <i data-lucide="calendar-x" class="w-12 h-12 text-gray-400 mb-4"></i>
                         <h3 class="text-lg font-semibold text-gray-600 mb-2">No Reservations Found</h3>
-                        <p class="text-gray-500 mb-4">No facility reservations have been made yet.</p>
+                        <p class="text-gray-500 mb-4">Start by creating your first facility reservation.</p>
                         <a href="{{ route('facility_reservations.create') }}" class="btn btn-primary">
-                          <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>
-                          Make First Reservation
+                          <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>Create Reservation
                         </a>
                       </div>
                     </td>
@@ -266,8 +319,8 @@
       const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
       const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
       
-      dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-      timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+      if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+      if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
     // Initialize everything when page loads

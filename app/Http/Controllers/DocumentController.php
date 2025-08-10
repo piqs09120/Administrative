@@ -14,7 +14,7 @@ class DocumentController extends Controller
 {
     public function __construct()
     {
-        // Removed administrator-only restriction
+        
     }
 
     public function index()

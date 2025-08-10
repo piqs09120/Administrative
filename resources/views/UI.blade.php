@@ -17,79 +17,8 @@
    @include('partials.sidebarr')
     <!-- Main content -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <!-- Navbar -->
-      <header class="bg-base-100 shadow-sm z-10 border-b border-base-300">
-        <div class="px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-20">
-            <div class="flex items-center">
-              <button onclick="toggleSidebar()" class="btn btn-ghost btn-sm hover:bg-base-300 transition-all hover:scale-105">
-                <i data-lucide="menu" class="w-6 h-6"></i>
-              </button>
-              <div class="hidden md:block ml-4 animate-fadeIn">
-                <h1 class="text-3xl font-bold text-gray-800"></h1>
-              </div>
-            </div>
-                                               <div class="flex items-center gap-4">
-  <!-- Notification Dropdown -->
-  <div class="dropdown dropdown-end">
-  <button tabindex="0" class="p-2">
-    <div class="relative">
-      <i data-lucide="bell" class="w-6 h-6"></i>
-      <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-    </div>
-  </button>
-  <ul tabindex="0" class="dropdown-content menu mt-1 z-10 w-56 bg-white shadow border text-base">
-    <li class="p-2 border-b flex justify-between">
-      <span>Notifications</span>
-      <button class="text-blue-500">Clear</button>
-    </li>
-    <!-- Notification items would go here -->
-  </ul>
-</div>
-
-  <!-- Moon Icon (Dark Mode Toggle) -->
-  <button id="darkModeToggle" class="p-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors">
-      <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" />
-      </svg>
-      <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="white">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-      </svg>
-  </button>
-
-  <!-- User Dropdown -->
-  <div class="dropdown dropdown-end">
-    <label tabindex="0" class="p-2 cursor-pointer">
-      <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-        <i data-lucide="user" class="w-3 h-3"></i>
-      </div>
-    </label>
-    <ul tabindex="0" class="dropdown-content menu mt-1 z-10 w-36 bg-white shadow border text-base">
-      <li>
-        <a href="{{ route('profile.edit') }}" class="flex items-center px-2 py-1">
-          <i data-lucide="user" class="w-3 h-3 mr-1"></i>Profile
-        </a>
-      </li>
-      <li>
-        <a href="#" class="flex items-center px-2 py-1">
-          <i data-lucide="settings" class="w-3 h-3 mr-1"></i>Settings
-        </a>
-      </li>
-      <li>
-        <form method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="submit" class="flex items-center px-2 py-1 w-full text-left">
-            <i data-lucide="log-out" class="w-3 h-3 mr-1"></i>Sign out
-          </button>
-        </form>
-      </li>
-    </ul>
-  </div>
-</div>
-
-          </div>
-        </div>
-      </header>
+      <!-- Header -->
+      @include('partials.navbar')
 
       <!-- Dashboard Content -->
       <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-slow">

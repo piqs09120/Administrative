@@ -16,62 +16,8 @@
     @include('partials.sidebarr')
     <!-- Main content -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <!-- Header - Exactly like the image -->
-      <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <button onclick="toggleSidebar()" class="btn btn-ghost btn-sm hover:bg-base-300 transition-all hover:scale-105">
-              <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-            <h1 class="text-3xl font-bold text-gray-800 ml-4">Register Visitor</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <!-- Search Bar - Like in the image -->
-            <div class="relative">
-              <input type="text" id="searchInput" placeholder="Search..." class="input input-bordered input-md w-64 pl-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-              <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            </div>
-            
-            <!-- Date and Time - Like in the image -->
-            <div class="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-lg">
-              <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
-              <span id="currentDate" class="text-base font-medium text-gray-700"></span>
-              <div class="w-px h-5 bg-gray-300"></div>
-              <i data-lucide="clock" class="w-5 h-5 text-green-500"></i>
-              <span id="currentTime" class="text-base font-medium text-gray-700"></span>
-            </div>
-            
-            <!-- Moon Icon (Dark Mode Toggle) -->
-            <button id="darkModeToggle" class="p-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors">
-                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 5.66l-.71-.71M4.05 4.93l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" />
-                </svg>
-                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="white">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-                </svg>
-            </button>
-            <div class="dropdown dropdown-end">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-                <i data-lucide="user" class="w-6 h-6 text-gray-600"></i>
-              </div>
-              <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white rounded-lg w-52 border border-gray-200">
-                <li><a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                  <i data-lucide="user" class="w-4 h-4 text-gray-600"></i>
-                  <span>Profile</span>
-                </a></li>
-                <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                  <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
-                  <span>Settings</span>
-                </a></li>
-                <li><a href="#" onclick="logout()" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                  <i data-lucide="log-out" class="w-4 h-4 text-gray-600"></i>
-                  <span>Sign out</span>
-                </a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </header>
+      <!-- Header -->
+      @include('partials.navbar')
 
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">

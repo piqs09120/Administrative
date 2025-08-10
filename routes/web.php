@@ -4,16 +4,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\MenuController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\TableController;
 use App\Http\Controllers\AccessController;
-use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\FacilitiesController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -34,19 +32,26 @@ Route::get('/', function () {
 // All main app routes require authentication
 Route::middleware(['auth'])->group(function () {
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('UI');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Profile Management
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
-    
+    Route::post('/profile/send-verification', [ProfileController::class, 'send'])->name('verification.send');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('password.update');
+
     // Hotel Management
     Route::resource('reservations', ReservationController::class);
     Route::resource('guests', GuestController::class);
+    Route::resource('orders', OrderController::class);
+    Route::resource('inventory', InventoryController::class);
+    
+    // Finance and Reports
+    Route::get('/finance/reports', function () {
+        return view('finance.reports');
+    })->name('finance.reports');
     
     
     
@@ -94,9 +99,15 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('facility_reservations', App\Http\Controllers\FacilityReservationController::class);
     Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
     Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
-
-
-
+    
+    // Legal Review Routes
+    Route::get('/facility_reservations/{id}/legal-review', [App\Http\Controllers\FacilityReservationController::class, 'legalReview'])->name('facility_reservations.legal_review');
+    Route::post('/facility_reservations/{id}/legal-approve', [App\Http\Controllers\FacilityReservationController::class, 'legalApprove'])->name('facility_reservations.legal_approve');
+    Route::post('/facility_reservations/{id}/legal-flag', [App\Http\Controllers\FacilityReservationController::class, 'legalFlag'])->name('facility_reservations.legal_flag');
+    
+    // Visitor Coordination Routes
+    Route::post('/facility_reservations/{id}/extract-visitors', [App\Http\Controllers\FacilityReservationController::class, 'extractVisitorData'])->name('facility_reservations.extract_visitors');
+    Route::post('/facility_reservations/{id}/approve-visitors', [App\Http\Controllers\FacilityReservationController::class, 'approveVisitors'])->name('facility_reservations.approve_visitors');
 
     // Visitor Export Routes
     Route::get('/visitor/export/excel', [App\Http\Controllers\VisitorController::class, 'exportExcel'])->name('visitor.export.excel');

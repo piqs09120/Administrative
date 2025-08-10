@@ -14,16 +14,19 @@ class GeminiService
     {
         $this->client = new Client();
         $this->apiKey = env('GEMINI_API_KEY');
-        
-        // Debug: Check if API key is being read
+        // Do not throw here; allow graceful fallback inside analyzeDocument
         if (empty($this->apiKey)) {
-            throw new \Exception('GEMINI_API_KEY is not set in environment variables');
+            \Log::warning('GEMINI_API_KEY is not set; GeminiService will use fallback analysis.');
         }
     }
 
     public function analyzeDocument($text)
     {
         try {
+            // If API key is missing, fall back to keyword-based analysis
+            if (empty($this->apiKey)) {
+                return $this->fallbackAnalysis($text);
+            }
             $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' . $this->apiKey;
             
             $response = $this->client->post($url, [

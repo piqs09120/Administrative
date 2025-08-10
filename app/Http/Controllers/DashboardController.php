@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Reservation;
-use App\Models\Order;
-use App\Models\Guest;
+
 
 class DashboardController extends Controller
 {
@@ -17,9 +16,10 @@ class DashboardController extends Controller
         $occupiedRooms = 128; // This would come from Room::where('status', 'occupied')->count()
         $occupancyRate = round(($occupiedRooms / $totalRooms) * 100);
         
-        $todayRevenue = 18450; // This would come from actual revenue calculations
-        $activeReservations = 127; // This would come from Reservation::where('status', 'active')->count()
-        $complianceScore = 96; // This would come from compliance calculations
+        $revenueToday = 18450; // This would come from actual revenue calculations
+        $todaysReservations = 24; // Today's reservations count
+        $activeUsers = 18; // Active users count
+        $inventoryAlerts = 3; // Low stock items
         
         // Recent activities (mock data - would come from activity logs)
         $recentActivities = [
@@ -36,13 +36,6 @@ class DashboardController extends Controller
                 'time' => '5 minutes ago',
                 'icon' => 'fas fa-utensils',
                 'color' => 'info'
-            ],
-            [
-                'type' => 'alert',
-                'message' => 'Kitchen inventory alert',
-                'time' => '15 minutes ago',
-                'icon' => 'fas fa-exclamation',
-                'color' => 'warning'
             ],
             [
                 'type' => 'reservation',
@@ -75,13 +68,11 @@ class DashboardController extends Controller
             ]
         ];
         
-        return view('dashboard', compact(
-            'occupancyRate',
-            'todayRevenue',
-            'activeReservations',
-            'complianceScore',
-            'recentActivities',
-            'systemAlerts'
+        return view('UI', compact(
+            'revenueToday',
+            'todaysReservations',
+            'activeUsers',
+            'inventoryAlerts'
         ));
     }
 }

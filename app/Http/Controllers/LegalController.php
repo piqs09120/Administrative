@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\FacilityReservation;
 use App\Notifications\DocumentRequestStatusNotification;
 use App\Models\AccessLog;
-use Illuminate\Support\Facades\Http;
 
 class LegalController extends Controller
 {
@@ -204,10 +203,8 @@ class LegalController extends Controller
                     $documentText = $text;
                 }
                 if ($documentText) {
-                    $response = \Illuminate\Support\Facades\Http::post('http://127.0.0.1:5050/classify', [
-                        'text' => $documentText,
-                    ]);
-                    $entities = $response->json('entities');
+                    // spaCy microservice removed; entity extraction disabled
+                    $entities = [];
                 }
             }
         }
@@ -272,10 +269,16 @@ class LegalController extends Controller
                 $documentText = $text;
             }
             if ($documentText) {
-                $response = \Illuminate\Support\Facades\Http::post('http://127.0.0.1:5050/classify', [
-                    'text' => $documentText,
-                ]);
-                $category = $response->json('category');
+                // Use GeminiService if available; otherwise leave category unchanged
+                try {
+                    $geminiService = new \App\Services\GeminiService();
+                    $analysis = $geminiService->analyzeDocument($documentText);
+                    if (is_array($analysis) && isset($analysis['error']) && $analysis['error'] === false && isset($analysis['category'])) {
+                        $category = $analysis['category'];
+                    }
+                } catch (\Throwable $e) {
+                    // Gracefully skip if service or API key is unavailable
+                }
             }
         }
         if ($category) {

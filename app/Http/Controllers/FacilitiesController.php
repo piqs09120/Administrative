@@ -7,9 +7,21 @@ use Illuminate\Http\Request;
 
 class FacilitiesController extends Controller
 {
+    public function __construct()
+    {
+        // Restrict mutating actions to administrators
+        $this->middleware(function ($request, $next) {
+            $role = strtolower(auth()->user()->role ?? '');
+            if (!in_array($role, ['administrator'])) {
+                abort(403, 'Only Administrators can manage facilities.');
+            }
+            return $next($request);
+        })->only(['create', 'store', 'edit', 'update', 'destroy']);
+    }
+
     public function index()
     {
-        $facilities = Facility::latest()->get();
+        $facilities = Facility::withCount('reservations')->latest()->get();
         return view('facilities.index', compact('facilities'));
     }
 
