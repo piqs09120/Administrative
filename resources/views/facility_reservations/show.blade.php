@@ -170,6 +170,51 @@
                   </div>
                 @endif
 
+                <!-- Digital Passes Section -->
+                @if(($reservation->digital_passes_generated ?? false) && !empty($reservation->digital_pass_data))
+                  <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                      <i data-lucide="ticket" class="w-5 h-5 text-green-600 mr-2"></i>
+                      Digital Passes
+                    </h3>
+
+                    <div class="mb-4 text-sm text-gray-600">
+                      <span class="badge badge-success mr-2">Generated</span>
+                      @if($reservation->security_notified)
+                        <span class="badge badge-info mr-2">Security Notified</span>
+                        <span>on {{ optional($reservation->security_notified_at)->format('M d, Y H:i') }}</span>
+                      @endif
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      @foreach($reservation->digital_pass_data as $index => $pass)
+                        <div class="p-4 bg-gray-50 rounded-lg border">
+                          <div class="flex items-center justify-between mb-2">
+                            <div class="font-semibold">{{ $pass['visitor_name'] }}</div>
+                            <div class="text-xs text-gray-500">{{ $pass['pass_id'] }}</div>
+                          </div>
+                          <div class="text-sm text-gray-700 mb-2">
+                            <div class="flex items-center gap-2"><i data-lucide="building" class="w-4 h-4"></i> {{ $pass['facility'] }}</div>
+                            <div class="flex items-center gap-2">
+                              <i data-lucide="calendar" class="w-4 h-4"></i>
+                              {{ \Carbon\Carbon::parse($pass['valid_from'])->format('M d, Y h:i A') }} → {{ \Carbon\Carbon::parse($pass['valid_until'])->format('M d, Y h:i A') }}
+                            </div>
+                          </div>
+                        </div>
+                      @endforeach
+                    </div>
+
+                    <div class="mt-4 flex gap-2">
+                      <button id="downloadPassesCsv" type="button" class="btn btn-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i>Download CSV
+                      </button>
+                      <button id="printPasses" type="button" class="btn btn-outline btn-sm">
+                        <i data-lucide="printer" class="w-4 h-4 mr-2"></i>Print Passes
+                      </button>
+                    </div>
+                  </div>
+                @endif
+
                 <!-- Legal Review Section -->
                 @if($reservation->requires_legal_review && in_array(strtolower(auth()->user()->role ?? ''), ['legal', 'administrator']))
                   <div class="border-t pt-6">
@@ -199,20 +244,20 @@
                 @endif
 
                 <!-- Visitor Coordination Section -->
-                @if($reservation->requires_visitor_coordination)
+                    @if($reservation->requires_visitor_coordination || $reservation->ai_classification)
                   <div class="border-t pt-6">
                     <h3 class="text-lg font-semibold mb-4 flex items-center">
                       <i data-lucide="users" class="w-5 h-5 text-blue-500 mr-2"></i>
                       Visitor Coordination Required
                     </h3>
                     
-                    @if(!$reservation->visitor_data)
+                        @if(!$reservation->visitor_data)
                       <!-- Extract Visitor Data -->
                       <div class="alert alert-info mb-4">
                         <i data-lucide="info" class="w-5 h-5"></i>
                         <div>
                           <h4 class="font-bold">Extract Visitor Information</h4>
-                          <p class="text-sm">Extract visitor details from the uploaded document using AI analysis.</p>
+                              <p class="text-sm">Extract visitor details from the uploaded document using AI analysis. This is available even if the system did not automatically flag visitor coordination.</p>
                         </div>
                       </div>
                       <form action="{{ route('facility_reservations.extract_visitors', $reservation->id) }}" method="POST">
@@ -427,6 +472,7 @@
       const moonIcon = document.getElementById('moonIcon');
       
       function updateIcons() {
+        if (!sunIcon || !moonIcon) return;
         if(document.documentElement.classList.contains('dark')) {
           sunIcon.classList.remove('hidden');
           moonIcon.classList.add('hidden');
@@ -447,26 +493,28 @@
       }
       updateIcons();
       
-      toggle.addEventListener('click', function() {
-        console.log('Dark mode toggle clicked!');
-        
-        // Direct toggle without relying on global function
-        if (document.documentElement.classList.contains('dark')) {
-          // Switch to light mode
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-          console.log('Switched to LIGHT mode');
-        } else {
-          // Switch to dark mode
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-          console.log('Switched to DARK mode');
-        }
-        
-        updateIcons();
-      });
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          console.log('Dark mode toggle clicked!');
+          
+          // Direct toggle without relying on global function
+          if (document.documentElement.classList.contains('dark')) {
+            // Switch to light mode
+            document.documentElement.classList.remove('dark');
+            document.body.classList.remove('dark');
+            localStorage.setItem('darkMode', 'false');
+            console.log('Switched to LIGHT mode');
+          } else {
+            // Switch to dark mode
+            document.documentElement.classList.add('dark');
+            document.body.classList.add('dark');
+            localStorage.setItem('darkMode', 'true');
+            console.log('Switched to DARK mode');
+          }
+          
+          updateIcons();
+        });
+      }
     }
 
     // Real-time date and time
@@ -482,14 +530,61 @@
       if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
-    // Initialize everything when page loads
-    document.addEventListener('DOMContentLoaded', function() {
+    function initReservationShowPage() {
       setupDarkMode();
       updateDateTime();
       
       // Update time every second
       setInterval(updateDateTime, 1000);
-    });
+
+      // CSV download for passes
+      const csvBtn = document.getElementById('downloadPassesCsv');
+      if (csvBtn) {
+        csvBtn.addEventListener('click', function(){
+          try {
+            const passes = @json($reservation->digital_pass_data ?? []);
+            if (!passes || passes.length === 0) {
+              alert('No digital passes available to export. Approve visitors first.');
+              return;
+            }
+            const headers = ['pass_id','visitor_name','visitor_company','valid_from','valid_until','facility','purpose','access_level'];
+            const rows = [headers.join(',')].concat(passes.map(p => {
+              const vf = new Date(p.valid_from);
+              const vu = new Date(p.valid_until);
+              const fmt = (d)=> d.toLocaleString('en-US', { month:'short', day:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+              return [p.pass_id,p.visitor_name,(p.visitor_company||''),fmt(vf),fmt(vu),p.facility,(p.purpose||''),(p.access_level||'visitor')]
+                .map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',');
+            }));
+            const blob = new Blob([rows.join('\n')], {type: 'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'digital_passes_{{ $reservation->id }}.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          } catch(e) {}
+        });
+      }
+
+      // Print helper
+      const printBtn = document.getElementById('printPasses');
+      if (printBtn) {
+        printBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          try {
+            window.print();
+          } catch(err) {
+            alert('Unable to open print dialog. Please use Ctrl+P/Cmd+P.');
+          }
+        });
+      }
+    }
+
+    // Run immediately if DOM is ready; otherwise wait for DOMContentLoaded
+    if (document.readyState !== 'loading') {
+      initReservationShowPage();
+    } else {
+      document.addEventListener('DOMContentLoaded', initReservationShowPage);
+    }
   </script>
 </body>
 </html>

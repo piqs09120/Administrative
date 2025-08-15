@@ -37,12 +37,20 @@ class DocumentTextExtractorService
 
     private function extractFromPdf($filePath)
     {
-        // For PDF extraction, you would typically use a library like Smalot\PdfParser
-        // For now, return a placeholder
-        return "PDF document content - requires PDF parser library installation. 
-                Document: " . basename($filePath) . "
-                Size: " . filesize($filePath) . " bytes
-                Type: PDF document";
+        // Try to parse PDF text; if parser not available, return best-effort hint text
+        try {
+            if (class_exists(\Smalot\PdfParser\Parser::class)) {
+                $parser = new \Smalot\PdfParser\Parser();
+                $pdf = $parser->parseFile($filePath);
+                $text = trim($pdf->getText());
+                if ($text !== '') {
+                    return $text;
+                }
+            }
+        } catch (\Throwable $e) {
+            // fallback to simple hint below
+        }
+        return 'general document content (pdf)';
     }
 
     private function extractFromWord($filePath)

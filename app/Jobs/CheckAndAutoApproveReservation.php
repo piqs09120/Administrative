@@ -47,12 +47,11 @@ class CheckAndAutoApproveReservation implements ShouldQueue
                 $reservation->id
             );
 
-            // Update availability check status
-            $reservation->update([
-                'availability_checked' => true,
-                'availability_checked_at' => now(),
-                'availability_conflicts' => $availability['available'] ? null : $availability['conflict_details']
-            ]);
+            // Update availability check status (and keep model state in-sync)
+            $reservation->availability_checked = true;
+            $reservation->availability_checked_at = now();
+            $reservation->availability_conflicts = $availability['available'] ? null : $availability['conflict_details'];
+            $reservation->save();
 
             if ($availability['available']) {
                 // No conflicts - proceed with approval logic

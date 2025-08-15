@@ -96,9 +96,10 @@ class FacilityReservationController extends Controller
                 $reservation->logWorkflowStep('document_stored_secure_repository', 
                     'Document stored and indexed in secure repository', $storeResult['index']);
             }
-            
-            // Simple document processing
-            $reservation->logWorkflowStep('document_processed', 'Document uploaded and stored');
+            // Kick off AI processing workflow for decision point (legal/visitor?)
+            // Use sync dispatch so user sees immediate status change when possible
+            \App\Jobs\ProcessReservationDocument::dispatchSync($reservation->id);
+            $reservation->logWorkflowStep('document_processing_queued', 'AI document processing started');
         }
 
         // Step 3: If no document uploaded, proceed directly to approval workflow
@@ -408,9 +409,8 @@ class FacilityReservationController extends Controller
     {
         $reservation = FacilityReservation::findOrFail($id);
         
-        if (!$reservation->requires_visitor_coordination) {
-            return redirect()->back()->with('error', 'This reservation does not require visitor coordination.');
-        }
+        // Allow extraction even if the auto-flag was not set.
+        // This enables a manual extraction attempt from the UI.
         
         if (!$reservation->ai_classification) {
             return redirect()->back()->with('error', 'No AI classification data available for visitor extraction.');
@@ -423,7 +423,9 @@ class FacilityReservationController extends Controller
         }
         
         $reservation->update([
-            'visitor_data' => $visitorData
+            'visitor_data' => $visitorData,
+            // Ensure the coordination flag is set when we do find visitors
+            'requires_visitor_coordination' => true
         ]);
         
         return redirect()->route('facility_reservations.show', $id)->with('success', 'Visitor data extracted successfully!');

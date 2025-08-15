@@ -167,8 +167,8 @@
                     </div>
                   </div>
                   <div>
-                    <p class="font-medium text-white">John Smith</p>
-                    <p class="text-xs text-white">Front Desk Manager</p>
+                    <p class="font-medium text-white">{{ auth()->user()->name ?? 'User' }}</p>
+                    <p class="text-xs text-white">{{ ucfirst(auth()->user()->role ?? 'user') }}</p>
                   </div>
                 </div>
               </li>
@@ -187,12 +187,16 @@
                 </a>
               </li>
               <li>
-                <a class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
+                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
                   <i data-lucide="log-out" class="w-4 h-4"></i>
                   <span>Sign out</span>
                 </a>
               </li>
             </ul>
+            <!-- Hidden logout form -->
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+              @csrf
+            </form>
           </div>
         </div>
       </div>

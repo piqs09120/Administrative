@@ -53,11 +53,10 @@ class ProcessReservationDocument implements ShouldQueue
                 $requiresLegal = $this->requiresLegalReview($aiResult);
                 $requiresVisitor = $this->requiresVisitorCoordination($aiResult);
                 
-                $reservation->update([
-                    'ai_classification' => $aiResult,
-                    'requires_legal_review' => $requiresLegal,
-                    'requires_visitor_coordination' => $requiresVisitor,
-                ]);
+                $reservation->ai_classification = $aiResult;
+                $reservation->requires_legal_review = $requiresLegal;
+                $reservation->requires_visitor_coordination = $requiresVisitor;
+                $reservation->save();
                 
                 // Log the decision point from TO BE diagram
                 $decision = $requiresLegal || $requiresVisitor ? 'YES' : 'NO';
@@ -102,7 +101,8 @@ class ProcessReservationDocument implements ShouldQueue
         } else {
             // NO path: Proceed to approval → Auto check facility availability → Auto approve
             $reservation->logWorkflowStep('proceed_to_approval', 'Proceeding to auto-approval workflow');
-            CheckAndAutoApproveReservation::dispatch($this->reservationId);
+            // Run availability check immediately to avoid waiting for a worker
+            CheckAndAutoApproveReservation::dispatchSync($this->reservationId);
         }
     }
 

@@ -40,7 +40,6 @@ class GenerateDigitalPasses implements ShouldQueue
             foreach ($visitorData as $index => $visitor) {
                 if (($visitor['status'] ?? '') === 'approved') {
                     $passId = 'DP-' . $reservation->id . '-' . str_pad($index + 1, 3, '0', STR_PAD_LEFT);
-                    $qrCode = $this->generateQRCodeData($reservation, $visitor, $passId);
                     
                     $digitalPasses[] = [
                         'pass_id' => $passId,
@@ -50,7 +49,6 @@ class GenerateDigitalPasses implements ShouldQueue
                         'valid_until' => $reservation->end_time->format('Y-m-d H:i:s'),
                         'facility' => $reservation->facility->name,
                         'purpose' => $reservation->purpose,
-                        'qr_code_data' => $qrCode,
                         'access_level' => $visitor['access_level'] ?? 'visitor',
                         'generated_at' => now()->toISOString(),
                         'status' => 'active'
@@ -87,16 +85,4 @@ class GenerateDigitalPasses implements ShouldQueue
         }
     }
 
-    private function generateQRCodeData($reservation, $visitor, $passId)
-    {
-        return base64_encode(json_encode([
-            'pass_id' => $passId,
-            'reservation_id' => $reservation->id,
-            'visitor_name' => $visitor['name'],
-            'facility_id' => $reservation->facility_id,
-            'valid_from' => $reservation->start_time->getTimestamp(),
-            'valid_until' => $reservation->end_time->getTimestamp(),
-            'checksum' => hash('sha256', $passId . $reservation->id . $visitor['name'])
-        ]));
-    }
 }
