@@ -39,11 +39,11 @@
         <div class="bg-white rounded-xl shadow-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-800 flex items-center">
-              <i data-lucide="activity" class="w-6 h-6 text-blue-500 mr-3"></i>
-              Access Logs
+              <i data-lucide="activity" class="w-6 h-6" style="color: var(--color-regal-navy);"></i>
+              <span class="ml-3" style="color: var(--color-charcoal-ink);">Access Logs</span>
             </h2>
             <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">Total: {{ $logs->count() }} entries</span>
+              <span class="text-sm text-gray-500" style="color: var(--color-charcoal-ink);">Total: {{ $logs->count() }} entries</span>
             </div>
           </div>
 
@@ -51,21 +51,19 @@
             <table class="table w-full">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Action</th>
-                  <th>Description</th>
-                  <th>IP Address</th>
-                  <th>Timestamp</th>
+                  <th style="color: var(--color-regal-navy);">User</th>
+                  <th style="color: var(--color-regal-navy);">Action</th>
+                  <th style="color: var(--color-regal-navy);">Description</th>
+                  <th style="color: var(--color-regal-navy);">Timestamp</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach($logs as $log)
                   <tr>
-                    <td>{{ $log->user->name ?? 'Unknown' }}</td>
-                    <td>{{ $log->action }}</td>
-                    <td>{{ $log->description }}</td>
-                    <td>{{ $log->ip_address }}</td>
-                    <td>{{ $log->created_at->format('M d, Y H:i') }}</td>
+                    <td style="color: var(--color-charcoal-ink);">{{ $log->user->name ?? 'Unknown' }}</td>
+                    <td style="color: var(--color-charcoal-ink);">{{ $log->action }}</td>
+                    <td style="color: var(--color-charcoal-ink);">{{ $log->description }}</td>
+                    <td style="color: var(--color-charcoal-ink);">{{ $log->created_at->format('M d, Y H:i') }}</td>
                   </tr>
                 @endforeach
               </tbody>

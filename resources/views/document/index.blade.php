@@ -51,41 +51,41 @@
             </div>
           </div>
 
-          <!-- Released Documents -->
-          <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-green-100 text-sm font-medium">Released</p>
-                <p class="text-3xl font-bold">{{ $documents->where('status', 'released')->count() }}</p>
-              </div>
-              <div class="bg-green-400 bg-opacity-30 p-3 rounded-full">
-                <i data-lucide="check-circle" class="w-8 h-8"></i>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pending Release -->
+          <!-- Legal Review Required -->
           <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-yellow-100 text-sm font-medium">Pending Release</p>
-                <p class="text-3xl font-bold">{{ $documents->where('status', 'pending_release')->count() }}</p>
+                <p class="text-yellow-100 text-sm font-medium">Legal Review</p>
+                <p class="text-3xl font-bold">{{ $documents->where('requires_legal_review', true)->count() }}</p>
               </div>
               <div class="bg-yellow-400 bg-opacity-30 p-3 rounded-full">
-                <i data-lucide="clock" class="w-8 h-8"></i>
+                <i data-lucide="scale" class="w-8 h-8"></i>
               </div>
             </div>
           </div>
 
-          <!-- Archived -->
-          <div class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+          <!-- Visitor Coordination Required -->
+          <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-gray-100 text-sm font-medium">Archived</p>
-                <p class="text-3xl font-bold">{{ $documents->where('status', 'archived')->count() }}</p>
+                <p class="text-teal-100 text-sm font-medium">Visitor Coordination</p>
+                <p class="text-3xl font-bold">{{ $documents->where('requires_visitor_coordination', true)->count() }}</p>
               </div>
-              <div class="bg-gray-400 bg-opacity-30 p-3 rounded-full">
-                <i data-lucide="archive" class="w-8 h-8"></i>
+              <div class="bg-teal-400 bg-opacity-30 p-3 rounded-full">
+                <i data-lucide="users" class="w-8 h-8"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- High Risk Documents -->
+          <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-red-100 text-sm font-medium">High Risk</p>
+                <p class="text-3xl font-bold">{{ $documents->where('legal_risk_score', 'High')->count() }}</p>
+              </div>
+              <div class="bg-red-400 bg-opacity-30 p-3 rounded-full">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
               </div>
             </div>
           </div>
@@ -155,6 +155,37 @@
                       <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
                       <span>{{ $document->created_at->format('M d, Y H:i') }}</span>
                     </div>
+                  </div>
+
+                  <!-- Workflow Status -->
+                  <div class="mb-4">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                      @if($document->requires_legal_review)
+                        <span class="badge badge-warning badge-sm" style="background-color: var(--color-golden-ember); color: var(--color-white);">
+                          <i data-lucide="scale" class="w-3 h-3 mr-1"></i>Legal Review
+                        </span>
+                      @endif
+                      @if($document->requires_visitor_coordination)
+                        <span class="badge badge-info badge-sm" style="background-color: var(--color-modern-teal); color: var(--color-white);">
+                          <i data-lucide="users" class="w-3 h-3 mr-1"></i>Visitor Coordination
+                        </span>
+                      @endif
+                      @if($document->legal_risk_score && $document->legal_risk_score !== 'Low')
+                        @php
+                          $riskColor = $document->legal_risk_score === 'High' ? 'danger-red' : 'golden-ember';
+                        @endphp
+                        <span class="badge badge-sm" style="background-color: var(--color-{{ $riskColor }}); color: var(--color-white);">
+                          <i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i>{{ $document->legal_risk_score }} Risk
+                        </span>
+                      @endif
+                    </div>
+                    
+                    @if($document->workflow_stage && $document->workflow_stage !== 'uploaded')
+                      <div class="text-xs text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                        <i data-lucide="git-branch" class="w-3 h-3 mr-1"></i>
+                        Stage: {{ ucfirst(str_replace('_', ' ', $document->workflow_stage)) }}
+                      </div>
+                    @endif
                   </div>
 
                   <div class="flex flex-wrap gap-2">

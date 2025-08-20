@@ -17,6 +17,8 @@ use App\Models\AccessLog;
 use App\Jobs\ProcessReservationDocument;
 use App\Jobs\CheckAndAutoApproveReservation;
 use App\Jobs\GenerateDigitalPasses;
+use App\Services\VisitorService;
+use App\Services\ReservationWorkflowService;
 
 class FacilityReservationController extends Controller
 {
@@ -24,13 +26,17 @@ class FacilityReservationController extends Controller
     protected $textExtractor;
     protected $calendarService;
     protected $secureRepository;
+    protected $visitorService;
+    protected $workflowService;
 
-    public function __construct(GeminiService $geminiService, DocumentTextExtractorService $textExtractor, FacilityCalendarService $calendarService, SecureDocumentRepository $secureRepository)
+    public function __construct(GeminiService $geminiService, DocumentTextExtractorService $textExtractor, FacilityCalendarService $calendarService, SecureDocumentRepository $secureRepository, VisitorService $visitorService, ReservationWorkflowService $workflowService)
     {
         $this->geminiService = $geminiService;
         $this->textExtractor = $textExtractor;
         $this->calendarService = $calendarService;
         $this->secureRepository = $secureRepository;
+        $this->visitorService = $visitorService;
+        $this->workflowService = $workflowService;
         
         // Role restrictions removed - all users can now approve/deny reservations
     }
@@ -80,35 +86,51 @@ class FacilityReservationController extends Controller
 
         // Step 2: Handle document upload if provided (following TO BE diagram)
         if ($request->hasFile('document')) {
-            // Upload supporting document
+            // Upload supporting document to storage (still needed for access)
+            $fileName = time() . '_' . $request->file('document')->getClientOriginalName();
+            $documentPath = $request->file('document')->storeAs('facility_reservations/' . $reservation->id, $fileName, 'public');
+            $reservation->update(['document_path' => $documentPath]);
+
             $reservation->logWorkflowStep('document_upload_started', 'Starting document upload process');
             
-            $documentPath = $this->handleDocumentUpload($request->file('document'), $reservation->id);
-            $reservation->update(['document_path' => $documentPath]);
+            // Create a Document model entry for this uploaded file
+            $document = \App\Models\Document::create([
+                'title' => 'Reservation Document for ' . ($reservation->facility->name ?? 'Facility #' . $reservation->facility_id),
+                'description' => $reservation->purpose ?? 'Supporting document for facility reservation.',
+                'category' => 'general', // Will be updated by AI
+                'file_path' => $documentPath,
+                'uploaded_by' => Auth::id(),
+                'status' => 'archived',
+                'source' => 'facility_reservations', // Mark as uploaded via facility reservations
+            ]);
             
-            // Store document in secure repository
+            // Link the created Document to the FacilityReservation
+            $reservation->update(['document_id' => $document->id]);
+            
+            // Store document in secure repository (now using the created Document model)
             $storeResult = $this->secureRepository->storeDocument(
                 $request->file('document'), 
-                $reservation->id
+                $reservation->id, // still pass reservation ID for secure storage naming
+                $document->id // Pass document ID for logging/linking if needed by repository
             );
             
             if ($storeResult['success']) {
                 $reservation->logWorkflowStep('document_stored_secure_repository', 
                     'Document stored and indexed in secure repository', $storeResult['index']);
             }
-            // Kick off AI processing workflow for decision point (legal/visitor?)
-            // Use sync dispatch so user sees immediate status change when possible
-            \App\Jobs\ProcessReservationDocument::dispatchSync($reservation->id);
-            $reservation->logWorkflowStep('document_processing_queued', 'AI document processing started');
-        }
-
-        // Step 3: If no document uploaded, proceed directly to approval workflow
-        if (!$request->hasFile('document')) {
-            // No document = NO to "Does document require legal validation?" 
-            // → Proceed to approval → Auto check facility availability → Auto approve
-            $reservation->logWorkflowStep('no_document_proceed_to_approval', 
-                'No document uploaded, proceeding directly to auto-approval workflow');
-            \App\Jobs\CheckAndAutoApproveReservation::dispatch($reservation->id);
+            // Kick off AI processing workflow and task creation
+            // ProcessReservationDocument job will create the document_classification task
+            \App\Jobs\ProcessReservationDocument::dispatch($reservation->id);
+            $reservation->logWorkflowStep('document_processing_queued', 'AI document processing queued');
+        } else {
+            // If no document uploaded, create a basic document_classification task as completed
+            // and set initial status to ready_for_approval
+            $this->workflowService->createDocumentClassificationTask($reservation, [
+                'category' => 'no_document',
+                'summary' => 'No document provided for this reservation.',
+            ]);
+            $reservation->logWorkflowStep('no_document_proceed_to_approval', 'No document uploaded, proceeding directly to approval workflow');
+            // The workflow service will update current_workflow_status and dispatch CheckAndAutoApproveReservation
         }
 
         // Send submission confirmation (status pending) with error handling
@@ -125,149 +147,19 @@ class FacilityReservationController extends Controller
             ->with('success', 'Reservation request submitted! The system will automatically check facility availability and process your request.');
     }
 
-    private function handleDocumentUpload($file, $reservationId)
-    {
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('facility_reservations/' . $reservationId, $fileName, 'public');
-        return $path;
-    }
-
-    private function processDocumentWithAI($reservation)
-    {
-        try {
-            // Get document content
-            $documentPath = storage_path('app/public/' . $reservation->document_path);
-            
-            if (!file_exists($documentPath)) {
-                throw new \Exception('Document file not found');
-            }
-
-            // Extract text from the file using our service
-            $content = $this->textExtractor->extractText($documentPath);
-            
-            // Send to Gemini AI for analysis
-            $aiResult = $this->geminiService->analyzeDocument($content);
-            
-            if (!$aiResult['error']) {
-                // Store AI classification results
-                $reservation->update([
-                    'ai_classification' => $aiResult,
-                    'requires_legal_review' => $this->requiresLegalReview($aiResult),
-                    'requires_visitor_coordination' => $this->requiresVisitorCoordination($aiResult)
-                ]);
-
-                Log::info('AI analysis completed for reservation ' . $reservation->id, $aiResult);
-            } else {
-                $reservation->update([
-                    'ai_error' => $aiResult['message']
-                ]);
-                Log::error('AI analysis failed for reservation ' . $reservation->id, $aiResult);
-            }
-
-        } catch (\Exception $e) {
-            $reservation->update([
-                'ai_error' => 'Document processing failed: ' . $e->getMessage()
-            ]);
-            Log::error('Document processing failed for reservation ' . $reservation->id, [
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-
-
-    private function requiresLegalReview($aiResult)
-    {
-        $legalCategories = ['contract', 'subpoena', 'affidavit', 'cease_desist', 'legal_notice'];
-        $category = $aiResult['category'] ?? 'general';
-        
-        return in_array($category, $legalCategories);
-    }
-
-    private function requiresVisitorCoordination($aiResult)
-    {
-        // Check if the document contains visitor-related keywords
-        $visitorKeywords = ['visitor', 'guest', 'attendee', 'participant', 'delegate'];
-        $summary = strtolower($aiResult['summary'] ?? '');
-        $keyInfo = strtolower($aiResult['key_info'] ?? '');
-        
-        foreach ($visitorKeywords as $keyword) {
-            if (strpos($summary, $keyword) !== false || strpos($keyInfo, $keyword) !== false) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-
-    private function checkAvailabilityAndAutoApprove($reservation)
-    {
-        try {
-            // Check if facility is available for the requested time
-            $conflictingReservations = FacilityReservation::where('facility_id', $reservation->facility_id)
-                ->where('status', '!=', 'denied')
-                ->where(function ($query) use ($reservation) {
-                    $query->whereBetween('start_time', [$reservation->start_time, $reservation->end_time])
-                          ->orWhereBetween('end_time', [$reservation->start_time, $reservation->end_time])
-                          ->orWhere(function ($q) use ($reservation) {
-                              $q->where('start_time', '<=', $reservation->start_time)
-                                ->where('end_time', '>=', $reservation->end_time);
-                          });
-                })
-                ->where('id', '!=', $reservation->id)
-                ->count();
-
-            if ($conflictingReservations === 0) {
-                // No conflicts, check if auto-approval is possible
-                if (!$reservation->requires_legal_review && !$reservation->requires_visitor_coordination) {
-                    // Auto-approve the reservation
-                    $reservation->update([
-                        'status' => 'approved',
-                        'approved_by' => null, // System approval
-                        'auto_approved_at' => now(),
-                        'remarks' => 'Auto-approved by system - no conflicts and no special requirements'
-                    ]);
-
-                    // Send notification to user
-                    $reservation->reserver->notify(new FacilityReservationStatusNotification($reservation));
-
-                    Log::info('Reservation auto-approved', ['reservation_id' => $reservation->id]);
-                } else {
-                    // Requires review, but facility is available
-                    $reservation->update([
-                        'remarks' => 'Facility available but requires ' . 
-                                   ($reservation->requires_legal_review ? 'legal review' : '') .
-                                   ($reservation->requires_legal_review && $reservation->requires_visitor_coordination ? ' and ' : '') .
-                                   ($reservation->requires_visitor_coordination ? 'visitor coordination' : '')
-                    ]);
-                }
-            } else {
-                // Conflicts found
-                $reservation->update([
-                    'status' => 'denied',
-                    'remarks' => 'Facility not available for requested time period'
-                ]);
-
-                Log::info('Reservation denied due to conflicts', ['reservation_id' => $reservation->id]);
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Error checking availability for reservation ' . $reservation->id, [
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
     public function show($id)
     {
-        $reservation = FacilityReservation::with(['facility', 'reserver', 'approver'])->findOrFail($id);
+        $reservation = FacilityReservation::with(['facility', 'reserver', 'approver', 'tasks'])->findOrFail($id);
         return view('facility_reservations.show', compact('reservation'));
     }
 
     public function approve($id)
     {
-        // Role restrictions removed - all users can approve reservations
         $reservation = FacilityReservation::findOrFail($id);
+        
+        if ($reservation->current_workflow_status !== 'ready_for_approval') {
+            return redirect()->back()->with('error', 'This reservation is not yet ready for manual approval. All required tasks must be completed first.');
+        }
         
         if ($reservation->status !== 'pending') {
             return redirect()->back()->with('error', 'This reservation has already been processed.');
@@ -276,7 +168,8 @@ class FacilityReservationController extends Controller
         $reservation->update([
             'status' => 'approved',
             'approved_by' => Auth::id(),
-            'remarks' => request('remarks')
+            'remarks' => request('remarks'),
+            'current_workflow_status' => 'approved'
         ]);
         
         // Notify reserver
@@ -295,17 +188,17 @@ class FacilityReservationController extends Controller
 
     public function deny($id)
     {
-        // Role restrictions removed - all users can deny reservations
         $reservation = FacilityReservation::findOrFail($id);
         
-        if ($reservation->status !== 'pending') {
-            return redirect()->back()->with('error', 'This reservation has already been processed.');
+        if ($reservation->status !== 'pending' && $reservation->status !== 'denied') {
+            return redirect()->back()->with('error', 'This reservation has already been processed or cannot be denied at this stage.');
         }
         
         $reservation->update([
             'status' => 'denied',
             'approved_by' => Auth::id(),
-            'remarks' => request('remarks')
+            'remarks' => request('remarks'),
+            'current_workflow_status' => 'denied'
         ]);
         
         // Notify reserver
@@ -324,49 +217,40 @@ class FacilityReservationController extends Controller
 
     public function legalReview($id)
     {
-        // Role restrictions removed - all users can perform legal review
-        $reservation = FacilityReservation::with(['facility', 'reserver', 'approver'])->findOrFail($id);
+        $reservation = FacilityReservation::with(['facility', 'reserver', 'approver', 'tasks'])->findOrFail($id);
         
-        if (!$reservation->requires_legal_review) {
-            return redirect()->back()->with('error', 'This reservation does not require legal review.');
+        $legalTask = $reservation->tasks()->where('task_type', 'legal_review')->first();
+        if (!$legalTask) {
+            return redirect()->back()->with('error', 'Legal review is not required or task does not exist for this reservation.');
         }
         
-        return view('facility_reservations.legal_review', compact('reservation'));
+        // Ensure the task is still pending
+        if ($legalTask->status !== 'pending') {
+            return redirect()->back()->with('error', 'This legal review task has already been processed.');
+        }
+        
+        return view('facility_reservations.legal_review', compact('reservation', 'legalTask'));
     }
 
     public function legalApprove($id)
     {
-        // Role restrictions removed - all users can perform legal review
         $reservation = FacilityReservation::findOrFail($id);
+        $legalTask = $reservation->tasks()->where('task_type', 'legal_review')->first();
         
-        if (!$reservation->requires_legal_review) {
-            return redirect()->back()->with('error', 'This reservation does not require legal review.');
+        if (!$legalTask || $legalTask->status !== 'pending') {
+            return redirect()->back()->with('error', 'Legal review task not found or already completed.');
         }
         
-        $reservation->update([
-            'legal_reviewed_by' => Auth::id(),
-            'legal_reviewed_at' => now(),
-            'legal_comment' => request('legal_comment'),
-            'requires_legal_review' => false // Clear the flag
-        ]);
+        $this->workflowService->updateTaskStatus($legalTask, 'completed', request('legal_comment'));
         
-        // Check if we can now auto-approve (no more special requirements)
-        if (!$reservation->requires_visitor_coordination && $reservation->status === 'pending') {
-            $reservation->update([
-                'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'remarks' => 'Approved after legal review completion'
-            ]);
-            
-            // Notify reserver
-            $reservation->reserver->notify(new FacilityReservationStatusNotification($reservation));
-        }
+        // No direct status update on reservation here; workflow service handles it
         
         // Log action
+        $reservation->logWorkflowStep('legal_document_process_complete', 'Legal document process completed');
         AccessLog::create([
             'user_id' => Auth::id(),
             'action' => 'legal_approve_facility_reservation',
-            'description' => 'Legal approved facility reservation ID ' . $reservation->id,
+            'description' => 'Legal approved facility reservation ID ' . $reservation->id . ' (Task ID: ' . $legalTask->id . ')',
             'ip_address' => request()->ip()
         ]);
         
@@ -375,20 +259,21 @@ class FacilityReservationController extends Controller
 
     public function legalFlag($id)
     {
-        // Role restrictions removed - all users can perform legal review
         $reservation = FacilityReservation::findOrFail($id);
+        $legalTask = $reservation->tasks()->where('task_type', 'legal_review')->first();
         
-        if (!$reservation->requires_legal_review) {
-            return redirect()->back()->with('error', 'This reservation does not require legal review.');
+        if (!$legalTask || $legalTask->status !== 'pending') {
+            return redirect()->back()->with('error', 'Legal review task not found or already completed.');
         }
         
+        $this->workflowService->updateTaskStatus($legalTask, 'flagged', request('legal_comment'));
+        
+        // Also deny the main reservation if flagged by legal
         $reservation->update([
             'status' => 'denied',
             'approved_by' => Auth::id(),
-            'legal_reviewed_by' => Auth::id(),
-            'legal_reviewed_at' => now(),
-            'legal_comment' => request('legal_comment'),
-            'remarks' => 'Flagged by legal review: ' . request('legal_comment')
+            'remarks' => 'Flagged by legal review: ' . request('legal_comment'),
+            'current_workflow_status' => 'denied_by_legal'
         ]);
         
         // Notify reserver
@@ -398,7 +283,7 @@ class FacilityReservationController extends Controller
         AccessLog::create([
             'user_id' => Auth::id(),
             'action' => 'legal_flag_facility_reservation',
-            'description' => 'Legal flagged facility reservation ID ' . $reservation->id,
+            'description' => 'Legal flagged facility reservation ID ' . $reservation->id . ' (Task ID: ' . $legalTask->id . ')',
             'ip_address' => request()->ip()
         ]);
         
@@ -409,104 +294,52 @@ class FacilityReservationController extends Controller
     {
         $reservation = FacilityReservation::findOrFail($id);
         
-        // Allow extraction even if the auto-flag was not set.
-        // This enables a manual extraction attempt from the UI.
-        
-        if (!$reservation->ai_classification) {
-            return redirect()->back()->with('error', 'No AI classification data available for visitor extraction.');
+        $documentTask = $reservation->tasks()->where('task_type', 'document_classification')->first();
+        if (!$documentTask || $documentTask->status !== 'completed') {
+            return redirect()->back()->with('error', 'Document classification must be complete before extracting visitor data.');
         }
         
-        $visitorData = $this->parseVisitorDataFromAI($reservation->ai_classification);
-        
-        if (empty($visitorData)) {
-            return redirect()->back()->with('error', 'No visitor data could be extracted from the document.');
+        $aiResult = $documentTask->details['ai_classification'] ?? [];
+        if (empty($aiResult)) {
+            return redirect()->back()->with('error', 'AI classification data not found for visitor extraction.');
         }
-        
-        $reservation->update([
-            'visitor_data' => $visitorData,
-            // Ensure the coordination flag is set when we do find visitors
-            'requires_visitor_coordination' => true
-        ]);
-        
-        return redirect()->route('facility_reservations.show', $id)->with('success', 'Visitor data extracted successfully!');
-    }
 
-    private function parseVisitorDataFromAI($aiClassification)
-    {
-        $visitors = [];
-        $keyInfo = $aiClassification['key_info'] ?? '';
-        $summary = $aiClassification['summary'] ?? '';
+        $visitorTask = $reservation->tasks()->where('task_type', 'visitor_coordination')->first();
         
-        // Simple extraction logic - in real implementation, this would be more sophisticated
-        $text = $keyInfo . ' ' . $summary;
-        
-        // Look for patterns like "Name: John Doe", "Visitor: Jane Smith", etc.
-        $patterns = [
-            '/(?:visitor|guest|attendee|participant|delegate):\s*([A-Za-z\s]+)/i',
-            '/name:\s*([A-Za-z\s]+)/i',
-            '/([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+will\s+visit|is\s+visiting|to\s+attend)/i'
-        ];
-        
-        foreach ($patterns as $pattern) {
-            if (preg_match_all($pattern, $text, $matches)) {
-                foreach ($matches[1] as $match) {
-                    $name = trim($match);
-                    if (strlen($name) > 3 && !in_array($name, $visitors)) {
-                        $visitors[] = [
-                            'name' => $name,
-                            'status' => 'pending_approval',
-                            'extracted_at' => now()->toISOString()
-                        ];
-                    }
-                }
-            }
+        if (!$visitorTask) {
+            // If task doesn't exist, create it via workflow service, which will then trigger extraction
+            $visitorTask = $this->workflowService->createVisitorCoordinationTask($reservation);
+            $this->workflowService->updateTaskStatus($visitorTask, 'pending', 'Visitor coordination task created by user action.');
+        } else if ($visitorTask->status === 'pending') {
+            // If task exists and is pending, it means it's awaiting extraction/approval
+            // Mark it in progress to trigger extraction via workflow service
+            $this->workflowService->updateTaskStatus($visitorTask, 'in_progress', 'User initiated visitor data extraction.');
+        } else {
+            return redirect()->back()->with('error', 'Visitor coordination task is not in a state to extract data.');
         }
         
-        return $visitors;
+        return redirect()->route('facility_reservations.show', $id)->with('success', 'Visitor data extraction initiated. Please allow a moment for processing.');
     }
 
     public function approveVisitors($id)
     {
         $reservation = FacilityReservation::findOrFail($id);
         
-        if (!$reservation->requires_visitor_coordination || !$reservation->visitor_data) {
-            return redirect()->back()->with('error', 'No visitors to approve for this reservation.');
+        $visitorTask = $reservation->tasks()->where('task_type', 'visitor_coordination')->first();
+        if (!$visitorTask || $visitorTask->status !== 'pending' && $visitorTask->status !== 'in_progress') {
+            return redirect()->back()->with('error', 'Visitor coordination task not found or not in an approvable state.');
+        }
+
+        // Instead of checking reservation->visitor_data, we check if actual Visitor models exist.
+        if ($reservation->visitors->isEmpty()) {
+            return redirect()->back()->with('error', 'No visitors records found for this reservation to approve.');
         }
         
-        $visitorData = $reservation->visitor_data;
+        // Update the visitor task status to completed
+        $this->workflowService->updateTaskStatus($visitorTask, 'completed', 'Visitors approved by user.');
         
-        // Update visitor status to approved
-        foreach ($visitorData as &$visitor) {
-            $visitor['status'] = 'approved';
-            $visitor['approved_at'] = now()->toISOString();
-            $visitor['approved_by'] = Auth::id();
-        }
-        
-        $reservation->update([
-            'visitor_data' => $visitorData,
-            'requires_visitor_coordination' => false // Clear the flag
-        ]);
-        
-        // Generate digital passes and notify security
-        $this->generateDigitalPasses($reservation);
-        
-        // Generate digital passes for approved visitors
-        GenerateDigitalPasses::dispatch($reservation->id);
-        
-        // Check if we can now auto-approve (no more special requirements)
-        if (!$reservation->requires_legal_review && $reservation->status === 'pending') {
-            $reservation->update([
-                'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'remarks' => 'Approved after visitor coordination completion'
-            ]);
-            
-            $reservation->updateWorkflowStage('approved', 'Approved after visitor coordination');
-            
-            // Notify reserver
-            $reservation->reserver->notify(new FacilityReservationStatusNotification($reservation));
-        }
-        
+        // The workflow service (or a job it dispatches) will now handle the actual approval and pass generation.
+
         return redirect()->route('facility_reservations.show', $id)->with('success', 'Visitors approved! Digital passes are being generated and security team will be notified.');
     }
 
@@ -546,34 +379,23 @@ class FacilityReservationController extends Controller
 
     private function generateDigitalPasses($reservation)
     {
-        // In a real implementation, this would generate actual digital passes
-        // For now, we'll just log the action and potentially send notifications
-        
-        Log::info('Digital passes generated for reservation', [
-            'reservation_id' => $reservation->id,
-            'visitors' => $reservation->visitor_data,
-            'facility' => $reservation->facility->name,
-            'date_range' => $reservation->start_time . ' to ' . $reservation->end_time
-        ]);
-        
-        // Here you could:
-        // 1. Generate QR codes for each visitor
-        // 2. Send email notifications to visitors with their passes
-        // 3. Notify security personnel
-        // 4. Update building access systems
-        
-        // For demonstration, let's create a simple notification
-        // You could create a new notification class for this
+        // This method is no longer used as GenerateDigitalPasses is dispatched from VisitorService
+        // Log::info('Digital passes generated for reservation', [
+        //     'reservation_id' => $reservation->id,
+        //     'visitors' => $reservation->visitor_data,
+        //     'facility' => $reservation->facility->name,
+        //     'date_range' => $reservation->start_time . ' to ' . $reservation->end_time
+        // ]);
     }
 
     public function destroy($id)
     {
         $reservation = FacilityReservation::findOrFail($id);
         
-        // Delete associated document if exists
-        if ($reservation->document_path) {
-            Storage::disk('public')->delete($reservation->document_path);
-        }
+        // The boot method in FacilityReservation model now handles deleting associated documents and tasks.
+        // if ($reservation->document_path) {
+        //     Storage::disk('public')->delete($reservation->document_path);
+        // }
         
         $reservation->delete();
         return redirect()->route('facility_reservations.index')->with('success', 'Reservation deleted.');

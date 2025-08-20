@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,14 +36,14 @@
 
         <!-- Back button and title -->
         <div class="flex items-center mb-6">
-          <a href="{{ route('document.index') }}" class="btn btn-ghost btn-sm mr-4">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back
+          <a href="{{ route('document.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>Back
           </a>
         </div>
 
         <!-- Success Banner -->
         @if(session('success') && str_contains(session('success'), 'uploaded'))
-          <div class="bg-green-500 text-white p-4 rounded-lg mb-6">
+          <div class="bg-green-500 text-white p-4 rounded-lg mb-6" style="background-color: var(--color-modern-teal); color: var(--color-white);">
             <div class="flex items-center">
               <i data-lucide="check-circle" class="w-6 h-6 mr-3"></i>
               <span class="text-lg font-medium">Document uploaded and analyzed successfully!</span>
@@ -54,52 +54,52 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Document Information -->
           <div class="lg:col-span-2">
-            <div class="card bg-white shadow-xl">
+            <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
               <div class="card-body">
                 <div class="flex justify-between items-start mb-4">
-                  <h2 class="card-title text-2xl">{{ $document->title }}</h2>
-                  <div class="badge badge-lg badge-{{ $document->status === 'archived' ? 'neutral' : ($document->status === 'pending_release' ? 'warning' : 'success') }}">
+                  <h2 class="card-title text-2xl" style="color: var(--color-charcoal-ink);">{{ $document->title }}</h2>
+                  <div class="badge badge-lg badge-{{ $document->status === 'archived' ? 'neutral' : ($document->status === 'pending_release' ? 'warning' : 'success') }}" style="background-color: var(--color-regal-navy); color: var(--color-white);">
                     {{ ucfirst(str_replace('_', ' ', $document->status)) }}
                   </div>
                 </div>
 
                 @if($document->description)
                   <div class="mb-4">
-                    <h3 class="font-semibold text-gray-700 mb-2">Description</h3>
-                    <p class="text-gray-600">{{ $document->description }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Description</h3>
+                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->description }}</p>
                   </div>
                 @endif
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1">Uploaded By</h3>
-                    <p class="text-gray-600">{{ $document->uploader->name ?? 'Unknown' }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Uploaded By</h3>
+                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->uploader->name ?? 'Unknown' }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1">File Path</h3>
-                    <p class="text-gray-600 text-sm">{{ $document->file_path }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">File Path</h3>
+                    <p class="text-gray-600 text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->file_path }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1">Category</h3>
-                    <p class="text-gray-600">{{ $document->category ?? 'Uncategorized' }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Category</h3>
+                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->category ?? 'Uncategorized' }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1">Upload Date</h3>
-                    <p class="text-gray-600">{{ $document->created_at->format('M d, Y H:i') }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Upload Date</h3>
+                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->created_at->format('M d, Y H:i') }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1">Last Updated</h3>
-                    <p class="text-gray-600">{{ $document->updated_at->format('M d, Y H:i') }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Last Updated</h3>
+                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->updated_at->format('M d, Y H:i') }}</p>
                   </div>
                 </div>
 
                 <!-- AI Tags -->
                 @if($document->ai_analysis && isset($document->ai_analysis['tags']))
                   <div class="mb-6">
-                    <h3 class="font-semibold text-gray-700 mb-3">AI Tags</h3>
+                    <h3 class="font-semibold text-gray-700 mb-3" style="color: var(--color-charcoal-ink);">AI Tags</h3>
                     <div class="flex flex-wrap gap-2">
                       @foreach($document->ai_analysis['tags'] as $tag)
-                        <span class="badge badge-outline badge-lg">{{ $tag }}</span>
+                        <span class="badge badge-outline badge-lg" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">{{ $tag }}</span>
                       @endforeach
                     </div>
                   </div>
@@ -108,8 +108,8 @@
                 <!-- Compliance Status -->
                 @if($document->ai_analysis && isset($document->ai_analysis['compliance_status']))
                   <div class="mb-6">
-                    <h3 class="font-semibold text-gray-700 mb-2">Compliance Status</h3>
-                    <span class="badge badge-{{ $document->ai_analysis['compliance_status'] === 'compliant' ? 'success' : ($document->ai_analysis['compliance_status'] === 'non-compliant' ? 'error' : 'warning') }} badge-lg">
+                    <h3 class="font-semibold text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Compliance Status</h3>
+                    <span class="badge badge-{{ $document->ai_analysis['compliance_status'] === 'compliant' ? 'success' : ($document->ai_analysis['compliance_status'] === 'non-compliant' ? 'error' : 'warning') }} badge-lg" style="background-color: var(--color-regal-navy); color: var(--color-white);">
                       {{ ucfirst(str_replace('_', ' ', $document->ai_analysis['compliance_status'])) }}
                     </span>
                   </div>
@@ -119,7 +119,7 @@
                   @if($document->status === 'archived')
                     <form action="{{ route('document.request-release', $document->id) }}" method="POST" class="inline">
                       @csrf
-                      <button type="submit" class="btn btn-warning" onclick="return confirm('Request release for this document?')">
+                      <button type="submit" class="btn btn-warning" onclick="return confirm('Request release for this document?')" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
                         <i data-lucide="send" class="w-4 h-4 mr-2"></i>Request Release
                       </button>
                     </form>
@@ -127,12 +127,12 @@
                   
                   <form action="{{ route('document.analyze', $document->id) }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--color-modern-teal); color: var(--color-white); border-color: var(--color-modern-teal);">
                       <i data-lucide="brain" class="w-4 h-4 mr-2"></i>AI Analysis
                     </button>
                   </form>
                   
-                  <a href="{{ route('document.edit', $document->id) }}" class="btn btn-outline">
+                  <a href="{{ route('document.edit', $document->id) }}" class="btn btn-outline" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
                     <i data-lucide="edit" class="w-4 h-4 mr-2"></i>Edit
                   </a>
                 </div>
@@ -142,41 +142,41 @@
 
           <!-- Request History -->
           <div class="lg:col-span-1">
-            <div class="card bg-white shadow-xl">
+            <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
               <div class="card-body">
-                <h3 class="card-title text-lg mb-4">
-                  <i data-lucide="rotate-ccw" class="w-5 h-5 mr-2"></i>Request History
+                <h3 class="card-title text-lg mb-4" style="color: var(--color-charcoal-ink);">
+                  <i data-lucide="rotate-ccw" class="w-5 h-5 mr-2" style="color: var(--color-regal-navy);"></i>Request History
                 </h3>
 
                 @if($document->documentRequests->count() > 0)
                   <div class="space-y-3">
                     @foreach($document->documentRequests->sortByDesc('created_at') as $request)
-                      <div class="border-l-4 border-{{ $request->status === 'pending' ? 'yellow' : ($request->status === 'approved' ? 'green' : 'red') }}-500 pl-3">
+                      <div class="border-l-4 border-{{ $request->status === 'pending' ? 'yellow' : ($request->status === 'approved' ? 'green' : 'red') }}-500 pl-3" style="border-color: var(--color-{{ $request->status === 'pending' ? 'golden-ember' : ($request->status === 'approved' ? 'modern-teal' : 'danger-red') }});">
                         <div class="flex justify-between items-start">
                           <div>
-                            <p class="font-semibold text-sm">
+                            <p class="font-semibold text-sm" style="color: var(--color-charcoal-ink);">
                               {{ ucfirst($request->status) }}
                             </p>
-                            <p class="text-xs text-gray-500">
+                            <p class="text-xs text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                               Requested by: {{ $request->requester->name ?? 'Unknown' }}
                             </p>
-                            <p class="text-xs text-gray-500">
+                            <p class="text-xs text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                               {{ $request->created_at->format('M d, Y H:i') }}
                             </p>
                           </div>
-                          <div class="badge badge-sm badge-{{ $request->status === 'pending' ? 'warning' : ($request->status === 'approved' ? 'success' : 'error') }}">
+                          <div class="badge badge-sm badge-{{ $request->status === 'pending' ? 'warning' : ($request->status === 'approved' ? 'success' : 'error') }}" style="background-color: var(--color-{{ $request->status === 'pending' ? 'golden-ember' : ($request->status === 'approved' ? 'modern-teal' : 'danger-red') }}); color: var(--color-white);">
                             {{ ucfirst($request->status) }}
                           </div>
                         </div>
                         
                         @if($request->approved_by)
-                          <p class="text-xs text-gray-500 mt-1">
+                          <p class="text-xs text-gray-500 mt-1" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                             {{ $request->status === 'approved' ? 'Approved' : 'Denied' }} by: {{ $request->approver->name ?? 'Unknown' }}
                           </p>
                         @endif
                         
                         @if($request->remarks)
-                          <p class="text-xs text-gray-600 mt-1 italic">
+                          <p class="text-xs text-gray-600 mt-1 italic" style="color: var(--color-charcoal-ink); opacity: 0.8;">
                             "{{ $request->remarks }}"
                           </p>
                         @endif
@@ -184,9 +184,9 @@
                     @endforeach
                   </div>
                 @else
-                  <div class="text-center py-4">
-                    <i data-lucide="folder" class="w-12 h-12 text-gray-300 mx-auto mb-2"></i>
-                    <p class="text-gray-500 text-sm">No request history</p>
+                  <div class="text-center py-4" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    <i data-lucide="folder" class="w-12 h-12 text-gray-300 mx-auto mb-2" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
+                    <p class="text-gray-500 text-sm" style="color: var(--color-charcoal-ink); opacity: 0.7;">No request history</p>
                   </div>
                 @endif
               </div>
@@ -199,55 +199,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality
-    function setupDarkMode() {
-      const toggle = document.getElementById('darkModeToggle');
-      const sunIcon = document.getElementById('sunIcon');
-      const moonIcon = document.getElementById('moonIcon');
-      
-      function updateIcons() {
-        if(document.documentElement.classList.contains('dark')) {
-          sunIcon.classList.remove('hidden');
-          moonIcon.classList.add('hidden');
-        } else {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        }
-      }
-      
-      // Initial state
-      const isDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-      updateIcons();
-      
-      toggle.addEventListener('click', function() {
-        console.log('Dark mode toggle clicked!');
-        
-        // Direct toggle without relying on global function
-        if (document.documentElement.classList.contains('dark')) {
-          // Switch to light mode
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-          console.log('Switched to LIGHT mode');
-        } else {
-          // Switch to dark mode
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-          console.log('Switched to DARK mode');
-        }
-        
-        updateIcons();
-      });
-    }
-
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -257,13 +208,12 @@
       const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
       const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
       
-      dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-      timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+      if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+      if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      setupDarkMode();
       updateDateTime();
       
       // Update time every second

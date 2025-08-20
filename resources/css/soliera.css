@@ -1,3 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+:root {
+  --color-charcoal-ink: #2C3E50;
+  --color-white: #FFFFFF;
+  --color-snow-mist: #F9FAFC;
+  --color-regal-navy: #1A2C5B;
+  --color-modern-teal: #4A8C8C;
+  --color-golden-ember: #F7B32B;
+  --color-button-secondary: #CC921C; /* For secondary button color */
+  --color-danger-red: #DC3545; /* Added for consistency with occupied status */
+}
+
+/* Base font styles */
+body {
+  font-family: 'Lato', sans-serif;
+  color: var(--color-charcoal-ink); /* Default text color */
+  background-color: var(--color-snow-mist); /* Default background color */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* General button transitions */
+.btn, button, a.btn, .group {
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Overriding DaisyUI primary and outline button colors */
+.btn-primary {
+  background-color: var(--color-regal-navy) !important;
+  border-color: var(--color-regal-navy) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-primary:hover {
+  background-color: color-mix(in srgb, var(--color-regal-navy), black 10%) !important;
+  border-color: color-mix(in srgb, var(--color-regal-navy), black 10%) !important;
+}
+
+.btn-outline {
+  color: var(--color-regal-navy) !important;
+  border-color: var(--color-regal-navy) !important;
+  background-color: transparent !important;
+}
+
+.btn-outline:hover {
+  background-color: var(--color-regal-navy) !important;
+  color: var(--color-white) !important;
+}
+
+/* Ensure main content area also uses the snow-mist background */
+main {
+  background-color: var(--color-snow-mist) !important;
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -51,122 +108,4 @@
 
 #sidebar .flex-1.flex.flex-col.overflow-y-auto::-webkit-scrollbar-thumb {
   display: none;
-}
-
-/* Dark mode styles */
-.dark {
-  color-scheme: dark;
-}
-
-.dark body {
-  background-color: #111827;
-  color: #f9fafb;
-}
-
-.dark .bg-white {
-  background-color: #1f2937;
-}
-
-.dark .text-gray-800 {
-  color: #f9fafb;
-}
-
-.dark .text-gray-700 {
-  color: #e5e7eb;
-}
-
-.dark .text-gray-600 {
-  color: #d1d5db;
-}
-
-.dark .text-gray-500 {
-  color: #9ca3af;
-}
-
-.dark .border-gray-200 {
-  border-color: #374151;
-}
-
-.dark .bg-gray-50 {
-  background-color: #111827;
-}
-
-.dark .bg-gray-100 {
-  background-color: #1f2937;
-}
-
-.dark .bg-gray-200 {
-  background-color: #374151;
-}
-
-/* Dark mode sidebar */
-.dark #sidebar {
-  background: linear-gradient(to bottom, #111827, #1f2937);
-  border-color: #374151;
-}
-
-/* Dark mode header */
-.dark header {
-  background-color: #1f2937;
-  border-color: #374151;
-}
-
-/* Dark mode main content */
-.dark main {
-  background-color: #111827;
-}
-
-/* Dark mode cards */
-.dark .card {
-  background-color: #1f2937;
-  border-color: #374151;
-}
-
-/* Dark mode tables */
-.dark .table {
-  background-color: #1f2937;
-}
-
-.dark .table th {
-  background-color: #374151;
-  color: #f9fafb;
-}
-
-.dark .table td {
-  border-color: #374151;
-}
-
-/* Dark mode inputs */
-.dark .input {
-  background-color: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
-}
-
-.dark .input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
-}
-
-/* Dark mode buttons */
-.dark .btn-ghost {
-  color: #f9fafb;
-}
-
-.dark .btn-ghost:hover {
-  background-color: #374151;
-}
-
-/* Dark mode dropdowns */
-.dark .dropdown-content {
-  background-color: #1f2937;
-  border-color: #374151;
-}
-
-.dark .dropdown-content a {
-  color: #f9fafb;
-}
-
-.dark .dropdown-content a:hover {
-  background-color: #374151;
 }

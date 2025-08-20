@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,11 +22,11 @@
       <!-- Visitor Management Content -->
       <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-slow">
         <div class="pb-5 border-b border-base-300 animate-fadeIn">
-          <h1 class="text-2xl font-semibold bg-white bg-clip-text text-[#191970]">Visitor Management</h1>
+          <h1 class="text-2xl font-semibold bg-white bg-clip-text text-[#191970]" style="color: var(--color-charcoal-ink);">Visitor Management</h1>
         </div>
         
         @if(session('success'))
-          <div class="alert alert-success mb-6 animate-fadeIn">
+          <div class="alert alert-success mb-6 animate-fadeIn" style="background-color: var(--color-modern-teal); color: var(--color-white);">
             <i data-lucide="check-circle" class="w-5 h-5"></i>
             <span>{{ session('success') }}</span>
           </div>
@@ -35,14 +35,14 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
           <!-- Total Visitors -->
-          <div class="card bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="animation-delay: 0.1s">
+          <div class="card bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.1s">
             <div class="card-body">
               <div class="flex items-center justify-between">
                 <div>
-                  <h3 class="text-lg font-semibold text-blue-800">Total Visitors</h3>
-                  <p class="text-3xl font-bold text-blue-900">{{ $visitors->count() }}</p>
+                  <h3 class="text-lg font-semibold text-blue-800" style="color: var(--color-charcoal-ink);">Total Visitors</h3>
+                  <p class="text-3xl font-bold text-blue-900" style="color: var(--color-regal-navy);">{{ $visitors->count() }}</p>
                 </div>
-                <div class="p-3 rounded-full bg-blue-200 text-blue-600">
+                <div class="p-3 rounded-full bg-blue-200 text-blue-600" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-regal-navy);">
                   <i data-lucide="users" class="w-8 h-8"></i>
                 </div>
               </div>
@@ -50,14 +50,14 @@
           </div>
           
           <!-- Active Visitors -->
-          <div class="card bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="animation-delay: 0.2s">
+          <div class="card bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.2s">
             <div class="card-body">
               <div class="flex items-center justify-between">
                 <div>
-                  <h3 class="text-lg font-semibold text-green-800">Currently In</h3>
-                  <p class="text-3xl font-bold text-green-900">{{ $visitors->whereNull('time_out')->count() }}</p>
+                  <h3 class="text-lg font-semibold text-green-800" style="color: var(--color-charcoal-ink);">Currently In</h3>
+                  <p class="text-3xl font-bold text-green-900" style="color: var(--color-modern-teal);">{{ $visitors->whereNull('time_out')->count() }}</p>
                 </div>
-                <div class="p-3 rounded-full bg-green-200 text-green-600">
+                <div class="p-3 rounded-full bg-green-200 text-green-600" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 80%); color: var(--color-modern-teal);">
                   <i data-lucide="user-check" class="w-8 h-8"></i>
                 </div>
               </div>
@@ -65,14 +65,14 @@
           </div>
           
           <!-- Today's Visitors -->
-          <div class="card bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="animation-delay: 0.3s">
+          <div class="card bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.3s">
             <div class="card-body">
               <div class="flex items-center justify-between">
                 <div>
-                  <h3 class="text-lg font-semibold text-purple-800">Today's Visitors</h3>
-                  <p class="text-3xl font-bold text-purple-900">{{ $visitors->where('time_in', '>=', now()->startOfDay())->count() }}</p>
+                  <h3 class="text-lg font-semibold text-purple-800" style="color: var(--color-charcoal-ink);">Today's Visitors</h3>
+                  <p class="text-3xl font-bold text-purple-900" style="color: var(--color-purple);">{{ $visitors->where('time_in', '>=', now()->startOfDay())->count() }}</p>
                 </div>
-                <div class="p-3 rounded-full bg-purple-200 text-purple-600">
+                <div class="p-3 rounded-full bg-purple-200 text-purple-600" style="background-color: color-mix(in srgb, var(--color-purple), white 80%); color: var(--color-purple);">
                   <i data-lucide="calendar" class="w-8 h-8"></i>
                 </div>
               </div>
@@ -80,14 +80,14 @@
           </div>
           
           <!-- Completed Visits -->
-          <div class="card bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="animation-delay: 0.4s">
+          <div class="card bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.4s">
             <div class="card-body">
               <div class="flex items-center justify-between">
                 <div>
-                  <h3 class="text-lg font-semibold text-orange-800">Completed</h3>
-                  <p class="text-3xl font-bold text-orange-900">{{ $visitors->whereNotNull('time_out')->count() }}</p>
+                  <h3 class="text-lg font-semibold text-orange-800" style="color: var(--color-charcoal-ink);">Completed</h3>
+                  <p class="text-3xl font-bold text-orange-900" style="color: var(--color-golden-ember);">{{ $visitors->whereNotNull('time_out')->count() }}</p>
                 </div>
-                <div class="p-3 rounded-full bg-orange-200 text-orange-600">
+                <div class="p-3 rounded-full bg-orange-200 text-orange-600" style="background-color: color-mix(in srgb, var(--color-golden-ember), white 80%); color: var(--color-golden-ember);">
                   <i data-lucide="check-circle" class="w-8 h-8"></i>
                 </div>
               </div>
@@ -98,15 +98,15 @@
         <!-- Action Buttons -->
         <div class="flex justify-between items-center mt-8 mb-6">
           <div class="flex gap-3">
-            <a href="{{ route('visitor.create') }}" class="btn btn-primary hover:scale-105 transition-all">
+            <a href="{{ route('visitor.create') }}" class="btn btn-primary hover:scale-105 transition-all" style="background-color: var(--color-regal-navy); color: var(--color-white); border-color: var(--color-regal-navy);">
               <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>Register New Visitor
             </a>
           </div>
           <div class="flex gap-2">
-            <a href="{{ route('visitor.export.excel') }}" class="btn btn-success btn-sm hover:scale-105 transition-all">
+            <a href="{{ route('visitor.export.excel') }}" class="btn btn-success btn-sm hover:scale-105 transition-all" style="background-color: var(--color-modern-teal); color: var(--color-white); border-color: var(--color-modern-teal);">
               <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1"></i>Export Excel
             </a>
-            <a href="{{ route('visitor.export.pdf') }}" class="btn btn-error btn-sm hover:scale-105 transition-all">
+            <a href="{{ route('visitor.export.pdf') }}" class="btn btn-error btn-sm hover:scale-105 transition-all" style="background-color: var(--color-danger-red); color: var(--color-white); border-color: var(--color-danger-red);">
               <i data-lucide="file-text" class="w-4 h-4 mr-1"></i>Export PDF
             </a>
           </div>
@@ -115,60 +115,60 @@
         <!-- MODERN VISITOR INTERFACE -->
         <div class="mt-8">
           <!-- Navigation Tabs -->
-          <div class="bg-gray-100 px-6 py-2 border-b border-gray-200">
+          <div class="bg-gray-100 px-6 py-2 border-b border-gray-200" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
             <div class="flex space-x-1">
-              <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="showTab('current')">
+              <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="showTab('current')" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);">
                 Current Visitors
               </button>
-              <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showTab('scheduled')">
+              <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showTab('scheduled')" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
                 Scheduled Visits
               </button>
-              <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showTab('checkin')">
+              <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showTab('checkin')" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
                 Check In/Out
               </button>
             </div>
           </div>
 
           <!-- Main Content -->
-          <div class="bg-white rounded-lg border border-gray-200 mt-0">
+          <div class="bg-white rounded-lg border border-gray-200 mt-0" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
             <!-- Current Visitors Tab -->
             <div id="current-tab" class="h-96 flex">
               <!-- Left Panel - Current Visitors List -->
               <div class="w-2/3 p-6 overflow-y-auto">
                 <div class="mb-6">
-                  <h1 class="text-2xl font-bold text-gray-900 mb-1">Current Visitors</h1>
-                  <p class="text-gray-600">Visitors currently in the building</p>
+                  <h1 class="text-2xl font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">Current Visitors</h1>
+                  <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Visitors currently in the building</p>
                 </div>
                 
                 <!-- Search Bar -->
                 <div class="mb-6">
                   <div class="relative">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                    <input type="text" placeholder="Search visitors..." class="input input-bordered w-full pl-10" id="visitorSearch" />
+                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
+                    <input type="text" placeholder="Search visitors..." class="input input-bordered w-full pl-10" id="visitorSearch" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                   </div>
                 </div>
                 
                 <!-- Visitor Cards -->
                 <div class="space-y-4">
-                  @forelse($visitors as $visitor)
+                  @forelse($visitors->whereNull('time_out') as $visitor) {{-- Only show currently checked-in visitors --}}
                     <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer visitor-card" 
                          data-visitor-id="{{ $visitor->id }}"
-                         onclick="selectVisitor({{ $visitor->id }})">
+                         onclick="selectVisitor({{ $visitor->id }})" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
                       <div class="flex items-center justify-between">
                         <div class="flex-1">
-                          <h3 class="font-semibold text-gray-900">{{ $visitor->name }}</h3>
-                          <p class="text-sm text-gray-600">{{ $visitor->company ?? 'No Company' }}</p>
+                          <h3 class="font-semibold text-gray-900" style="color: var(--color-charcoal-ink);">{{ $visitor->name }}</h3>
+                          <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $visitor->company ?? 'No Company' }}</p>
                           
                           <div class="flex items-center gap-4 mt-2">
                             @if($visitor->time_out)
-                              <span class="badge badge-outline text-gray-500">Checked Out</span>
+                              <span class="badge badge-outline text-gray-500" style="border-color: var(--color-charcoal-ink); color: var(--color-charcoal-ink); opacity: 0.7;">Checked Out</span>
                             @else
-                              <span class="badge badge-primary">Checked In</span>
+                              <span class="badge badge-primary" style="background-color: var(--color-regal-navy); color: var(--color-white);">Checked In</span>
                             @endif
                             
-                            <span class="badge badge-outline text-gray-600">{{ $visitor->purpose }}</span>
+                            <span class="badge badge-outline text-gray-600" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">{{ $visitor->purpose }}</span>
                             
-                            <div class="flex items-center gap-1 text-sm text-gray-500">
+                            <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                               <i data-lucide="clock" class="w-3 h-3"></i>
                               <span>In: {{ \Carbon\Carbon::parse($visitor->time_in)->format('h:i A') }}</span>
                               @if($visitor->time_out)
@@ -176,7 +176,7 @@
                               @endif
                             </div>
                             
-                            <div class="flex items-center gap-1 text-sm text-gray-500">
+                            <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                               <i data-lucide="building" class="w-3 h-3"></i>
                               <span>{{ $visitor->facility->name ?? 'No Location' }}</span>
                             </div>
@@ -185,69 +185,81 @@
                       </div>
                     </div>
                   @empty
-                    <div class="text-center py-8">
-                      <i data-lucide="users" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
-                      <p class="text-gray-500">No visitors found</p>
+                    <div class="text-center py-8" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                      <i data-lucide="users" class="w-12 h-12 text-gray-400 mx-auto mb-4" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
+                      <p class="text-gray-500">No visitors currently in the building</p>
                     </div>
                   @endforelse
                 </div>
               </div>
               
               <!-- Right Panel - Visitor Details -->
-              <div class="w-1/3 bg-gray-50 border-l border-gray-200 p-6 overflow-y-auto">
+              <div class="w-1/3 bg-gray-50 border-l border-gray-200 p-6 overflow-y-auto" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
                 <div id="visitor-details" class="hidden">
-                  <h2 class="text-xl font-bold text-gray-900 mb-1">Visitor Details</h2>
-                  <p class="text-gray-600 mb-6">Information for <span id="selected-visitor-name">John Smith</span></p>
+                  <h2 class="text-xl font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">Visitor Details</h2>
+                  <p class="text-gray-600 mb-6" style="color: var(--color-charcoal-ink); opacity: 0.8;">Information for <span id="selected-visitor-name">John Smith</span></p>
                   
-                  <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+                  <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Visitor Name</label>
-                      <p class="text-gray-900" id="detail-name">John Smith</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Visitor Name</label>
+                      <p class="text-gray-900" id="detail-name" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                     
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Company</label>
-                      <p class="text-gray-900" id="detail-company">Legal Partners LLC</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Company</label>
+                      <p class="text-gray-900" id="detail-company" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                     
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Purpose</label>
-                      <p class="text-gray-900" id="detail-purpose">Contract Discussion</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Purpose</label>
+                      <p class="text-gray-900" id="detail-purpose" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                     
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Host Employee</label>
-                      <p class="text-gray-900" id="detail-host">Sarah Johnson</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Host Employee</label>
+                      <p class="text-gray-900" id="detail-host" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                     
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Floor/Location</label>
-                      <p class="text-gray-900" id="detail-location">3rd Floor - Conference Room A</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Floor/Location</label>
+                      <p class="text-gray-900" id="detail-location" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                     
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Check-in Time</label>
-                      <p class="text-gray-900" id="detail-checkin">9:30 AM</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Check-in Time</label>
+                      <p class="text-gray-900" id="detail-checkin" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                     
                     <div>
-                      <label class="text-sm font-medium text-gray-700">Status</label>
-                      <p class="text-gray-900" id="detail-status">Currently In Building</p>
+                      <label class="text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Status</label>
+                      <p class="text-gray-900" id="detail-status" style="color: var(--color-charcoal-ink);"></p>
                     </div>
                   </div>
                   
                   <div class="mt-6 space-y-3">
-                    <button class="btn btn-primary w-full">
+                    <button class="btn btn-primary w-full" style="background-color: var(--color-regal-navy); color: var(--color-white); border-color: var(--color-regal-navy);">
                       <i data-lucide="edit" class="w-4 h-4 mr-2"></i>Edit Visitor
                     </button>
-                    <button class="btn btn-outline w-full">
+                    <button class="btn btn-outline w-full" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
                       <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>Check Out
                     </button>
                   </div>
+                  
+                  <!-- Digital Pass Section -->
+                  <div id="digital-pass-section" class="mt-6 space-y-2 hidden">
+                    <h3 class="text-lg font-semibold text-gray-800" style="color: var(--color-charcoal-ink);">Digital Pass</h3>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 90%); border-color: var(--color-regal-navy);">
+                      <p class="text-sm text-gray-700" style="color: var(--color-charcoal-ink);">Pass ID: <span id="pass-id" class="font-medium"></span></p>
+                      <p class="text-sm text-gray-700" style="color: var(--color-charcoal-ink);">Valid: <span id="pass-valid-from"></span> to <span id="pass-valid-until"></span></p>
+                      <p class="text-sm text-gray-700" style="color: var(--color-charcoal-ink);">Facility: <span id="pass-facility"></span></p>
+                      <p class="text-sm text-gray-700" style="color: var(--color-charcoal-ink);">Purpose: <span id="pass-purpose"></span></p>
+                      <p class="text-sm text-gray-700" style="color: var(--color-charcoal-ink);">Access Level: <span id="pass-access-level"></span></p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div id="no-selection" class="text-center py-12">
-                  <i data-lucide="user" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <div id="no-selection" class="text-center py-12" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                  <i data-lucide="user" class="w-16 h-16 text-gray-300 mx-auto mb-4" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
                   <p class="text-gray-500">Select a visitor to view details</p>
                 </div>
               </div>
@@ -256,65 +268,45 @@
             <!-- Scheduled Visits Tab -->
             <div id="scheduled-tab" class="h-96 p-6 overflow-y-auto hidden">
               <div class="mb-6">
-                <h1 class="text-2xl font-bold text-gray-900 mb-1">Scheduled Visits</h1>
-                <p class="text-gray-600">Upcoming visitor appointments</p>
+                <h1 class="text-2xl font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">Scheduled Visits</h1>
+                <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Upcoming visitor appointments</p>
               </div>
               
               <div class="space-y-4">
                 <!-- Sample scheduled visits -->
-                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                @forelse($visitors->whereNull('time_out')->where('time_in', '>=', now()->startOfDay())->where('time_in', '<=', now()->endOfDay()) as $visitor) {{-- Only show scheduled visitors for today --}}
+                <div class="bg-white rounded-lg border border-gray-200 p-4" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
                   <div class="flex items-center justify-between">
                     <div class="flex-1">
-                      <h3 class="font-semibold text-gray-900">Lisa Brown</h3>
-                      <p class="text-sm text-gray-600">Financial Advisors</p>
+                      <h3 class="font-semibold text-gray-900" style="color: var(--color-charcoal-ink);">{{ $visitor->name }}</h3>
+                      <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $visitor->company ?? 'No Company' }}</p>
                       
                       <div class="flex items-center gap-4 mt-2">
-                        <span class="badge badge-primary">Scheduled</span>
-                        <span class="badge badge-outline text-gray-600">Budget Review</span>
+                        <span class="badge badge-warning" style="background-color: var(--color-golden-ember); color: var(--color-white);">Scheduled</span>
+                        <span class="badge badge-outline text-gray-600" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">{{ $visitor->purpose ?? 'No Purpose' }}</span>
                         
-                        <div class="flex items-center gap-1 text-sm text-gray-500">
+                        <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                           <i data-lucide="calendar" class="w-3 h-3"></i>
-                          <span>2024-01-18</span>
+                          <span>{{ \Carbon\Carbon::parse($visitor->time_in)->format('Y-m-d') }}</span>
                         </div>
                         
-                        <div class="flex items-center gap-1 text-sm text-gray-500">
+                        <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                           <i data-lucide="clock" class="w-3 h-3"></i>
-                          <span>03:00 PM</span>
+                          <span>{{ \Carbon\Carbon::parse($visitor->time_in)->format('h:i A') }}</span>
                         </div>
                         
-                        <span class="text-sm text-gray-500">Host: Robert Taylor</span>
+                        <span class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">Host: {{ $visitor->host_employee ?? 'N/A' }}</span>
                       </div>
                     </div>
-                    <button class="btn btn-outline btn-sm">Pre-Register</button>
+                    <button class="btn btn-outline btn-sm" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">Pre-Register</button>
                   </div>
                 </div>
-                
-                <div class="bg-white rounded-lg border border-gray-200 p-4">
-                  <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                      <h3 class="font-semibold text-gray-900">James Anderson</h3>
-                      <p class="text-sm text-gray-600">Security Systems</p>
-                      
-                      <div class="flex items-center gap-4 mt-2">
-                        <span class="badge badge-primary">Scheduled</span>
-                        <span class="badge badge-outline text-gray-600">Security Assessment</span>
-                        
-                        <div class="flex items-center gap-1 text-sm text-gray-500">
-                          <i data-lucide="calendar" class="w-3 h-3"></i>
-                          <span>2024-01-19</span>
-                        </div>
-                        
-                        <div class="flex items-center gap-1 text-sm text-gray-500">
-                          <i data-lucide="clock" class="w-3 h-3"></i>
-                          <span>10:00 AM</span>
-                        </div>
-                        
-                        <span class="text-sm text-gray-500">Host: Sarah Johnson</span>
-                      </div>
-                    </div>
-                    <button class="btn btn-outline btn-sm">Pre-Register</button>
-                  </div>
+                @empty
+                <div class="text-center py-8" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                  <i data-lucide="calendar" class="w-12 h-12 text-gray-400 mx-auto mb-4" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
+                  <p class="text-gray-500">No scheduled visits for today</p>
                 </div>
+                @endforelse
               </div>
             </div>
             
@@ -323,33 +315,33 @@
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Left: Check-In Form -->
                 <div>
-                  <h2 class="text-xl font-bold text-gray-900 mb-1">Visitor Check-In</h2>
-                  <p class="text-gray-600 mb-6">Register a new visitor or check in scheduled visitor</p>
+                  <h2 class="text-xl font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">Visitor Check-In</h2>
+                  <p class="text-gray-600 mb-6" style="color: var(--color-charcoal-ink); opacity: 0.8;">Register a new visitor or check in scheduled visitor</p>
                   
-                  <form id="checkin-form" class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+                  <form id="checkin-form" class="bg-white rounded-lg border border-gray-200 p-6 space-y-4" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Visitor Name</label>
-                      <input type="text" name="name" placeholder="Enter visitor name" class="input input-bordered w-full" required />
+                      <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Visitor Name</label>
+                      <input type="text" name="name" placeholder="Enter visitor name" class="input input-bordered w-full" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Company</label>
-                      <input type="text" name="company" placeholder="Enter company name" class="input input-bordered w-full" />
+                      <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Company</label>
+                      <input type="text" name="company" placeholder="Enter company name" class="input input-bordered w-full" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Purpose of Visit</label>
-                      <input type="text" name="purpose" placeholder="Meeting, consultation, etc." class="input input-bordered w-full" />
+                      <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Purpose of Visit</label>
+                      <input type="text" name="purpose" placeholder="Meeting, consultation, etc." class="input input-bordered w-full" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Host Employee</label>
-                      <input type="text" name="host_employee" placeholder="Enter host employee name" class="input input-bordered w-full" />
+                      <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Host Employee</label>
+                      <input type="text" name="host_employee" placeholder="Enter host employee name" class="input input-bordered w-full" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Facility/Location</label>
-                      <select name="facility_id" class="select select-bordered w-full">
+                      <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Facility/Location</label>
+                      <select name="facility_id" class="select select-bordered w-full" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
                         <option value="">Select facility</option>
                         @foreach($facilities as $facility)
                           <option value="{{ $facility->id }}">{{ $facility->name }}</option>
@@ -357,7 +349,7 @@
                       </select>
                     </div>
                     
-                    <button type="button" onclick="checkInVisitor()" class="btn btn-primary w-full">
+                    <button type="button" onclick="checkInVisitor()" class="btn btn-primary w-full" style="background-color: var(--color-regal-navy); color: var(--color-white); border-color: var(--color-regal-navy);">
                       <i data-lucide="check" class="w-4 h-4 mr-2"></i>
                       Check In Visitor
                     </button>
@@ -366,28 +358,28 @@
                 
                 <!-- Right: Quick Actions -->
                 <div>
-                  <h2 class="text-xl font-bold text-gray-900 mb-1">Quick Actions</h2>
-                  <p class="text-gray-600 mb-6">Common visitor management tasks</p>
+                  <h2 class="text-xl font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">Quick Actions</h2>
+                  <p class="text-gray-600 mb-6" style="color: var(--color-charcoal-ink); opacity: 0.8;">Common visitor management tasks</p>
                   
                   <div class="space-y-3">
-                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="viewAllVisitors()">
-                      <i data-lucide="users" class="w-6 h-6 text-gray-900 mx-auto mb-2"></i>
-                      <p class="text-sm font-medium text-gray-900">View All Visitors</p>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="viewAllVisitors()" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                      <i data-lucide="users" class="w-6 h-6 text-gray-900 mx-auto mb-2" style="color: var(--color-regal-navy);"></i>
+                      <p class="text-sm font-medium text-gray-900" style="color: var(--color-charcoal-ink);">View All Visitors</p>
                     </div>
                     
-                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="scheduleVisit()">
-                      <i data-lucide="calendar" class="w-6 h-6 text-gray-900 mx-auto mb-2"></i>
-                      <p class="text-sm font-medium text-gray-900">Schedule Visit</p>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="scheduleVisit()" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                      <i data-lucide="calendar" class="w-6 h-6 text-gray-900 mx-auto mb-2" style="color: var(--color-modern-teal);"></i>
+                      <p class="text-sm font-medium text-gray-900" style="color: var(--color-charcoal-ink);">Schedule Visit</p>
                     </div>
                     
-                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="emergencyEvacuation()">
-                      <i data-lucide="x-circle" class="w-6 h-6 text-gray-900 mx-auto mb-2"></i>
-                      <p class="text-sm font-medium text-gray-900">Emergency Evacuation</p>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="emergencyEvacuation()" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                      <i data-lucide="x-circle" class="w-6 h-6 text-gray-900 mx-auto mb-2" style="color: var(--color-danger-red);"></i>
+                      <p class="text-sm font-medium text-gray-900" style="color: var(--color-charcoal-ink);">Emergency Evacuation</p>
                     </div>
                     
-                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="buildingDirectory()">
-                      <i data-lucide="building" class="w-6 h-6 text-gray-900 mx-auto mb-2"></i>
-                      <p class="text-sm font-medium text-gray-900">Building Directory</p>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-md transition-shadow cursor-pointer" onclick="buildingDirectory()" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                      <i data-lucide="building" class="w-6 h-6 text-gray-900 mx-auto mb-2" style="color: var(--color-regal-navy);"></i>
+                      <p class="text-sm font-medium text-gray-900" style="color: var(--color-charcoal-ink);">Building Directory</p>
                     </div>
                   </div>
                 </div>
@@ -422,10 +414,16 @@
       tabs.forEach(tab => {
         tab.classList.remove('bg-blue-100', 'text-gray-700', 'border-blue-500');
         tab.classList.add('text-gray-500');
+        tab.style.backgroundColor = 'inherit';
+        tab.style.color = 'var(--color-charcoal-ink)';
+        tab.style.borderColor = 'transparent';
       });
       
       event.target.classList.remove('text-gray-500');
       event.target.classList.add('bg-blue-100', 'text-gray-700', 'border-blue-500');
+      event.target.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
+      event.target.style.color = 'var(--color-charcoal-ink)';
+      event.target.style.borderColor = 'var(--color-regal-navy)';
 
       // Load data for the selected tab
       loadTabData(tabName);
@@ -451,7 +449,7 @@
       fetch('{{ route("visitor.current") }}')
         .then(response => response.json())
         .then(visitors => {
-          updateVisitorCards(visitors);
+          updateVisitorCards(visitors.filter(v => !v.time_out)); // Filter for only currently checked-in
         })
         .catch(error => {
           console.error('Error loading current visitors:', error);
@@ -479,8 +477,8 @@
 
       if (visitors.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-8">
-            <i data-lucide="users" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+          <div class="text-center py-8" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+            <i data-lucide="users" class="w-12 h-12 text-gray-400 mx-auto mb-4" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
             <p class="text-gray-500">No visitors currently in the building</p>
           </div>
         `;
@@ -490,34 +488,33 @@
       container.innerHTML = visitors.map(visitor => `
         <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer visitor-card" 
              data-visitor-id="${visitor.id}"
-             onclick="selectVisitor(${visitor.id})">
+             onclick="selectVisitor(${visitor.id})" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
           <div class="flex items-center justify-between">
             <div class="flex-1">
-              <h3 class="font-semibold text-gray-900">${visitor.name}</h3>
-              <p class="text-sm text-gray-600">${visitor.company || 'No Company'}</p>
+              <h3 class="font-semibold text-gray-900" style="color: var(--color-charcoal-ink);">${visitor.name}</h3>
+              <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">${visitor.company || 'No Company'}</p>
               
               <div class="flex items-center gap-4 mt-2">
                 ${visitor.time_out ? 
-                  '<span class="badge badge-outline text-gray-500">Checked Out</span>' : 
-                  '<span class="badge badge-primary">Checked In</span>'
+                  '<span class="badge badge-outline text-gray-500" style="border-color: var(--color-charcoal-ink); color: var(--color-charcoal-ink); opacity: 0.7;">Checked Out</span>' : 
+                  '<span class="badge badge-primary" style="background-color: var(--color-regal-navy); color: var(--color-white);">Checked In</span>'
                 }
                 
-                <span class="badge badge-outline text-gray-600">${visitor.purpose || 'No Purpose'}</span>
+                <span class="badge badge-outline text-gray-600" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">${visitor.purpose || 'No Purpose'}</span>
                 
-                <div class="flex items-center gap-1 text-sm text-gray-500">
+                <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                   <i data-lucide="clock" class="w-3 h-3"></i>
                   <span>In: ${formatTime(visitor.time_in)}</span>
                   ${visitor.time_out ? `<span>Out: ${formatTime(visitor.time_out)}</span>` : ''}
                 </div>
                 
-                <div class="flex items-center gap-1 text-sm text-gray-500">
+                <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                   <i data-lucide="building" class="w-3 h-3"></i>
                   <span>${visitor.facility ? visitor.facility.name : 'No Location'}</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
       `).join('');
 
       // Recreate icons
@@ -533,8 +530,8 @@
 
       if (visitors.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-8">
-            <i data-lucide="calendar" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+          <div class="text-center py-8" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+            <i data-lucide="calendar" class="w-12 h-12 text-gray-400 mx-auto mb-4" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
             <p class="text-gray-500">No scheduled visits for today</p>
           </div>
         `;
@@ -544,29 +541,30 @@
       container.innerHTML = visitors.map(visitor => `
         <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer visitor-card" 
              data-visitor-id="${visitor.id}"
-             onclick="selectVisitor(${visitor.id})">
+             onclick="selectVisitor(${visitor.id})" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
           <div class="flex items-center justify-between">
             <div class="flex-1">
-              <h3 class="font-semibold text-gray-900">${visitor.name}</h3>
-              <p class="text-sm text-gray-600">${visitor.company || 'No Company'}</p>
+              <h3 class="font-semibold text-gray-900" style="color: var(--color-charcoal-ink);">${visitor.name}</h3>
+              <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">${visitor.company || 'No Company'}</p>
               
               <div class="flex items-center gap-4 mt-2">
-                <span class="badge badge-warning">Scheduled</span>
-                <span class="badge badge-outline text-gray-600">${visitor.purpose || 'No Purpose'}</span>
+                <span class="badge badge-warning" style="background-color: var(--color-golden-ember); color: var(--color-white);">Scheduled</span>
+                <span class="badge badge-outline text-gray-600" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">${visitor.purpose || 'No Purpose'}</span>
                 
-                <div class="flex items-center gap-1 text-sm text-gray-500">
+                <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                  <i data-lucide="calendar" class="w-3 h-3"></i>
+                  <span>${formatDate(visitor.time_in)}</span>
+                </div>
+                
+                <div class="flex items-center gap-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                   <i data-lucide="clock" class="w-3 h-3"></i>
-                  <span>Scheduled: ${formatTime(visitor.time_in)}</span>
+                  <span>${formatTime(visitor.time_in)}</span>
                 </div>
                 
-                <div class="flex items-center gap-1 text-sm text-gray-500">
-                  <i data-lucide="building" class="w-3 h-3"></i>
-                  <span>${visitor.facility ? visitor.facility.name : 'No Location'}</span>
-                </div>
+                <span class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">Host: ${visitor.host_employee || 'N/A'}</span>
               </div>
             </div>
           </div>
-        </div>
       `).join('');
 
       // Recreate icons
@@ -582,10 +580,12 @@
       // Remove selection from all cards
       document.querySelectorAll('.visitor-card').forEach(card => {
         card.classList.remove('ring-2', 'ring-blue-500');
+        card.style.borderColor = 'var(--color-snow-mist)';
       });
       
       // Add selection to clicked card
       event.currentTarget.classList.add('ring-2', 'ring-blue-500');
+      event.currentTarget.style.borderColor = 'var(--color-regal-navy)';
       
       // Fetch visitor details
       fetch(`{{ route('visitor.details', '') }}/${visitorId}`)
@@ -617,6 +617,12 @@
 
       // Update action buttons
       const checkoutBtn = document.querySelector('#visitor-details .btn-outline');
+      const editBtn = document.querySelector('#visitor-details .btn-primary');
+
+      if (editBtn) {
+          editBtn.onclick = () => window.location.href = `{{ route('visitor.edit', '') }}/${visitor.id}`;
+      }
+
       if (checkoutBtn) {
         if (visitor.time_out) {
           checkoutBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>Already Checked Out';
@@ -628,6 +634,20 @@
           checkoutBtn.classList.remove('btn-disabled');
           checkoutBtn.onclick = () => checkOutVisitor(visitor.id);
         }
+      }
+
+      // Display Digital Pass info if available
+      const digitalPassSection = document.getElementById('digital-pass-section');
+      if (visitor.digital_pass) {
+          document.getElementById('pass-id').textContent = visitor.digital_pass.pass_id;
+          document.getElementById('pass-valid-from').textContent = formatDate(visitor.digital_pass.valid_from);
+          document.getElementById('pass-valid-until').textContent = formatDate(visitor.digital_pass.valid_until);
+          document.getElementById('pass-facility').textContent = visitor.digital_pass.facility;
+          document.getElementById('pass-purpose').textContent = visitor.digital_pass.purpose;
+          document.getElementById('pass-access-level').textContent = visitor.digital_pass.access_level;
+          digitalPassSection.classList.remove('hidden');
+      } else {
+          digitalPassSection.classList.add('hidden');
       }
 
       // Recreate icons
@@ -654,6 +674,9 @@
             loadCurrentVisitors();
             // Update stats
             updateStats();
+            // Clear details panel after checkout
+            document.getElementById('visitor-details').classList.add('hidden');
+            document.getElementById('no-selection').classList.remove('hidden');
           } else {
             showNotification('Error checking out visitor', 'error');
           }
@@ -669,7 +692,7 @@
     function checkInVisitor() {
       const formData = new FormData(document.getElementById('checkin-form'));
       
-      fetch('{{ route("visitor.checkin") }}', {
+      fetch('{{ route("visitor.store") }}', {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -775,6 +798,11 @@
         minute: '2-digit', 
         hour12: true 
       });
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     function showNotification(message, type = 'info') {

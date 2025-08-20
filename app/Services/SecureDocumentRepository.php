@@ -68,8 +68,6 @@ class SecureDocumentRepository
                 'classification_timestamp' => now()->toISOString(),
                 'ai_engine' => 'gemini',
                 'classification_results' => $classificationData,
-                'requires_legal_review' => $this->requiresLegalReview($classificationData),
-                'requires_visitor_coordination' => $this->requiresVisitorCoordination($classificationData),
                 'document_category' => $classificationData['category'] ?? 'unknown',
                 'confidence_score' => $classificationData['confidence'] ?? null,
                 'extracted_entities' => $classificationData['entities'] ?? [],
@@ -82,7 +80,6 @@ class SecureDocumentRepository
             Log::info('SecureDocumentRepository: Classification metadata logged', [
                 'reservation_id' => $reservationId,
                 'category' => $metadata['document_category'],
-                'requires_legal_review' => $metadata['requires_legal_review']
             ]);
             
             return $metadata;
@@ -169,36 +166,6 @@ class SecureDocumentRepository
         Storage::disk('private')->put($path, json_encode($metadata, JSON_PRETTY_PRINT));
         
         return $path;
-    }
-
-    /**
-     * Check if document requires legal review
-     */
-    private function requiresLegalReview($classificationData)
-    {
-        $legalCategories = ['contract', 'subpoena', 'affidavit', 'cease_desist', 'legal_notice', 'agreement', 'legal_document'];
-        $category = strtolower($classificationData['category'] ?? '');
-        
-        return in_array($category, $legalCategories, true);
-    }
-
-    /**
-     * Check if document requires visitor coordination
-     */
-    private function requiresVisitorCoordination($classificationData)
-    {
-        $visitorKeywords = ['visitor', 'guest', 'attendee', 'participant', 'delegate', 'external', 'third-party'];
-        $summary = strtolower($classificationData['summary'] ?? '');
-        $keyInfo = strtolower($classificationData['key_info'] ?? '');
-        $content = $summary . ' ' . $keyInfo;
-        
-        foreach ($visitorKeywords as $keyword) {
-            if (strpos($content, $keyword) !== false) {
-                return true;
-            }
-        }
-        
-        return false;
     }
 
     /**

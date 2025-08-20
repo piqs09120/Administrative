@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -68,8 +68,8 @@
           <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-purple-100 text-sm">AI Processed</p>
-                <p class="text-2xl font-bold">{{ $reservations->where('ai_classification', '!=', null)->count() }}</p>
+                <p class="text-purple-100 text-sm">Documents Awaiting Processing</p>
+                <p class="text-2xl font-bold">{{ $reservations->where('current_workflow_status', 'pending_document_processing')->count() }}</p>
               </div>
               <i data-lucide="brain" class="w-8 h-8 text-purple-200"></i>
             </div>
@@ -78,8 +78,8 @@
           <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-4 text-white">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-orange-100 text-sm">Pending Review</p>
-                <p class="text-2xl font-bold">{{ $reservations->where('status', 'pending')->count() }}</p>
+                <p class="text-orange-100 text-sm">Pending Tasks</p>
+                <p class="text-2xl font-bold">{{ $reservations->where('current_workflow_status', 'pending_tasks')->count() }}</p>
               </div>
               <i data-lucide="clock" class="w-8 h-8 text-orange-200"></i>
             </div>
@@ -107,6 +107,7 @@
                   <th>Start</th>
                   <th>End</th>
                   <th>Status</th>
+                  <th>Workflow Status</th>
                   <th>AI Analysis</th>
                   <th>Actions</th>
                 </tr>
@@ -168,23 +169,34 @@
                             Pending
                           </span>
                         @endif
-                        
-                        @if($reservation->requires_legal_review)
-                          <span class="badge badge-warning badge-xs">Legal</span>
-                        @endif
-                        
-                        @if($reservation->requires_visitor_coordination)
-                          <span class="badge badge-info badge-xs">Visitor</span>
-                        @endif
                       </div>
                     </td>
                     <td>
-                      @if($reservation->ai_classification)
+                        @php
+                            $workflowStatusClass = [
+                                'submitted' => 'badge-neutral',
+                                'pending_document_processing' => 'badge-warning',
+                                'pending_tasks' => 'badge-info',
+                                'ready_for_approval' => 'badge-success',
+                                'approved' => 'badge-success',
+                                'denied' => 'badge-error',
+                            ][$reservation->current_workflow_status] ?? 'badge-ghost';
+                        @endphp
+                        <span class="badge {{ $workflowStatusClass }}">
+                            {{ ucfirst(str_replace('_', ' ', $reservation->current_workflow_status)) }}
+                        </span>
+                    </td>
+                    <td>
+                      @php
+                        $documentTask = $reservation->tasks->where('task_type', 'document_classification')->first();
+                        $aiClassification = $documentTask ? ($documentTask->details['ai_classification'] ?? null) : null;
+                      @endphp
+                      @if($aiClassification)
                         <div class="text-sm">
                           <div class="font-medium text-blue-600">
-                            {{ ucfirst($reservation->getAiClassification('category') ?? 'Unknown') }}
+                            {{ ucfirst($aiClassification['category'] ?? 'Unknown') }}
                           </div>
-                          @if($reservation->getAiClassification('fallback'))
+                          @if($aiClassification['fallback'] ?? false)
                             <div class="text-xs text-gray-500">Fallback Analysis</div>
                           @endif
                         </div>
@@ -204,7 +216,7 @@
                           <i data-lucide="eye" class="w-4 h-4"></i>
                         </a>
                         
-                        @if($reservation->status === 'pending' && auth()->user()->role === 'administrator')
+                        @if($reservation->current_workflow_status === 'ready_for_approval' && auth()->user()->role === 'administrator')
                           <form action="{{ route('facility_reservations.approve', $reservation->id) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-success">
@@ -261,55 +273,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality
-    function setupDarkMode() {
-      const toggle = document.getElementById('darkModeToggle');
-      const sunIcon = document.getElementById('sunIcon');
-      const moonIcon = document.getElementById('moonIcon');
-      
-      function updateIcons() {
-        if(document.documentElement.classList.contains('dark')) {
-          sunIcon.classList.remove('hidden');
-          moonIcon.classList.add('hidden');
-        } else {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        }
-      }
-      
-      // Initial state
-      const isDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-      updateIcons();
-      
-      toggle.addEventListener('click', function() {
-        console.log('Dark mode toggle clicked!');
-        
-        // Direct toggle without relying on global function
-        if (document.documentElement.classList.contains('dark')) {
-          // Switch to light mode
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-          console.log('Switched to LIGHT mode');
-        } else {
-          // Switch to dark mode
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-          console.log('Switched to DARK mode');
-        }
-        
-        updateIcons();
-      });
-    }
-
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -325,7 +288,6 @@
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      setupDarkMode();
       updateDateTime();
       
       // Update time every second

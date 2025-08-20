@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,8 +37,8 @@
 
         <!-- Back button and title -->
         <div class="flex items-center mb-6">
-          <a href="{{ route('document.index') }}" class="btn btn-ghost btn-sm mr-4">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back
+          <a href="{{ route('document.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>Back
           </a>
         </div>
 
@@ -63,20 +63,20 @@
               <!-- Left Column: Form Fields -->
               <div class="space-y-6">
                 <div>
-                  <h1 class="text-3xl font-bold text-gray-800 mb-2">Upload New Document</h1>
-                  <p class="text-gray-600">Fill details and select a document file.</p>
+                  <h1 class="text-3xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Upload New Document</h1>
+                  <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Fill details and select a document file.</p>
                 </div>
 
                 <!-- Title Field -->
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text font-semibold flex items-center gap-2">
-                      <i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i>
+                    <span class="label-text font-semibold flex items-center gap-2" style="color: var(--color-charcoal-ink);">
+                      <i data-lucide="file-text" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>
                       Title *
                     </span>
                   </label>
                   <input type="text" name="title" class="input input-bordered w-full" 
-                         value="{{ old('title') }}" placeholder="Enter document title" required>
+                         value="{{ old('title') }}" placeholder="Enter document title" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
                 </div>
 
                 <!-- Department and Category Fields (Side by Side) -->
@@ -84,12 +84,12 @@
                   <!-- Department Field -->
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-semibold flex items-center gap-2">
-                        <i data-lucide="building" class="w-4 h-4 text-blue-500"></i>
+                      <span class="label-text font-semibold flex items-center gap-2" style="color: var(--color-charcoal-ink);">
+                        <i data-lucide="building" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>
                         Department
                       </span>
                     </label>
-                    <select name="department" class="select select-bordered w-full">
+                    <select name="department" class="select select-bordered w-full" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
                       <option value="">Select Department</option>
                       <option value="management" {{ old('department') === 'management' ? 'selected' : '' }}>Management</option>
                       <option value="legal" {{ old('department') === 'legal' ? 'selected' : '' }}>Legal</option>
@@ -102,13 +102,13 @@
                   <!-- AI Category Field -->
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-semibold flex items-center gap-2">
-                        <i data-lucide="brain" class="w-4 h-4 text-blue-500"></i>
+                      <span class="label-text font-semibold flex items-center gap-2" style="color: var(--color-charcoal-ink);">
+                        <i data-lucide="brain" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>
                         Category (AI Determined)
                       </span>
                     </label>
                     <input type="text" name="category" id="aiCategoryField" class="input input-bordered w-full bg-gray-50" 
-                           value="{{ old('category') }}" placeholder="Will be determined by AI analysis" readonly>
+                           value="{{ old('category') }}" placeholder="Will be determined by AI analysis" readonly style="color: var(--color-charcoal-ink); background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
                     <input type="hidden" name="ai_category" id="aiCategoryHidden">
                   </div>
                 </div>
@@ -116,33 +116,33 @@
                 <!-- Author Field -->
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text font-semibold flex items-center gap-2">
-                      <i data-lucide="user" class="w-4 h-4 text-blue-500"></i>
+                    <span class="label-text font-semibold flex items-center gap-2" style="color: var(--color-charcoal-ink);">
+                      <i data-lucide="user" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>
                       Author
                     </span>
                   </label>
                   <input type="text" name="author" class="input input-bordered w-full" 
-                         value="{{ old('author') }}" placeholder="e.g. Jane Doe">
+                         value="{{ old('author') }}" placeholder="e.g. Jane Doe" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
                 </div>
 
                 <!-- Summary Field -->
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text font-semibold flex items-center gap-2">
-                      <i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i>
+                    <span class="label-text font-semibold flex items-center gap-2" style="color: var(--color-charcoal-ink);">
+                      <i data-lucide="file-text" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>
                       Summary
                     </span>
                   </label>
                   <textarea name="description" class="textarea textarea-bordered w-full h-24" 
-                            placeholder="Brief summary of the document...">{{ old('description') }}</textarea>
+                            placeholder="Brief summary of the document..." style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">{{ old('description') }}</textarea>
                 </div>
               </div>
 
               <!-- Right Column: File Upload Area -->
               <div class="space-y-6">
                 <div>
-                  <h2 class="text-xl font-bold text-gray-800 mb-2">Document File</h2>
-                  <p class="text-gray-600">PDF, Word, Excel, PPT, Text</p>
+                  <h2 class="text-xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Document File</h2>
+                  <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">PDF, Word, Excel, PPT, Text</p>
                 </div>
 
                 <!-- File Upload Zone -->
@@ -150,32 +150,33 @@
                      onclick="document.getElementById('document_file').click()" 
                      ondrop="handleDrop(event)" 
                      ondragover="handleDragOver(event)" 
-                     ondragleave="handleDragLeave(event)">
+                     ondragleave="handleDragLeave(event)"
+                     style="border-color: var(--color-regal-navy); background-color: var(--color-white);">
                   
                   <input type="file" name="document_file" id="document_file" class="hidden" 
                          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" required>
                   
                   <div class="space-y-4">
                     <div class="flex justify-center">
-                      <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i data-lucide="cloud-upload" class="w-8 h-8 text-blue-500"></i>
+                      <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
+                        <i data-lucide="cloud-upload" class="w-8 h-8" style="color: var(--color-regal-navy);"></i>
                       </div>
                     </div>
                     <div>
-                      <p class="text-lg font-medium text-gray-700">Click to select or drag file</p>
-                      <p class="text-sm text-gray-500 mt-2">Max file size: 10MB</p>
+                      <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Click to select or drag file</p>
+                      <p class="text-sm text-gray-500 mt-2" style="color: var(--color-charcoal-ink); opacity: 0.7;">Max file size: 10MB</p>
                     </div>
                   </div>
                 </div>
 
                 <!-- File Preview -->
                 <div id="filePreview" class="hidden">
-                  <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div class="bg-green-50 border border-green-200 rounded-lg p-4" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                      <i data-lucide="check-circle" class="w-5 h-5" style="color: var(--color-modern-teal);"></i>
                       <div>
-                        <p class="font-medium text-green-800" id="fileName"></p>
-                        <p class="text-sm text-green-600" id="fileSize"></p>
+                        <p class="font-medium text-green-800" id="fileName" style="color: var(--color-charcoal-ink);"></p>
+                        <p class="text-sm text-green-600" id="fileSize" style="color: var(--color-charcoal-ink);"></p>
                       </div>
                     </div>
                   </div>
@@ -183,12 +184,12 @@
 
                 <!-- AI Analysis Results -->
                 <div id="aiAnalysis" class="hidden">
-                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 90%); border-color: var(--color-regal-navy);">
                     <div class="flex items-center gap-3 mb-3">
-                      <i data-lucide="brain" class="w-5 h-5 text-blue-500"></i>
-                      <h3 class="font-medium text-blue-800">AI Analysis Complete</h3>
+                      <i data-lucide="brain" class="w-5 h-5" style="color: var(--color-regal-navy);"></i>
+                      <h3 class="font-medium text-blue-800" style="color: var(--color-charcoal-ink);">AI Analysis Complete</h3>
                     </div>
-                    <div class="space-y-2 text-sm">
+                    <div class="space-y-2 text-sm" style="color: var(--color-charcoal-ink);">
                       <div><strong>Category:</strong> <span id="aiCategory"></span></div>
                       <div><strong>Summary:</strong> <span id="aiSummary"></span></div>
                       <div><strong>Compliance:</strong> <span id="aiCompliance"></span></div>
@@ -214,55 +215,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality
-    function setupDarkMode() {
-      const toggle = document.getElementById('darkModeToggle');
-      const sunIcon = document.getElementById('sunIcon');
-      const moonIcon = document.getElementById('moonIcon');
-      
-      function updateIcons() {
-        if(document.documentElement.classList.contains('dark')) {
-          sunIcon.classList.remove('hidden');
-          moonIcon.classList.add('hidden');
-        } else {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        }
-      }
-      
-      // Initial state
-      const isDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-      updateIcons();
-      
-      toggle.addEventListener('click', function() {
-        console.log('Dark mode toggle clicked!');
-        
-        // Direct toggle without relying on global function
-        if (document.documentElement.classList.contains('dark')) {
-          // Switch to light mode
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-          console.log('Switched to LIGHT mode');
-        } else {
-          // Switch to dark mode
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-          console.log('Switched to DARK mode');
-        }
-        
-        updateIcons();
-      });
-    }
-
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -372,16 +324,20 @@
       .then(data => {
         console.log('AI Analysis response:', data);
         if (data.success) {
-          // Update AI analysis display
-          document.getElementById('aiCategory').textContent = data.analysis.category;
-          document.getElementById('aiSummary').textContent = data.analysis.summary;
-          document.getElementById('aiCompliance').textContent = data.analysis.compliance_status;
-          document.getElementById('aiTags').textContent = data.analysis.tags.join(', ');
+          // Build UI with analysis results (avoid touching missing nodes)
+          const catEl = document.getElementById('aiCategory');
+          const sumEl = document.getElementById('aiSummary');
+          const compEl = document.getElementById('aiCompliance');
+          const tagsEl = document.getElementById('aiTags');
+          if (catEl) catEl.textContent = (data.analysis && data.analysis.category) || 'general';
+          if (sumEl) sumEl.textContent = (data.analysis && data.analysis.summary) || '';
+          if (compEl) compEl.textContent = (data.analysis && data.analysis.compliance_status) || 'review_required';
+          if (tagsEl && data.analysis && Array.isArray(data.analysis.tags)) tagsEl.textContent = data.analysis.tags.join(', ');
 
                      // Auto-fill AI category field
            const aiCategoryField = document.getElementById('aiCategoryField');
            const aiCategoryHidden = document.getElementById('aiCategoryHidden');
-           const aiCategory = data.analysis.category;
+           const aiCategory = (data.analysis && data.analysis.category) || 'general';
            
            // Map AI categories to display names
            const categoryMapping = {
@@ -391,6 +347,11 @@
              'compliance': 'Legal - Compliance',
              'financial': 'Financial',
              'report': 'Technical - Report',
+             'affidavit': 'Legal - Affidavit',
+             'memorandum': 'Legal - Memorandum',
+             'subpoena': 'Legal - Subpoena',
+             'cease_desist': 'Legal - Cease & Desist',
+             'legal_brief': 'Legal - Brief',
              'general': 'Operations - General'
            };
 
@@ -418,7 +379,7 @@
 
           // Auto-fill summary field
           const summaryField = document.querySelector('textarea[name="description"]');
-          if (summaryField && data.analysis.summary) {
+          if (summaryField && data.analysis && data.analysis.summary) {
             summaryField.value = data.analysis.summary;
           }
 
@@ -466,7 +427,6 @@
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      setupDarkMode();
       updateDateTime();
       
       // Update time every second

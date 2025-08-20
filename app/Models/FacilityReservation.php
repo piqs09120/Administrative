@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ReservationTask;
 
 class FacilityReservation extends Model
 {
@@ -19,43 +20,26 @@ class FacilityReservation extends Model
         'approved_by', 
         'remarks',
         'document_path',
-        'ai_classification',
+        'document_id',
         'ai_error',
-        'requires_legal_review',
-        'requires_visitor_coordination',
         'visitor_data',
         'auto_approved_at',
-        'legal_reviewed_by',
-        'legal_reviewed_at',
-        'legal_comment',
         // New workflow fields
         'requester_name',
         'requester_contact',
-
         'workflow_stage',
         'workflow_log',
-        'digital_passes_generated',
-        'digital_pass_data',
-        'security_notified',
-        'security_notified_at'
+        'current_workflow_status'
     ];
 
     protected $casts = [
-        'ai_classification' => 'array',
+        // 'ai_classification' => 'array',
         'visitor_data' => 'array',
-        'requires_legal_review' => 'boolean',
-        'requires_visitor_coordination' => 'boolean',
         'auto_approved_at' => 'datetime',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
-        'legal_reviewed_at' => 'datetime',
         // New workflow casts
-
         'workflow_log' => 'array',
-        'digital_passes_generated' => 'boolean',
-        'digital_pass_data' => 'array',
-        'security_notified' => 'boolean',
-        'security_notified_at' => 'datetime'
     ];
 
     public function facility()
@@ -75,7 +59,23 @@ class FacilityReservation extends Model
 
     public function legalReviewer()
     {
+        // This relationship is no longer directly used for task-based legal review
         return $this->belongsTo(User::class, 'legal_reviewed_by');
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(ReservationTask::class);
+    }
+
+    public function visitors()
+    {
+        return $this->hasMany(Visitor::class, 'facility_reservation_id');
+    }
+
+    public function document()
+    {
+        return $this->belongsTo(Document::class, 'document_id');
     }
 
     public static function boot()
@@ -92,6 +92,8 @@ class FacilityReservation extends Model
                     ]);
                 }
             }
+            // Delete associated tasks when a reservation is deleted
+            $reservation->tasks()->delete();
         });
     }
 
@@ -119,15 +121,18 @@ class FacilityReservation extends Model
     // Helper method to get AI classification data
     public function getAiClassification($key = null)
     {
-        if (!$this->ai_classification) {
+        $documentTask = $this->tasks()->where('task_type', 'document_classification')->first();
+        if (!$documentTask || !isset($documentTask->details['ai_classification'])) {
             return null;
         }
 
+        $aiClassification = $documentTask->details['ai_classification'];
+
         if ($key) {
-            return $this->ai_classification[$key] ?? null;
+            return $aiClassification[$key] ?? null;
         }
 
-        return $this->ai_classification;
+        return $aiClassification;
     }
 
     // Workflow helper methods
@@ -161,13 +166,43 @@ class FacilityReservation extends Model
     public function canAutoApprove()
     {
         return $this->availability_checked && 
-               !$this->requires_legal_review && 
-               !$this->requires_visitor_coordination &&
+               $this->areAllRequiredTasksComplete() &&
                empty($this->availability_conflicts);
     }
 
     public function hasAvailabilityConflicts()
     {
         return !empty($this->availability_conflicts);
+    }
+
+    public function areAllRequiredTasksComplete(): bool
+    {
+        // Check if the document classification task exists and is completed
+        $documentTask = $this->tasks()->where('task_type', 'document_classification')->first();
+        if (!$documentTask || $documentTask->status !== 'completed') {
+            return false; // Document classification is a prerequisite
+        }
+
+        // Get AI classification from the document task details, not directly from reservation
+        $aiResult = $documentTask->details['ai_classification'] ?? [];
+
+        // Define which tasks are "required" based on AI analysis
+        $requiredTaskTypes = [];
+        if ($aiResult['requires_legal_review'] ?? false) {
+            $requiredTaskTypes[] = 'legal_review';
+        }
+        if ($aiResult['requires_visitor_coordination'] ?? false) {
+            $requiredTaskTypes[] = 'visitor_coordination';
+        }
+
+        // Check if all these dynamically required tasks are completed
+        foreach ($requiredTaskTypes as $taskType) {
+            $task = $this->tasks()->where('task_type', $taskType)->first();
+            if (!$task || $task->status !== 'completed') {
+                return false; // A required task is pending or missing
+            }
+        }
+
+        return true; // All required tasks are present and completed
     }
 }

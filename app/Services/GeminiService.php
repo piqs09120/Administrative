@@ -83,7 +83,16 @@ IMPORTANT GUIDELINES:
 - Choose the most specific and accurate category
 - Look for specific document type indicators FIRST before general classification
 
-Document text to analyze: " . $text
+Document text to analyze: " . $text . "
+
+IMPORTANT: Also determine if the document requires legal review based on its content (answer YES/NO).
+IMPORTANT: Also determine if the document requires visitor coordination (answer YES/NO), especially if it mentions visitors, attendees, or guest lists.
+IMPORTANT: Provide a LEGAL_RISK_SCORE: [Low, Medium, High] based on potential legal issues or implications.
+
+LEGAL_REVIEW_REQUIRED: [YES/NO]
+VISITOR_COORDINATION_REQUIRED: [YES/NO]
+LEGAL_RISK_SCORE: [Low/Medium/High]
+"
                                 ]
                             ]
                         ]
@@ -105,59 +114,78 @@ Document text to analyze: " . $text
             ];
             
         } catch (RequestException $e) {
-            // Check if it's a quota exceeded error
-            if (strpos($e->getMessage(), '429') !== false || strpos($e->getMessage(), 'quota') !== false) {
-                // Return fallback analysis based on text content
-                return $this->fallbackAnalysis($text);
-            }
-            
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
-            ];
+            // On ANY API/network error, gracefully fallback to local analysis
+            return $this->fallbackAnalysis($text);
+        } catch (\Throwable $e) {
+            // Any other unexpected error, still fallback to ensure classification
+            return $this->fallbackAnalysis($text);
         }
     }
 
-    private function fallbackAnalysis($text)
+    public function fallbackAnalysis($text)
     {
         // Enhanced keyword-based analysis as fallback
         $text = strtolower($text);
         
         // Determine category based on keywords with better priority
         $category = 'general';
-        
+        $requiresLegalReview = false;
+        $requiresVisitorCoordination = false;
+        $legalRiskScore = 'Low'; // Default to Low
+
         // Check for specific legal document types first - PRIORITY ORDER
         if (strpos($text, 'affidavit') !== false || strpos($text, 'affidavits') !== false || strpos($text, 'sworn') !== false || strpos($text, 'under oath') !== false || strpos($text, 'declare') !== false || strpos($text, 'declaration') !== false) {
             $category = 'affidavit';
-        } elseif (strpos($text, 'subpoena') !== false || strpos($text, 'subpoenas') !== false || strpos($text, 'court order') !== false) {
+            $requiresLegalReview = true;
+            $legalRiskScore = 'Medium';
+        } elseif (strpos($text, 'subpoena') !== false || strpos($text, 'court order') !== false) {
             $category = 'subpoena';
+            $requiresLegalReview = true;
+            $legalRiskScore = 'High';
         } elseif (strpos($text, 'memorandum') !== false || strpos($text, 'memoranda') !== false || strpos($text, 'memo') !== false || strpos($text, 'moa') !== false) {
             $category = 'memorandum';
         } elseif (strpos($text, 'cease') !== false && strpos($text, 'desist') !== false) {
             $category = 'cease_desist';
+            $requiresLegalReview = true;
+            $legalRiskScore = 'High';
         } elseif (strpos($text, 'brief') !== false || strpos($text, 'legal brief') !== false || strpos($text, 'case brief') !== false) {
             $category = 'legal_brief';
+            $requiresLegalReview = true;
+            $legalRiskScore = 'Medium';
         } elseif (strpos($text, 'financial') !== false || strpos($text, 'budget') !== false || strpos($text, 'money') !== false || strpos($text, 'financial statement') !== false) {
             $category = 'financial';
         } elseif (strpos($text, 'compliance') !== false || strpos($text, 'regulation') !== false || strpos($text, 'regulatory') !== false) {
             $category = 'compliance';
+            $requiresLegalReview = true;
+            $legalRiskScore = 'High';
         } elseif (strpos($text, 'report') !== false || strpos($text, 'analysis') !== false || strpos($text, 'assessment') !== false) {
             $category = 'report';
         } elseif (strpos($text, 'agreement') !== false) {
             // If it contains 'agreement' but not explicitly a formal contract, it's likely a memorandum
             if (strpos($text, 'parties') !== false && strpos($text, 'hereby') !== false && strpos($text, 'terms and conditions') !== false && strpos($text, 'binding') !== false) {
                 $category = 'contract';
+                $requiresLegalReview = true;
+                $legalRiskScore = 'Medium';
             } else {
                 $category = 'memorandum';
             }
         } elseif (strpos($text, 'contract') !== false || strpos($text, 'lease') !== false || strpos($text, 'employment') !== false) {
             $category = 'contract';
+            $requiresLegalReview = true;
+            $legalRiskScore = 'Medium';
         } elseif (strpos($text, 'legal notice') !== false || strpos($text, 'legal notices') !== false) {
             $category = 'legal_notice';
+            $requiresLegalReview = true;
+            $legalRiskScore = 'Medium';
         } elseif (strpos($text, 'policy') !== false || strpos($text, 'procedure') !== false || strpos($text, 'guidelines') !== false) {
             $category = 'policy';
         }
         
+        // Determine if visitor coordination is required
+        if (strpos($text, 'visitor') !== false || strpos($text, 'attendee') !== false || strpos($text, 'guest list') !== false || strpos($text, 'guests') !== false) {
+            $requiresVisitorCoordination = true;
+        }
+
         // Extract first 200 characters as summary
         $summary = substr($text, 0, 200) . '...';
         
@@ -175,7 +203,10 @@ Document text to analyze: " . $text
             'legal_implications' => 'No specific legal implications identified',
             'compliance_status' => 'review_required',
             'tags' => $tags,
-            'fallback' => true
+            'fallback' => true,
+            'requires_legal_review' => $requiresLegalReview,
+            'requires_visitor_coordination' => $requiresVisitorCoordination,
+            'legal_risk_score' => $legalRiskScore
         ];
     }
 
@@ -189,7 +220,10 @@ Document text to analyze: " . $text
             'key_info' => '',
             'legal_implications' => '',
             'compliance_status' => 'review_required',
-            'tags' => []
+            'tags' => [],
+            'requires_legal_review' => false,
+            'requires_visitor_coordination' => false,
+            'legal_risk_score' => 'Low'
         ];
 
         foreach ($lines as $line) {
@@ -207,10 +241,44 @@ Document text to analyze: " . $text
             } elseif (strpos($line, 'TAGS:') === 0) {
                 $tagsText = trim(str_replace('TAGS:', '', $line));
                 $analysis['tags'] = array_map('trim', explode(',', $tagsText));
+            } elseif (strpos($line, 'LEGAL_REVIEW_REQUIRED:') === 0) {
+                $analysis['requires_legal_review'] = (trim(str_replace('LEGAL_REVIEW_REQUIRED:', '', $line)) === 'YES');
+            } elseif (strpos($line, 'VISITOR_COORDINATION_REQUIRED:') === 0) {
+                $analysis['requires_visitor_coordination'] = (trim(str_replace('VISITOR_COORDINATION_REQUIRED:', '', $line)) === 'YES');
+            } elseif (strpos($line, 'LEGAL_RISK_SCORE:') === 0) {
+                $analysis['legal_risk_score'] = trim(str_replace('LEGAL_RISK_SCORE:', '', $line));
             }
         }
 
+        // Normalize category to our internal slugs
+        $analysis['category'] = $this->normalizeCategory($analysis['category']);
+
         return $analysis;
+    }
+
+    private function normalizeCategory(string $category): string
+    {
+        $normalized = strtolower(trim($category));
+        $normalized = preg_replace('/[^a-z_\-\s]/', '', $normalized);
+        $normalized = str_replace(' ', '_', $normalized);
+        $map = [
+            'other_legal_document' => 'general',
+            'others' => 'general',
+            'legal_notice' => 'legal_notice',
+            'cease_and_desist' => 'cease_desist',
+            'cease_desist' => 'cease_desist',
+            'memo' => 'memorandum',
+            'moa' => 'memorandum',
+            'memorandum_of_agreement' => 'memorandum',
+        ];
+        if (isset($map[$normalized])) {
+            return $map[$normalized];
+        }
+        $allowed = [
+            'memorandum','contract','subpoena','affidavit','cease_desist',
+            'legal_notice','policy','legal_brief','financial','compliance','report','general'
+        ];
+        return in_array($normalized, $allowed, true) ? $normalized : 'general';
     }
 
     public function analyzeLegalDocument($text)
@@ -245,8 +313,11 @@ Here are the possible categories:
 
 Your response should ONLY contain the category name. Do not include any additional text, explanation, or punctuation. The goal is for the output to be a single, clean category name that can be directly used by a system.
 
+IMPORTANT: Also provide a LEGAL_RISK_SCORE: [Low, Medium, High] based on potential legal issues or implications.
+
 **Document to Classify:**
-" . $text
+" . $text . "
+LEGAL_RISK_SCORE: [Low/Medium/High]"
                                 ]
                             ]
                         ]
@@ -254,12 +325,46 @@ Your response should ONLY contain the category name. Do not include any addition
                 ]
             ]);
             $result = json_decode($response->getBody(), true);
-            return $result;
+
+            if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+                $analysisText = $result['candidates'][0]['content']['parts'][0]['text'];
+                $lines = explode("\n", $analysisText);
+                $category = 'Other Legal Document'; // Default
+                $legalRiskScore = 'Low';
+
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (strpos($line, 'LEGAL_RISK_SCORE:') === 0) {
+                        $legalRiskScore = trim(str_replace('LEGAL_RISK_SCORE:', '', $line));
+                    } else {
+                        // Assume the first line that is not a risk score is the category
+                        if (!empty($line)) {
+                            $category = $line;
+                        }
+                    }
+                }
+
+                return [
+                    'error' => false,
+                    'category' => $this->normalizeCategory($category),
+                    'legal_risk_score' => $legalRiskScore,
+                    'requires_legal_review' => ($legalRiskScore === 'High' || $legalRiskScore === 'Medium')
+                ];
+            }
+
+            return [
+                'error' => true,
+                'message' => 'Invalid response format from Gemini API'
+            ];
         } catch (RequestException $e) {
-            // Error handling
+            // Error handling, provide a basic fallback
             return [
                 'error' => true,
                 'message' => $e->getMessage(),
+                'category' => 'Other Legal Document',
+                'legal_risk_score' => 'Medium', // Default to Medium risk on error
+                'requires_legal_review' => true, // Assume review is required on error
+                'fallback' => true
             ];
         }
     }

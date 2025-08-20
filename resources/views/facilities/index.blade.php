@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,7 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Total Facilities -->
-          <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+          <div class="bg-gradient-to-br from-[#1A2C5B] to-blue-800 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-blue-100 text-sm font-medium">Total Facilities</p>
@@ -43,7 +43,7 @@
           </div>
 
           <!-- Available Facilities -->
-          <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+          <div class="bg-gradient-to-br from-[#4A8C8C] to-emerald-800 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-green-100 text-sm font-medium">Available</p>
@@ -56,7 +56,7 @@
           </div>
 
           <!-- Occupied Facilities -->
-          <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+          <div class="bg-gradient-to-br from-[#DC3545] to-red-800 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-red-100 text-sm font-medium">Occupied</p>
@@ -69,13 +69,13 @@
           </div>
 
           <!-- Total Reservations -->
-          <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
+          <div class="bg-gradient-to-br from-[#1A2C5B] to-blue-800 rounded-xl p-6 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-purple-100 text-sm font-medium">Total Reservations</p>
+                <p class="text-blue-100 text-sm font-medium">Total Reservations</p>
                 <p class="text-3xl font-bold">{{ $facilities->sum(function($facility) { return $facility->reservations->count(); }) }}</p>
               </div>
-              <div class="bg-purple-400 bg-opacity-30 p-3 rounded-full">
+              <div class="bg-blue-400 bg-opacity-30 p-3 rounded-full">
                 <i data-lucide="calendar" class="w-8 h-8"></i>
               </div>
             </div>
@@ -146,7 +146,7 @@
                   <div class="grid grid-cols-2 gap-3 mt-4">
                     <!-- View Button -->
                     <a href="{{ route('facilities.show', $facility->id) }}" 
-                       class="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center w-32 mx-auto">
+                       class="group relative overflow-hidden" style="background: linear-gradient(to right, var(--color-regal-navy), color-mix(in srgb, var(--color-regal-navy), black 10%)); color: var(--color-white); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.3s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; width: 8rem; margin-left: auto; margin-right: auto; ">
                       <i data-lucide="eye" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
                       <span class="relative z-10">VIEW</span>
                       <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -154,7 +154,7 @@
 
                     <!-- Edit Button -->
                     <a href="{{ route('facilities.edit', $facility->id) }}" 
-                       class="group relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center w-32 mx-auto">
+                       class="group relative overflow-hidden" style="background: linear-gradient(to right, var(--color-golden-ember), color-mix(in srgb, var(--color-golden-ember), black 10%)); color: var(--color-white); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.3s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; width: 8rem; margin-left: auto; margin-right: auto; ">
                       <i data-lucide="edit" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
                       <span class="relative z-10">EDIT</span>
                       <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -163,7 +163,7 @@
                     @if($facility->status === 'available')
                       <!-- Reserve Button -->
                       <a href="{{ route('facility_reservations.create') }}?facility={{ $facility->id }}" 
-                         class="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center w-32 mx-auto">
+                         class="group relative overflow-hidden" style="background: linear-gradient(to right, var(--color-modern-teal), color-mix(in srgb, var(--color-modern-teal), black 10%)); color: var(--color-white); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.3s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; width: 8rem; margin-left: auto; margin-right: auto; ">
                         <i data-lucide="calendar-plus" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
                         <span class="relative z-10">RESERVE</span>
                         <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -176,7 +176,7 @@
                         @csrf
                         @method('DELETE')
                         <button type="submit" 
-                                class="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center w-32 mx-auto">
+                                class="group relative overflow-hidden" style="background: linear-gradient(to right, var(--color-danger-red), color-mix(in srgb, var(--color-danger-red), black 10%)); color: var(--color-white); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.3s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; width: 8rem; margin-left: auto; margin-right: auto; ">
                           <i data-lucide="trash-2" class="w-4 h-4 mr-2 transition-transform group-hover:scale-110"></i>
                           <span class="relative z-10">DELETE</span>
                           <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -205,71 +205,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality - works on entire screen
-    function toggleDarkMode() {
-      const html = document.documentElement;
-      const body = document.body;
-      const icon = document.getElementById('darkModeIcon');
-      const header = document.querySelector('header');
-      const sidebar = document.getElementById('sidebar');
-      const main = document.querySelector('main');
-      
-      if (html.classList.contains('dark')) {
-        // Switch to light mode
-        html.classList.remove('dark');
-        body.classList.remove('dark');
-        localStorage.setItem('darkMode', 'false');
-        icon.setAttribute('data-lucide', 'moon');
-        icon.classList.remove('text-yellow-500');
-        icon.classList.add('text-gray-600');
-        
-        // Update header styles
-        header.classList.remove('dark:bg-gray-800', 'dark:border-gray-700');
-        header.classList.add('bg-white', 'border-gray-200');
-        
-        // Update sidebar styles
-        if (sidebar) {
-          sidebar.classList.remove('dark:bg-gray-900');
-        }
-        
-        // Update main content styles
-        if (main) {
-          main.classList.remove('dark:bg-gray-900');
-        }
-        
-        console.log('Switched to LIGHT mode');
-      } else {
-        // Switch to dark mode
-        html.classList.add('dark');
-        body.classList.add('dark');
-        localStorage.setItem('darkMode', 'true');
-        icon.setAttribute('data-lucide', 'sun');
-        icon.classList.remove('text-gray-600');
-        icon.classList.add('text-yellow-500');
-        
-        // Update header styles
-        header.classList.remove('bg-white', 'border-gray-200');
-        header.classList.add('dark:bg-gray-800', 'dark:border-gray-700');
-        
-        // Update sidebar styles
-        if (sidebar) {
-          sidebar.classList.add('dark:bg-gray-900');
-        }
-        
-        // Update main content styles
-        if (main) {
-          main.classList.add('dark:bg-gray-900');
-        }
-        
-        console.log('Switched to DARK mode');
-      }
-      
-      // Recreate the icon
-      if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-      }
-    }
-
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -279,8 +214,8 @@
       const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
       const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
       
-      dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-      timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+      if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+      if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
     // Search functionality for facility cards
@@ -303,58 +238,8 @@
       }
     }
 
-    // Dark mode functionality
-    function setupDarkMode() {
-      const toggle = document.getElementById('darkModeToggle');
-      const sunIcon = document.getElementById('sunIcon');
-      const moonIcon = document.getElementById('moonIcon');
-      
-      function updateIcons() {
-        if(document.documentElement.classList.contains('dark')) {
-          sunIcon.classList.remove('hidden');
-          moonIcon.classList.add('hidden');
-        } else {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        }
-      }
-      
-      // Initial state
-      const isDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-      updateIcons();
-      
-      toggle.addEventListener('click', function() {
-        console.log('Dark mode toggle clicked!');
-        
-        // Direct toggle without relying on global function
-        if (document.documentElement.classList.contains('dark')) {
-          // Switch to light mode
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-          console.log('Switched to LIGHT mode');
-        } else {
-          // Switch to dark mode
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-          console.log('Switched to DARK mode');
-        }
-        
-        updateIcons();
-      });
-    }
-
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      setupDarkMode();
       updateDateTime();
       setupSearch();
       

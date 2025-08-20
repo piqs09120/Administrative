@@ -12,6 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // Allow AJAX analysis endpoint without CSRF friction
+        'document/analyze-upload',
     ];
 } 

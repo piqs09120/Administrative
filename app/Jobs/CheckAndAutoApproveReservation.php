@@ -81,15 +81,12 @@ class CheckAndAutoApproveReservation implements ShouldQueue
                     Log::info('Reservation auto-approved (job)', ['reservation_id' => $reservation->id]);
                 } else {
                     // Requires manual review
-                    $requiresReview = [];
-                    if ($reservation->requires_legal_review) $requiresReview[] = 'legal review';
-                    if ($reservation->requires_visitor_coordination) $requiresReview[] = 'visitor coordination';
                     
                     $reservation->update([
-                        'remarks' => 'Facility available but requires ' . implode(' and ', $requiresReview)
+                        'remarks' => 'Facility available but requires further workflow tasks.'
                     ]);
                     
-                    $reservation->updateWorkflowStage('pending_review', 'Requires manual review: ' . implode(', ', $requiresReview));
+                    $reservation->updateWorkflowStage('pending_review', 'Requires manual review of tasks');
                     
                     // Send notification about pending review with error handling
                     try {

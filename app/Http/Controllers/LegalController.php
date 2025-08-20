@@ -34,25 +34,33 @@ class LegalController extends Controller
             ->take(10)
             ->get();
 
-        // Facility reservations
-        $pendingFacilityReservations = FacilityReservation::with(['facility', 'reserver', 'approver'])
+        // Facility reservations - NOW HANDLED BY RESERVATION TASKS
+        $pendingLegalReviewTasks = \App\Models\ReservationTask::with(['facilityReservation.facility', 'facilityReservation.reserver'])
+            ->where('task_type', 'legal_review')
             ->where('status', 'pending')
+            ->where('assigned_to_module', 'LM')
             ->latest()
             ->get();
-        $approvedFacilityReservations = FacilityReservation::with(['facility', 'reserver', 'approver'])
-            ->where('status', 'approved')
+        
+        $approvedLegalReviewTasks = \App\Models\ReservationTask::with(['facilityReservation.facility', 'facilityReservation.reserver'])
+            ->where('task_type', 'legal_review')
+            ->where('status', 'completed')
+            ->where('assigned_to_module', 'LM')
             ->latest()
-            ->take(10)
+            ->take(10) // Limit for dashboard display
             ->get();
-        $deniedFacilityReservations = FacilityReservation::with(['facility', 'reserver', 'approver'])
-            ->where('status', 'denied')
+        
+        $flaggedLegalReviewTasks = \App\Models\ReservationTask::with(['facilityReservation.facility', 'facilityReservation.reserver'])
+            ->where('task_type', 'legal_review')
+            ->where('status', 'flagged')
+            ->where('assigned_to_module', 'LM')
             ->latest()
-            ->take(10)
+            ->take(10) // Limit for dashboard display
             ->get();
 
         return view('legal.index', compact(
             'pendingRequests', 'approvedRequests', 'deniedRequests',
-            'pendingFacilityReservations', 'approvedFacilityReservations', 'deniedFacilityReservations'
+            'pendingLegalReviewTasks', 'approvedLegalReviewTasks', 'flaggedLegalReviewTasks'
         ));
     }
 

@@ -7,6 +7,8 @@ use App\Jobs\CheckAndAutoApproveReservation;
 use App\Services\DocumentTextExtractorService;
 use App\Services\GeminiService;
 use App\Services\SecureDocumentRepository;
+use App\Services\VisitorService;
+use App\Services\ReservationWorkflowService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,7 +27,7 @@ class ProcessReservationDocument implements ShouldQueue
         $this->reservationId = $reservationId;
     }
 
-    public function handle(DocumentTextExtractorService $textExtractor, GeminiService $gemini, SecureDocumentRepository $repository): void
+    public function handle(DocumentTextExtractorService $textExtractor, GeminiService $gemini, SecureDocumentRepository $repository, VisitorService $visitorService, ReservationWorkflowService $workflowService): void
     {
         $reservation = FacilityReservation::find($this->reservationId);
         if (!$reservation || empty($reservation->document_path)) {
@@ -50,22 +52,16 @@ class ProcessReservationDocument implements ShouldQueue
                 $repository->logClassificationMetadata($this->reservationId, $aiResult);
                 
                 // Step 4: Update reservation with AI classification results
-                $requiresLegal = $this->requiresLegalReview($aiResult);
-                $requiresVisitor = $this->requiresVisitorCoordination($aiResult);
+                // Use the new AI analysis fields for routing decisions
                 
-                $reservation->ai_classification = $aiResult;
-                $reservation->requires_legal_review = $requiresLegal;
-                $reservation->requires_visitor_coordination = $requiresVisitor;
-                $reservation->save();
+                // Create document classification task and subsequent tasks
+                $workflowService->createDocumentClassificationTask($reservation, $aiResult);
+
+                // Log the routing decision based on AI analysis
+                $this->logRoutingDecision($reservation, $aiResult);
                 
-                // Log the decision point from TO BE diagram
-                $decision = $requiresLegal || $requiresVisitor ? 'YES' : 'NO';
-                $reservation->logWorkflowStep('document_requires_validation_check', 
-                    "Does document require legal validation etc? Answer: {$decision}", [
-                    'requires_legal_review' => $requiresLegal,
-                    'requires_visitor_coordination' => $requiresVisitor,
-                    'category' => $aiResult['category'] ?? 'unknown'
-                ]);
+                // Mark reservation document process complete (per TO-BE)
+                $reservation->logWorkflowStep('reservation_document_process_complete', 'Reservation document process complete');
                 
             } else {
                 $reservation->update(['ai_error' => $aiResult['message'] ?? 'AI error']);
@@ -85,101 +81,33 @@ class ProcessReservationDocument implements ShouldQueue
             ]);
         }
 
-        // After AI processing, extract and store visitor data if found
-        if (!($aiResult['error'] ?? false)) {
-            $this->extractVisitorData($reservation, $aiResult);
-        }
-
-        // Update workflow stage
-        $reservation->updateWorkflowStage('document_processed', 'Document analyzed by AI');
+        // After AI processing, extract and store visitor data if found (now handled by workflow service implicitly when creating visitor task)
+        
+        // Update workflow stage (now handled by workflow service implicitly)
 
         // Decision point from TO BE diagram: Does document require legal validation etc?
-        if ($reservation->requires_legal_review || $reservation->requires_visitor_coordination) {
-            // YES path: Goes to legal workflow (will be handled by legal review process)
-            $reservation->logWorkflowStep('legal_workflow_required', 'Document requires legal review workflow');
-            // Note: Legal workflow will be triggered by admin/legal team manually
-        } else {
-            // NO path: Proceed to approval → Auto check facility availability → Auto approve
-            $reservation->logWorkflowStep('proceed_to_approval', 'Proceeding to auto-approval workflow');
-            // Run availability check immediately to avoid waiting for a worker
-            CheckAndAutoApproveReservation::dispatchSync($this->reservationId);
-        }
+        // This logic is now handled by ReservationWorkflowService::updateReservationOverallStatus
     }
 
-    private function requiresLegalReview(array $aiResult): bool
+    private function logRoutingDecision(FacilityReservation $reservation, array $aiResult): void
     {
-        $legalCategories = ['contract', 'subpoena', 'affidavit', 'cease_desist', 'legal_notice'];
-        $category = $aiResult['category'] ?? 'general';
-        return in_array($category, $legalCategories, true);
-    }
-
-    private function requiresVisitorCoordination(array $aiResult): bool
-    {
-        $visitorKeywords = ['visitor', 'guest', 'attendee', 'participant', 'delegate'];
-        $summary = strtolower($aiResult['summary'] ?? '');
-        $keyInfo = strtolower($aiResult['key_info'] ?? '');
-        foreach ($visitorKeywords as $keyword) {
-            if (strpos($summary, $keyword) !== false || strpos($keyInfo, $keyword) !== false) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function extractVisitorData($reservation, $aiResult)
-    {
-        // Extract visitor information from AI analysis
-        $visitorData = [];
+        $requiresLegalReview = $aiResult['requires_legal_review'] ?? false;
+        $requiresVisitorCoordination = $aiResult['requires_visitor_coordination'] ?? false;
+        $legalRiskScore = $aiResult['legal_risk_score'] ?? 'Low';
         
-        // Look for visitor information in AI results
-        $summary = strtolower($aiResult['summary'] ?? '');
-        $keyInfo = strtolower($aiResult['key_info'] ?? '');
-        $entities = $aiResult['entities'] ?? [];
+        $routingInfo = [
+            'category' => $aiResult['category'] ?? 'general',
+            'legal_review_required' => $requiresLegalReview,
+            'visitor_coordination_required' => $requiresVisitorCoordination,
+            'legal_risk_score' => $legalRiskScore
+        ];
         
-        // Basic visitor detection and extraction
-        if ($this->requiresVisitorCoordination($aiResult)) {
-            // Try to extract visitor names from entities
-            foreach ($entities as $entity) {
-                if (in_array($entity['type'] ?? '', ['PERSON', 'person', 'visitor'])) {
-                    $visitorData[] = [
-                        'name' => $entity['value'],
-                        'company' => $this->extractCompanyForVisitor($entity['value'], $entities),
-                        'access_level' => 'visitor',
-                        'status' => 'pending_approval',
-                        'extracted_from' => 'ai_analysis'
-                    ];
-                }
-            }
-            
-            // If no specific visitors found but coordination required, create placeholder
-            if (empty($visitorData)) {
-                $visitorData[] = [
-                    'name' => 'Visitor (Name to be confirmed)',
-                    'company' => 'Company to be confirmed',
-                    'access_level' => 'visitor',
-                    'status' => 'pending_approval',
-                    'extracted_from' => 'ai_detection'
-                ];
-            }
-        }
-
-        if (!empty($visitorData)) {
-            $reservation->update(['visitor_data' => $visitorData]);
-            $reservation->logWorkflowStep('visitor_data_extracted', 'Extracted visitor information from document', [
-                'visitor_count' => count($visitorData)
-            ]);
-        }
-    }
-
-    private function extractCompanyForVisitor($visitorName, $entities)
-    {
-        // Try to find organization entities near the visitor name
-        foreach ($entities as $entity) {
-            if (in_array($entity['type'] ?? '', ['ORGANIZATION', 'organization', 'company'])) {
-                return $entity['value'];
-            }
-        }
-        return '';
+        $reservation->logWorkflowStep('ai_routing_decision', 'AI analysis routing decision made', $routingInfo);
+        
+        Log::info('Document routing decision', [
+            'reservation_id' => $reservation->id,
+            'routing_info' => $routingInfo
+        ]);
     }
 }
 

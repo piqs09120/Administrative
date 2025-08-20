@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,31 +66,33 @@
               @foreach($documents as $document)
                 @php
                   // Generate different accent colors for visual variety
-                  $accentColors = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'];
+                  $accentColors = ['bg-regal-navy', 'bg-modern-teal', 'bg-golden-ember', 'bg-danger-red', 'bg-purple', 'bg-pink', 'bg-emerald', 'bg-teal', 'bg-cyan'];
                   $accentColor = $accentColors[$loop->index % count($accentColors)];
+                  
+                  $aiClassification = $document->ai_analysis ?? null;
                 @endphp
-                <div class="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-shadow overflow-hidden">
+                <div class="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-shadow overflow-hidden" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
                   <!-- Colored Left Border Accent -->
                   <div class="flex">
                     <div class="{{ $accentColor }} w-2"></div>
                     <div class="flex-1 p-6">
                       <!-- Card Header -->
                       <div class="flex items-start justify-between mb-4">
-                        <h3 class="font-bold text-gray-800 text-lg leading-tight">{{ $document->title }}</h3>
+                        <h3 class="font-bold text-gray-800 text-lg leading-tight" style="color: var(--color-charcoal-ink);">{{ $document->title }}</h3>
                         <div class="dropdown dropdown-end">
-                          <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                          <div tabindex="0" role="button" class="btn btn-ghost btn-sm" style="color: var(--color-regal-navy);">
                             <i data-lucide="more-vertical" class="w-4 h-4"></i>
                           </div>
-                          <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white rounded-lg w-32 border border-gray-200">
-                            <li><a href="{{ route('document.show', $document->id) }}" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                          <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white rounded-lg w-32 border border-gray-200" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                            <li><a href="{{ route('document.show', $document->id) }}" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
                               <i data-lucide="eye" class="w-4 h-4"></i>
                               <span>View</span>
                             </a></li>
-                            <li><a href="{{ route('document.download', $document->id) }}" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                            <li><a href="{{ route('document.download', $document->id) }}" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
                               <i data-lucide="download" class="w-4 h-4"></i>
                               <span>Download</span>
                             </a></li>
-                            <li><a href="{{ route('document.edit', $document->id) }}" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                            <li><a href="{{ route('document.edit', $document->id) }}" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
                               <i data-lucide="edit" class="w-4 h-4"></i>
                               <span>Edit</span>
                             </a></li>
@@ -99,31 +101,31 @@
                       </div>
 
                       <!-- Subtitle/Description -->
-                      <p class="text-gray-600 text-sm mb-4">{{ Str::limit($document->description, 80) }}</p>
+                      <p class="text-gray-600 text-sm mb-4" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ Str::limit($document->description, 80) }}</p>
 
                       <!-- Status/Type Badges -->
                       <div class="flex flex-wrap gap-2 mb-4">
                         @if($document->status === 'archived')
-                          <span class="badge badge-neutral gap-1">
+                          <span class="badge badge-neutral gap-1" style="background-color: var(--color-charcoal-ink); color: var(--color-white);">
                             <i data-lucide="archive" class="w-3 h-3"></i>
                             Archived
                           </span>
                         @elseif($document->status === 'pending_release')
-                          <span class="badge badge-warning gap-1">
+                          <span class="badge badge-warning gap-1" style="background-color: var(--color-golden-ember); color: var(--color-white);">
                             <i data-lucide="clock" class="w-3 h-3"></i>
                             Pending Release
                           </span>
                         @else
-                          <span class="badge badge-info gap-1">
+                          <span class="badge badge-info gap-1" style="background-color: var(--color-regal-navy); color: var(--color-white);">
                             <i data-lucide="file-text" class="w-3 h-3"></i>
                             {{ ucfirst($document->status) }}
                           </span>
                         @endif
-                        <span class="badge badge-accent">{{ $categoryName }}</span>
+                        <span class="badge badge-accent" style="background-color: var(--color-modern-teal); color: var(--color-white);">{{ $categoryName }}</span>
                       </div>
 
                       <!-- Document Details -->
-                      <div class="space-y-2 text-sm text-gray-500">
+                      <div class="space-y-2 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
                         <div class="flex items-center gap-2">
                           <i data-lucide="user" class="w-4 h-4"></i>
                           <span>{{ $document->uploader->name ?? 'Unknown' }}</span>
@@ -134,21 +136,27 @@
                         </div>
                         <div class="flex items-center gap-2">
                           <i data-lucide="file-text" class="w-4 h-4"></i>
-                          <span>Author: {{ $document->uploader->name ?? 'Unknown' }}</span>
+                          <span>Author: {{ $document->author ?? 'N/A' }}</span>
                         </div>
+                        @if($aiClassification)
+                          <div class="flex items-center gap-2">
+                            <i data-lucide="brain" class="w-4 h-4" style="color: var(--color-regal-navy);"></i>
+                            <span>AI Classification: {{ ucfirst($aiClassification['category'] ?? 'N/A') }}</span>
+                          </div>
+                        @endif
                       </div>
                     </div>
                   </div>
                 </div>
               @endforeach
            @else
-             <div class="col-span-full text-center py-12">
-               <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <i data-lucide="folder" class="w-12 h-12 text-gray-400"></i>
+             <div class="col-span-full text-center py-12" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+               <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: var(--color-snow-mist);">
+                 <i data-lucide="folder" class="w-12 h-12 text-gray-400" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
                </div>
-               <h3 class="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
-               <p class="text-gray-500 mb-6">No documents have been classified as {{ $categoryName }} yet.</p>
-               <a href="{{ route('legal.create') }}" class="btn btn-warning">
+               <h3 class="text-lg font-semibold text-gray-600 mb-2" style="color: var(--color-charcoal-ink);">No Documents Found</h3>
+               <p class="text-gray-500 mb-6" style="color: var(--color-charcoal-ink); opacity: 0.7;">No documents have been classified as {{ $categoryName }} yet.</p>
+               <a href="{{ route('legal.create') }}" class="btn btn-warning" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
                  <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                  Add First Document
                </a>
@@ -169,47 +177,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality
-    function setupDarkMode() {
-      const toggle = document.getElementById('darkModeToggle');
-      const sunIcon = document.getElementById('sunIcon');
-      const moonIcon = document.getElementById('moonIcon');
-      
-      function updateIcons() {
-        if(document.documentElement.classList.contains('dark')) {
-          sunIcon.classList.remove('hidden');
-          moonIcon.classList.add('hidden');
-        } else {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        }
-      }
-      
-      // Initial state
-      const isDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-      updateIcons();
-      
-      toggle.addEventListener('click', function() {
-        if (document.documentElement.classList.contains('dark')) {
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-        } else {
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-        }
-        updateIcons();
-      });
-    }
-
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -219,8 +186,8 @@
       const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
       const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
       
-      dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-      timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+      if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+      if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
     // Search functionality
@@ -245,7 +212,6 @@
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      setupDarkMode();
       updateDateTime();
       setupSearch();
       

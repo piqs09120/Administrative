@@ -33,27 +33,27 @@ class GenerateDigitalPasses implements ShouldQueue
         try {
             $reservation->logWorkflowStep('digital_pass_generation_started', 'Starting digital pass generation');
 
-            // Generate digital passes for visitors
-            $visitorData = $reservation->visitor_data ?? [];
+            // Retrieve approved visitors associated with this reservation
+            $approvedVisitors = $reservation->visitors()->where('status', 'approved')->get();
+            
             $digitalPasses = [];
 
-            foreach ($visitorData as $index => $visitor) {
-                if (($visitor['status'] ?? '') === 'approved') {
-                    $passId = 'DP-' . $reservation->id . '-' . str_pad($index + 1, 3, '0', STR_PAD_LEFT);
-                    
-                    $digitalPasses[] = [
-                        'pass_id' => $passId,
-                        'visitor_name' => $visitor['name'],
-                        'visitor_company' => $visitor['company'] ?? '',
-                        'valid_from' => $reservation->start_time->format('Y-m-d H:i:s'),
-                        'valid_until' => $reservation->end_time->format('Y-m-d H:i:s'),
-                        'facility' => $reservation->facility->name,
-                        'purpose' => $reservation->purpose,
-                        'access_level' => $visitor['access_level'] ?? 'visitor',
-                        'generated_at' => now()->toISOString(),
-                        'status' => 'active'
-                    ];
-                }
+            foreach ($approvedVisitors as $index => $visitor) {
+                $passId = 'DP-' . $reservation->id . '-' . $visitor->id; // Using visitor ID for unique pass ID
+                
+                $digitalPasses[] = [
+                    'pass_id' => $passId,
+                    'visitor_id' => $visitor->id, // Store visitor ID with the pass
+                    'visitor_name' => $visitor->name,
+                    'visitor_company' => $visitor->company ?? '',
+                    'valid_from' => $reservation->start_time->format('Y-m-d H:i:s'),
+                    'valid_until' => $reservation->end_time->format('Y-m-d H:i:s'),
+                    'facility' => $reservation->facility->name,
+                    'purpose' => $reservation->purpose,
+                    'access_level' => 'visitor',
+                    'generated_at' => now()->toISOString(),
+                    'status' => 'active'
+                ];
             }
 
             // Update reservation with digital pass data

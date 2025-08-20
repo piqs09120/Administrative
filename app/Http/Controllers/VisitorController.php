@@ -11,16 +11,23 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\VisitorExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Services\VisitorService;
 
 class VisitorController extends Controller
 {
-    public function __construct()
+    protected $visitorService;
+    protected $workflowService;
+
+    public function __construct(VisitorService $visitorService, \App\Services\ReservationWorkflowService $workflowService)
     {
         $this->middleware(function ($request, $next) {
             $role = auth()->user()->role ?? null;
            
             return $next($request);
         })->only(['logs', 'reports', 'exportExcel', 'exportPdf']);
+
+        $this->visitorService = $visitorService;
+        $this->workflowService = $workflowService;
     }
 
     public function index()
@@ -137,11 +144,28 @@ class VisitorController extends Controller
 
     public function getVisitorDetails($id): JsonResponse
     {
-        $visitor = Visitor::with('facility')->findOrFail($id);
-        return response()->json($visitor);
+        $visitor = Visitor::with(['facility', 'facilityReservation'])->findOrFail($id);
+        
+        $digitalPass = null;
+        if ($visitor->facilityReservation && $visitor->facilityReservation->digital_pass_data) {
+            foreach ($visitor->facilityReservation->digital_pass_data as $pass) {
+                if (($pass['visitor_id'] ?? null) == $visitor->id) {
+                    $digitalPass = $pass;
+                    break;
+                }
+            }
+        }
+        
+        $visitorArray = $visitor->toArray();
+        $visitorArray['digital_pass'] = $digitalPass; // Add digital pass data to the response
+        
+        return response()->json($visitorArray);
     }
 
-    public function checkIn(Request $request): JsonResponse
+    // Renamed from checkIn to store, as it performs a store operation.
+    // This function will also be used by other modules to "pre-register" visitors
+    // from Facility Reservations or Document Management requests.
+    public function checkIn(Request $request): JsonResponse // This method is now effectively a store method.
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -196,8 +220,8 @@ class VisitorController extends Controller
         // For now, return visitors scheduled for today
         // In a real app, you'd have a separate scheduled_visits table
         $visitors = Visitor::with('facility')
-            ->whereDate('time_in', '>=', now()->startOfDay())
-            ->whereDate('time_in', '<=', now()->endOfDay())
+            ->whereDate('time_in', now()->toDateString())
+            ->whereNull('time_out') // Only show scheduled visits that haven't checked out
             ->latest()
             ->get();
             
@@ -281,5 +305,60 @@ class VisitorController extends Controller
         $visitors = \App\Models\Visitor::with('facility')->latest()->get();
         $pdf = Pdf::loadView('visitor.export_pdf', compact('visitors'));
         return $pdf->download('visitor_report.pdf');
+    }
+
+    public function manageReservationVisitors(\App\Models\FacilityReservation $reservation)
+    {
+        // Load the visitor coordination task for this reservation
+        $visitorTask = $reservation->tasks()->where('task_type', 'visitor_coordination')->firstOrFail();
+
+        // Load associated visitors (if any have been extracted)
+        $visitors = $reservation->visitors()->get();
+
+        // Retrieve AI classification result from the document task
+        $documentTask = $reservation->tasks()->where('task_type', 'document_classification')->first();
+        $aiClassification = $documentTask ? ($documentTask->details['ai_classification'] ?? null) : null;
+        
+        return view('visitor.manage_reservation_visitors', compact('reservation', 'visitorTask', 'visitors', 'aiClassification'));
+    }
+
+    public function performExtractionFromReservation(\App\Models\FacilityReservation $reservation)
+    {
+        $visitorTask = $reservation->tasks()->where('task_type', 'visitor_coordination')->firstOrFail();
+        
+        if ($visitorTask->status !== 'pending') {
+            return redirect()->back()->with('error', 'Visitor extraction is not pending for this reservation task.');
+        }
+
+        // Retrieve AI classification result from the document task to pass to the job
+        $documentTask = $reservation->tasks()->where('task_type', 'document_classification')->first();
+        $aiResult = $documentTask ? ($documentTask->details['ai_classification'] ?? []) : [];
+
+        if (empty($aiResult)) {
+            return redirect()->back()->with('error', 'AI classification data not found for visitor extraction. Cannot proceed.');
+        }
+
+        // Update task status, which will trigger the ProcessVisitorExtractionJob via WorkflowService
+        $this->workflowService->updateTaskStatus($visitorTask, 'in_progress', 'Visitor data extraction initiated by VM team.');
+        
+        return redirect()->back()->with('success', 'Visitor data extraction process started. Please refresh to see updates.');
+    }
+
+    public function performApprovalFromReservation(\App\Models\FacilityReservation $reservation)
+    {
+        $visitorTask = $reservation->tasks()->where('task_type', 'visitor_coordination')->firstOrFail();
+        
+        if ($visitorTask->status !== 'pending' && $visitorTask->status !== 'in_progress') {
+            return redirect()->back()->with('error', 'Visitor approval is not pending or in progress for this task.');
+        }
+
+        if ($reservation->visitors->isEmpty()) {
+            return redirect()->back()->with('error', 'No visitors records found for this reservation to approve. Please extract first.');
+        }
+
+        // Update task status to completed, which will trigger GenerateDigitalPasses via WorkflowService
+        $this->workflowService->updateTaskStatus($visitorTask, 'completed', 'Visitors approved by VM team.');
+        
+        return redirect()->back()->with('success', 'Visitors approved! Digital passes are being generated and security team will be notified.');
     }
 } 

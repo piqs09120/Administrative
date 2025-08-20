@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,18 +37,18 @@
 
         <!-- Back button -->
         <div class="flex items-center mb-6">
-          <a href="{{ route('legal.index') }}" class="btn btn-ghost btn-sm mr-4">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Legal Management
+          <a href="{{ route('legal.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>Back
           </a>
         </div>
 
         <!-- Two Column Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <!-- Left Column: Add New Legal Case Form -->
-          <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="bg-white rounded-xl shadow-lg p-6" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
             <div class="flex items-center mb-6">
-              <i data-lucide="plus" class="w-6 h-6 text-purple-600 mr-3"></i>
-              <h2 class="text-xl font-bold text-gray-800">+ Add New Legal Case</h2>
+              <i data-lucide="plus" class="w-6 h-6 mr-3" style="color: var(--color-regal-navy);"></i>
+              <h2 class="text-xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);"> Add New Legal Case</h2>
             </div>
 
             @if($errors->any())
@@ -68,46 +68,47 @@
               <!-- Case Title -->
               <div class="form-control mb-6">
                 <label class="label">
-                  <span class="label-text font-semibold">Case Title *</span>
+                  <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Title *</span>
                 </label>
                 <input type="text" name="case_title" class="input input-bordered w-full" 
-                       value="{{ old('case_title') }}" placeholder="Enter case title" required>
+                       value="{{ old('case_title') }}" placeholder="Enter case title" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
               </div>
 
               <!-- Case Description -->
               <div class="form-control mb-6">
                 <label class="label">
-                  <span class="label-text font-semibold">Case Description</span>
+                  <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Description</span>
                 </label>
                 <textarea name="case_description" class="textarea textarea-bordered w-full h-32" 
-                          placeholder="Enter case description">{{ old('case_description') }}</textarea>
+                          placeholder="Enter case description" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">{{ old('case_description') }}</textarea>
               </div>
 
               <!-- File Upload Section -->
               <div class="form-control mb-6">
                 <label class="label">
-                  <span class="label-text font-semibold">Upload Legal Document *</span>
+                  <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Upload Legal Document *</span>
                 </label>
                 
                 <!-- File Upload Zone -->
-                <div class="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" 
+                <div class="border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
                      onclick="document.getElementById('legal_document').click()" 
                      ondrop="handleDrop(event)" 
                      ondragover="handleDragOver(event)" 
-                     ondragleave="handleDragLeave(event)">
+                     ondragleave="handleDragLeave(event)"
+                     style="border-color: var(--color-regal-navy); background-color: var(--color-white);">
                   
                   <input type="file" name="legal_document" id="legal_document" class="hidden" 
                          accept=".pdf,.doc,.docx,.txt" required>
                   
                   <div class="space-y-4">
                     <div class="flex justify-center">
-                      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                        <i data-lucide="cloud-arrow-up" class="w-8 h-8 text-gray-500"></i>
+                      <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
+                        <i data-lucide="cloud-arrow-up" class="w-8 h-8" style="color: var(--color-regal-navy);"></i>
                       </div>
                     </div>
                     <div>
-                      <p class="text-lg font-medium text-gray-700">Drop your legal document here</p>
-                      <p class="text-sm text-gray-500">or click to browse files</p>
+                      <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Drop your legal document here</p>
+                      <p class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">or click to browse files</p>
                     </div>
                     <button type="button" class="btn btn-outline btn-primary">
                       <i data-lucide="file" class="w-4 h-4 mr-2"></i>
@@ -118,17 +119,17 @@
                 
                 <!-- File Info -->
                 <div class="mt-4">
-                  <p class="text-sm text-gray-600">Accepted: PDF, DOC, DOCX, TXT (max 10MB)</p>
+                  <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Accepted: PDF, DOC, DOCX, TXT (max 10MB)</p>
                 </div>
 
                 <!-- File Preview -->
                 <div id="filePreview" class="mt-4 hidden">
-                  <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                      <i data-lucide="check-circle" class="w-5 h-5" style="color: var(--color-modern-teal);"></i>
                       <div>
-                        <p class="font-medium text-green-800" id="fileName"></p>
-                        <p class="text-sm text-green-600" id="fileSize"></p>
+                        <p class="font-medium text-green-800" id="fileName" style="color: var(--color-charcoal-ink);"></p>
+                        <p class="text-sm text-green-600" id="fileSize" style="color: var(--color-charcoal-ink);"></p>
                       </div>
                     </div>
                   </div>
@@ -137,7 +138,7 @@
 
               <!-- Submit Button -->
               <div class="form-control">
-                <button type="submit" class="btn btn-warning btn-lg w-full">
+                <button type="submit" class="btn btn-warning btn-lg w-full" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
                   <i data-lucide="arrow-up" class="w-5 h-5 mr-2"></i>
                   ADD CASE
                 </button>
@@ -146,49 +147,49 @@
           </div>
 
           <!-- Right Column: AI Classification Preview -->
-          <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="bg-white rounded-xl shadow-lg p-6" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
             <div class="flex items-center mb-6">
-              <i data-lucide="brain" class="w-6 h-6 text-blue-600 mr-3"></i>
-              <h2 class="text-xl font-bold text-gray-800">AI Classification Preview</h2>
+              <i data-lucide="brain" class="w-6 h-6 mr-3" style="color: var(--color-regal-navy);"></i>
+              <h2 class="text-xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">AI Classification Preview</h2>
             </div>
 
             <!-- AI Preview Content -->
             <div id="aiPreview" class="text-center py-12">
-              <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i data-lucide="file-text" class="w-12 h-12 text-gray-400"></i>
+              <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
+                <i data-lucide="file-text" class="w-12 h-12" style="color: var(--color-regal-navy);"></i>
               </div>
-              <h3 class="text-lg font-semibold text-gray-700 mb-2">Upload a Document</h3>
-              <p class="text-gray-500">AI will automatically classify your legal document and show the preview here.</p>
+              <h3 class="text-lg font-semibold text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Upload a Document</h3>
+              <p class="text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">AI will automatically classify your legal document and show the preview here.</p>
             </div>
 
             <!-- AI Analysis Results -->
             <div id="aiAnalysis" class="hidden space-y-4">
               <!-- AI Classification -->
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 90%); border-color: var(--color-regal-navy);">
                 <div class="flex items-center gap-2 mb-2">
-                  <i data-lucide="wrench" class="w-4 h-4 text-blue-600"></i>
-                  <span class="text-sm font-medium text-blue-800">Document Type:</span>
+                  <i data-lucide="wrench" class="w-4 h-4" style="color: var(--color-regal-navy);"></i>
+                  <span class="text-sm font-medium" style="color: var(--color-charcoal-ink);">Document Type:</span>
                 </div>
-                <div class="text-lg font-bold text-blue-900 mb-1" id="aiCategory">Legal General</div>
-                <div class="text-sm text-blue-700" id="aiConfidence">AI Confidence: High (95%)</div>
+                <div class="text-lg font-bold text-blue-900 mb-1" id="aiCategory" style="color: var(--color-charcoal-ink);">Legal General</div>
+                <div class="text-sm text-blue-700" id="aiConfidence" style="color: var(--color-charcoal-ink); opacity: 0.8;">AI Confidence: High (95%)</div>
               </div>
 
               <!-- AI Summary -->
-              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h4 class="font-semibold text-gray-800 mb-2">AI Summary</h4>
-                <p class="text-gray-700 text-sm" id="aiSummary">This document has been analyzed by AI and classified as a general legal document.</p>
+              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-snow-mist), black 5%); border-color: color-mix(in srgb, var(--color-snow-mist), black 10%);">
+                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">AI Summary</h4>
+                <p class="text-gray-700 text-sm" id="aiSummary" style="color: var(--color-charcoal-ink);">This document has been analyzed by AI and classified as a general legal document.</p>
               </div>
 
               <!-- Key Information -->
-              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 class="font-semibold text-gray-800 mb-2">Key Information</h4>
-                <p class="text-gray-700 text-sm" id="aiKeyInfo">Key information will be extracted during processing.</p>
+              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
+                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Key Information</h4>
+                <p class="text-gray-700 text-sm" id="aiKeyInfo" style="color: var(--color-charcoal-ink);">Key information will be extracted during processing.</p>
               </div>
 
               <!-- Legal Implications -->
-              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 class="font-semibold text-gray-800 mb-2">Legal Implications</h4>
-                <p class="text-gray-700 text-sm" id="aiLegalImplications">Legal implications will be determined based on document content.</p>
+              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-golden-ember), white 90%); border-color: var(--color-golden-ember);">
+                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Legal Implications</h4>
+                <p class="text-gray-700 text-sm" id="aiLegalImplications" style="color: var(--color-charcoal-ink);">Legal implications will be determined based on document content.</p>
               </div>
             </div>
           </div>
@@ -202,55 +203,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // Dark mode functionality
-    function setupDarkMode() {
-      const toggle = document.getElementById('darkModeToggle');
-      const sunIcon = document.getElementById('sunIcon');
-      const moonIcon = document.getElementById('moonIcon');
-      
-      function updateIcons() {
-        if(document.documentElement.classList.contains('dark')) {
-          sunIcon.classList.remove('hidden');
-          moonIcon.classList.add('hidden');
-        } else {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        }
-      }
-      
-      // Initial state
-      const isDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-      updateIcons();
-      
-      toggle.addEventListener('click', function() {
-        console.log('Dark mode toggle clicked!');
-        
-        // Direct toggle without relying on global function
-        if (document.documentElement.classList.contains('dark')) {
-          // Switch to light mode
-          document.documentElement.classList.remove('dark');
-          document.body.classList.remove('dark');
-          localStorage.setItem('darkMode', 'false');
-          console.log('Switched to LIGHT mode');
-        } else {
-          // Switch to dark mode
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
-          localStorage.setItem('darkMode', 'true');
-          console.log('Switched to DARK mode');
-        }
-        
-        updateIcons();
-      });
-    }
-
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -260,8 +212,8 @@
       const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
       const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
       
-      dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-      timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+      if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+      if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
 
     // File upload handling
@@ -322,11 +274,11 @@
       aiPreview.innerHTML = `
         <div class="flex items-center justify-center py-12">
           <div class="text-center">
-            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i data-lucide="loader-2" class="w-8 h-8 text-blue-500 animate-spin"></i>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
+              <i data-lucide="loader-2" class="w-8 h-8 animate-spin" style="color: var(--color-regal-navy);"></i>
             </div>
-            <h3 class="text-lg font-semibold text-blue-700 mb-2">Analyzing Document...</h3>
-            <p class="text-blue-600">AI is classifying your legal document</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analyzing Document...</h3>
+            <p style="color: var(--color-charcoal-ink); opacity: 0.8;">AI is classifying your legal document</p>
           </div>
         </div>
       `;
@@ -379,11 +331,11 @@
           // Show error state
           aiPreview.innerHTML = `
             <div class="text-center py-12">
-              <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
+              <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-danger-red), white 80%);">
+                <i data-lucide="alert-triangle" class="w-8 h-8" style="color: var(--color-danger-red);"></i>
               </div>
-              <h3 class="text-lg font-semibold text-red-700 mb-2">Analysis Failed</h3>
-              <p class="text-red-600">${data.message}</p>
+              <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analysis Failed</h3>
+              <p style="color: var(--color-charcoal-ink); opacity: 0.8;">${data.message}</p>
             </div>
           `;
         }
@@ -392,11 +344,11 @@
         // Show error state
         aiPreview.innerHTML = `
           <div class="text-center py-12">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-danger-red), white 80%);">
+              <i data-lucide="alert-triangle" class="w-8 h-8" style="color: var(--color-danger-red);"></i>
             </div>
-            <h3 class="text-lg font-semibold text-red-700 mb-2">Analysis Failed</h3>
-            <p class="text-red-600">Unable to analyze document</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analysis Failed</h3>
+            <p style="color: var(--color-charcoal-ink); opacity: 0.8;">Unable to analyze document</p>
           </div>
         `;
       });
@@ -404,7 +356,6 @@
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      setupDarkMode();
       updateDateTime();
       
       // Update time every second
