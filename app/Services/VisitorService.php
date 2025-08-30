@@ -39,45 +39,22 @@ class VisitorService
                 $namesFound[] = 'Visitor (Name to be confirmed)';
             }
 
-            // Log cross-check step
-            $reservation->logWorkflowStep('visitor_cross_check_started', 'Cross-checking extracted visitors with existing records');
-
             foreach ($namesFound as $name) {
-                $company = $this->extractCompanyForVisitor($name, $aiResult['entities'] ?? []);
-
-                // Cross-check: try to find an existing pending/active visitor with same name/company
-                $existing = \App\Models\Visitor::query()
-                    ->where('name', $name)
-                    ->when(!empty($company), function ($q) use ($company) { $q->where('company', $company); })
-                    ->where('facility_id', $reservation->facility_id)
-                    ->whereDate('time_in', '>=', now()->subDays(7)->toDateString())
-                    ->orderByDesc('id')
-                    ->first();
-
-                if ($existing) {
-                    // Link to this reservation if not already linked
-                    if ($existing->facility_reservation_id !== $reservation->id) {
-                        $existing->update(['facility_reservation_id' => $reservation->id]);
-                    }
-                    $extractedVisitors[] = $existing->toArray();
-                } else {
-                    // Create a new Visitor model for each extracted name
-                    $visitor = \App\Models\Visitor::create([
-                        'name' => $name,
-                        'contact' => 'N/A',
-                        'purpose' => $reservation->purpose ?? 'Facility Reservation',
-                        'facility_id' => $reservation->facility_id,
-                        'time_in' => $reservation->start_time,
-                        'time_out' => null, // Set null initially
-                        'company' => $company,
-                        'host_employee' => $reservation->reserver->name ?? 'N/A',
-                        'status' => 'pending_approval', // Initial status for extracted visitors
-                        'facility_reservation_id' => $reservation->id, // Link to reservation
-                    ]);
-                    $extractedVisitors[] = $visitor->toArray();
-                }
+                // Create a new Visitor model for each extracted name
+                $visitor = \App\Models\Visitor::create([
+                    'name' => $name,
+                    'contact' => 'N/A',
+                    'purpose' => $reservation->purpose ?? 'Facility Reservation',
+                    'facility_id' => $reservation->facility_id,
+                    'time_in' => $reservation->start_time,
+                    'time_out' => null, // Set null initially
+                    'company' => $this->extractCompanyForVisitor($name, $aiResult['entities'] ?? []), // Try to find company
+                    'host_employee' => $reservation->reserver->name ?? 'N/A',
+                    'status' => 'pending_approval', // Initial status for extracted visitors
+                    'facility_reservation_id' => $reservation->id, // Link to reservation
+                ]);
+                $extractedVisitors[] = $visitor->toArray();
             }
-            $reservation->logWorkflowStep('visitor_cross_check_completed', 'Cross-check completed', [ 'matched_or_created' => count($extractedVisitors) ]);
         }
 
         if (!empty($extractedVisitors)) {

@@ -304,7 +304,7 @@
         aiCategoryField.classList.add('bg-blue-50', 'border-blue-300');
       }
 
-      fetch('{{ route("document.analyze-upload") }}', {
+      fetch('{{ route("document.analyzeUpload") }}', {
         method: 'POST',
         body: formData,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -347,11 +347,6 @@
              'compliance': 'Legal - Compliance',
              'financial': 'Financial',
              'report': 'Technical - Report',
-             'affidavit': 'Legal - Affidavit',
-             'memorandum': 'Legal - Memorandum',
-             'subpoena': 'Legal - Subpoena',
-             'cease_desist': 'Legal - Cease & Desist',
-             'legal_brief': 'Legal - Brief',
              'general': 'Operations - General'
            };
 

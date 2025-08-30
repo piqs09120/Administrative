@@ -12,338 +12,263 @@ use App\Models\AccessLog;
 
 class LegalController extends Controller
 {
+    /**
+     * Legal Management Dashboard (Case Deck)
+     */
     public function index()
     {
-        $pendingRequests = DocumentRequest::with(['document.uploader', 'requester'])
-            ->where('status', 'pending')
-            ->whereHas('document')
-            ->latest()
-            ->get();
-            
-        $approvedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
-            ->where('status', 'approved')
-            ->whereHas('document')
-            ->latest()
-            ->take(10)
-            ->get();
-            
-        $deniedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
-            ->where('status', 'denied')
-            ->whereHas('document')
-            ->latest()
-            ->take(10)
-            ->get();
+        return redirect()->route('legal.case_deck');
+    }
 
-        // Facility reservations - NOW HANDLED BY RESERVATION TASKS
+    /**
+     * Case Deck - Main dashboard with overview of all legal cases
+     */
+    public function caseDeck()
+    {
+        // Dashboard statistics
+        $stats = [
+            'total_cases' => \App\Models\LegalCase::count() ?? 0,
+            'pending_cases' => \App\Models\LegalCase::where('status', 'pending')->count() ?? 0,
+            'ongoing_cases' => \App\Models\LegalCase::where('status', 'ongoing')->count() ?? 0,
+            'completed_cases' => \App\Models\LegalCase::where('status', 'completed')->count() ?? 0,
+            'rejected_cases' => \App\Models\LegalCase::where('status', 'rejected')->count() ?? 0,
+            'active_cases' => \App\Models\LegalCase::where('status', 'active')->count() ?? 0,
+            'total_documents' => Document::where('source', 'legal_management')->count(),
+            'pending_reviews' => DocumentRequest::where('status', 'pending')->count(),
+            'facility_legal_tasks' => \App\Models\ReservationTask::where('task_type', 'legal_review')
+                ->where('status', 'pending')
+                ->where('assigned_to_module', 'LM')
+                ->count()
+        ];
+
+        // Recent legal cases
+        $recentCases = \App\Models\LegalCase::latest()->take(5)->get() ?? collect([]);
+        
+        // Recent legal documents
+        $recentDocuments = Document::where('source', 'legal_management')
+            ->latest()
+            ->take(5)
+            ->get();
+            
+        // Pending legal review tasks
         $pendingLegalReviewTasks = \App\Models\ReservationTask::with(['facilityReservation.facility', 'facilityReservation.reserver'])
             ->where('task_type', 'legal_review')
             ->where('status', 'pending')
             ->where('assigned_to_module', 'LM')
             ->latest()
-            ->get();
-        
-        $approvedLegalReviewTasks = \App\Models\ReservationTask::with(['facilityReservation.facility', 'facilityReservation.reserver'])
-            ->where('task_type', 'legal_review')
-            ->where('status', 'completed')
-            ->where('assigned_to_module', 'LM')
-            ->latest()
-            ->take(10) // Limit for dashboard display
-            ->get();
-        
-        $flaggedLegalReviewTasks = \App\Models\ReservationTask::with(['facilityReservation.facility', 'facilityReservation.reserver'])
-            ->where('task_type', 'legal_review')
-            ->where('status', 'flagged')
-            ->where('assigned_to_module', 'LM')
-            ->latest()
-            ->take(10) // Limit for dashboard display
+            ->take(5)
             ->get();
 
-        return view('legal.index', compact(
-            'pendingRequests', 'approvedRequests', 'deniedRequests',
-            'pendingLegalReviewTasks', 'approvedLegalReviewTasks', 'flaggedLegalReviewTasks'
-        ));
+        // All cases for the main grid
+        $cases = \App\Models\LegalCase::with(['assignedTo', 'createdBy'])
+            ->latest()
+            ->paginate(20);
+
+        return view('legal.case_deck', compact('stats', 'recentCases', 'recentDocuments', 'pendingLegalReviewTasks', 'cases'));
     }
 
+    /**
+     * Legal Documents - Document management
+     */
+    public function legalDocuments(Request $request)
+    {
+        $search = $request->input('search');
+        $category = $request->input('category');
+        $status = $request->input('status');
+        
+        // Build the query for documents
+        $query = Document::where('source', 'legal_management')
+            ->with(['uploader' => function($q) {
+                $q->select('Dept_no', 'employee_name', 'dept_name');
+            }]);
+            
+        // Apply search filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Apply category filter
+        if ($category) {
+            $query->where('category', $category);
+        }
+        
+        // Apply status filter
+        if ($status) {
+            $query->where('status', $status);
+        }
+        
+        // Get paginated documents with all necessary fields
+        $documents = $query->latest()->paginate(20);
+            
+        // Build the query for statistics
+        $statsQuery = Document::where('source', 'legal_management');
+        
+        // Apply the same filters to stats query
+        if ($search) {
+            $statsQuery->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+        
+        if ($category) {
+            $statsQuery->where('category', $category);
+        }
+        
+        // Get document statistics with filters applied
+        $stats = [
+            'total' => $statsQuery->count(),
+            'active' => $statsQuery->where('status', 'active')->count(),
+            'pending_review' => $statsQuery->where('status', 'pending_review')->count(),
+            'archived' => $statsQuery->where('status', 'archived')->count(),
+        ];
+            
+        return view('legal.legal_documents', compact('documents', 'stats', 'search', 'category', 'status'));
+    }
+
+    /**
+     * Legal Cases - Detailed case management with create functionality
+     */
+    public function legalCases()
+    {
+        $cases = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])
+            ->latest()
+            ->paginate(20);
+            
+        return view('legal.legal_cases', compact('cases'));
+    }
+
+    /**
+     * Create new legal case
+     */
     public function create()
     {
         return view('legal.create');
     }
 
+    /**
+     * Store new legal case
+     */
     public function store(Request $request)
     {
         $request->validate([
             'case_title' => 'required|string|max:255',
             'case_description' => 'nullable|string',
-            'legal_document' => 'required|file|mimes:pdf,doc,docx,txt|max:10240'
+            'case_type' => 'required|string|max:255',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'assigned_to' => 'nullable|exists:department_accounts,Dept_no',
+            'legal_document' => 'nullable|file|mimes:pdf,doc,docx,txt|max:10240'
         ]);
 
-        // Handle file upload
-        $file = $request->file('legal_document');
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        $filePath = $file->storeAs('legal_documents', $fileName, 'public');
-
-        // Extract text from document for AI analysis
-        $documentText = '';
-        $extension = strtolower($file->getClientOriginalExtension());
-
-        if ($extension === 'txt') {
-            $documentText = file_get_contents($file->getRealPath());
-        } elseif ($extension === 'pdf') {
-            $parser = new \Smalot\PdfParser\Parser();
-            $pdf = $parser->parseFile($file->getRealPath());
-            $documentText = $pdf->getText();
-        } elseif ($extension === 'docx') {
-            $phpWord = \PhpOffice\PhpWord\IOFactory::load($file->getRealPath());
-            $text = '';
-            foreach ($phpWord->getSections() as $section) {
-                $elements = $section->getElements();
-                foreach ($elements as $element) {
-                    if (method_exists($element, 'getText')) {
-                        $text .= $element->getText() . ' ';
-                    }
-                }
-            }
-            $documentText = $text;
-        }
-
-        // Use AI to determine category
-        $category = 'general';
-        $aiAnalysis = null;
-        
-        if ($documentText) {
-            try {
-                $geminiService = new \App\Services\GeminiService();
-                $aiAnalysis = $geminiService->analyzeDocument($documentText);
-                
-                // Check if analysis was successful (including fallback)
-                if (!$aiAnalysis['error']) {
-                    $category = $aiAnalysis['category'];
-                    // Log the AI analysis for debugging
-                    \Log::info('AI Analysis Result:', [
-                        'category' => $category,
-                        'full_analysis' => $aiAnalysis,
-                        'is_fallback' => $aiAnalysis['fallback'] ?? false
-                    ]);
-                } else {
-                    \Log::error('AI Analysis Error:', $aiAnalysis);
-                    // Even if AI fails, try to use fallback
-                    $category = 'general';
-                }
-            } catch (\Exception $e) {
-                \Log::error('AI analysis failed: ' . $e->getMessage());
-                $category = 'general';
-            }
-        }
-        
-        // Log the final category being saved
-        \Log::info('Document being saved with category:', [
-            'title' => $request->case_title,
-            'category' => $category,
-            'ai_analysis' => $aiAnalysis
-        ]);
-
-        // Create document record with AI-determined category
-        $document = Document::create([
-            'title' => $request->case_title,
-            'description' => $request->case_description,
-            'category' => $category,
-            'file_path' => $filePath,
-            'uploaded_by' => Auth::id(),
-            'status' => 'archived',
-            'source' => 'legal_management', // Mark as created through Legal Management
-        ]);
-
-        // Store AI analysis data if available
-        if ($aiAnalysis && !$aiAnalysis['error']) {
-            $document->update([
-                'ai_analysis' => json_encode($aiAnalysis)
+        try {
+            // Create legal case
+            $legalCase = \App\Models\LegalCase::create([
+                'case_title' => $request->case_title,
+                'case_description' => $request->case_description,
+                'case_type' => $request->case_type,
+                'priority' => $request->priority,
+                'status' => 'pending',
+                'assigned_to' => $request->assigned_to,
+                'created_by' => Auth::user()->Dept_no,
             ]);
+
+            // Handle file upload if provided
+            if ($request->hasFile('legal_document')) {
+                $file = $request->file('legal_document');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('legal_documents', $fileName, 'public');
+
+                // Create document record
+                $document = Document::create([
+                    'title' => $request->case_title,
+                    'description' => $request->case_description,
+                    'category' => 'legal_case',
+                    'file_path' => $filePath,
+                    'uploaded_by' => Auth::user()->Dept_no,
+                    'status' => 'active',
+                    'source' => 'legal_management',
+                    'linked_case_id' => $legalCase->id,
+                ]);
+            }
+
+            // Check if request is AJAX
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Legal case created successfully!',
+                    'case' => $legalCase
+                ]);
+            }
+
+            return redirect()->route('legal.case_deck')->with('success', 'Legal case created successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error creating legal case: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error creating legal case: ' . $e->getMessage()]);
         }
-
-        // Get proper display name for success message
-        $categoryDisplayNames = [
-            'memorandum' => 'Memorandum',
-            'contract' => 'Contract',
-            'subpoena' => 'Subpoena',
-            'affidavit' => 'Affidavit',
-            'cease_desist' => 'Cease & Desist',
-            'legal_notice' => 'Legal Notice',
-            'policy' => 'Policy',
-            'legal_brief' => 'Legal Brief',
-            'financial' => 'Financial Document',
-            'compliance' => 'Compliance Document',
-            'report' => 'Report',
-            'general' => 'Legal General'
-        ];
-
-        $displayCategory = $categoryDisplayNames[$category] ?? ucfirst($category);
-        
-        return redirect()->route('legal.index')->with('success', 'Legal case added successfully and classified as ' . $displayCategory . '!');
     }
 
+    /**
+     * Show legal case details
+     */
     public function show($id)
     {
-        $request = DocumentRequest::with(['document.uploader', 'requester', 'approver'])->findOrFail($id);
-        $entities = [];
-        $document = $request->document;
-        if ($document) {
-            $filePath = storage_path('app/public/' . $document->file_path);
-            if (file_exists($filePath)) {
-                $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-                $documentText = '';
-                if ($extension === 'txt') {
-                    $documentText = file_get_contents($filePath);
-                } elseif ($extension === 'pdf') {
-                    $parser = new \Smalot\PdfParser\Parser();
-                    $pdf = $parser->parseFile($filePath);
-                    $documentText = $pdf->getText();
-                } elseif ($extension === 'docx') {
-                    $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath);
-                    $text = '';
-                    foreach ($phpWord->getSections() as $section) {
-                        $elements = $section->getElements();
-                        foreach ($elements as $element) {
-                            if (method_exists($element, 'getText')) {
-                                $text .= $element->getText() . ' ';
-                            }
-                        }
-                    }
-                    $documentText = $text;
-                }
-                if ($documentText) {
-                    // spaCy microservice removed; entity extraction disabled
-                    $entities = [];
-                }
-            }
-        }
-        return view('legal.show', compact('request', 'entities'));
+        $case = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])->findOrFail($id);
+        return view('legal.show', compact('case'));
     }
 
+    /**
+     * Edit legal case
+     */
     public function edit($id)
     {
-        $request = DocumentRequest::with(['document.uploader', 'requester'])->findOrFail($id);
-        return view('legal.edit', compact('request'));
+        $case = \App\Models\LegalCase::findOrFail($id);
+        return view('legal.edit', compact('case'));
     }
 
+    /**
+     * Update legal case
+     */
     public function update(Request $request, $id)
     {
-        // This would be for editing legal notes or remarks
-        return redirect()->route('legal.index');
+        $request->validate([
+            'case_title' => 'required|string|max:255',
+            'case_description' => 'nullable|string',
+            'case_type' => 'required|string|max:255',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'assigned_to' => 'nullable|exists:department_accounts,Dept_no',
+            'status' => 'required|in:pending,active,on_hold,closed'
+        ]);
+
+        $case = \App\Models\LegalCase::findOrFail($id);
+        $case->update($request->all());
+
+        return redirect()->route('legal.legal_cases')->with('success', 'Legal case updated successfully!');
     }
 
+    /**
+     * Destroy legal case
+     */
     public function destroy($id)
     {
-        // Legal doesn't delete requests, only approves/denies
-        return redirect()->route('legal.index');
+        $case = \App\Models\LegalCase::findOrFail($id);
+        $case->delete();
+
+        return redirect()->route('legal.legal_cases')->with('success', 'Legal case deleted successfully!');
     }
 
-    public function approveRequest($id)
-    {
-        $documentRequest = DocumentRequest::findOrFail($id);
-        
-        if ($documentRequest->status !== 'pending') {
-            return redirect()->back()->with('error', 'This request has already been processed.');
-        }
-
-        // Check if document exists
-        if (!$documentRequest->document) {
-            return redirect()->back()->with('error', 'Document not found for this request.');
-        }
-
-        // Extract text and classify document
-        $document = $documentRequest->document;
-        $filePath = storage_path('app/public/' . $document->file_path);
-        $category = null;
-        if (file_exists($filePath)) {
-            $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-            $documentText = '';
-            if ($extension === 'txt') {
-                $documentText = file_get_contents($filePath);
-            } elseif ($extension === 'pdf') {
-                $parser = new \Smalot\PdfParser\Parser();
-                $pdf = $parser->parseFile($filePath);
-                $documentText = $pdf->getText();
-            } elseif ($extension === 'docx') {
-                $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath);
-                $text = '';
-                foreach ($phpWord->getSections() as $section) {
-                    $elements = $section->getElements();
-                    foreach ($elements as $element) {
-                        if (method_exists($element, 'getText')) {
-                            $text .= $element->getText() . ' ';
-                        }
-                    }
-                }
-                $documentText = $text;
-            }
-            if ($documentText) {
-                // Use GeminiService if available; otherwise leave category unchanged
-                try {
-                    $geminiService = new \App\Services\GeminiService();
-                    $analysis = $geminiService->analyzeDocument($documentText);
-                    if (is_array($analysis) && isset($analysis['error']) && $analysis['error'] === false && isset($analysis['category'])) {
-                        $category = $analysis['category'];
-                    }
-                } catch (\Throwable $e) {
-                    // Gracefully skip if service or API key is unavailable
-                }
-            }
-        }
-        if ($category) {
-            $document->update(['category' => $category]);
-        }
-
-        $documentRequest->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'remarks' => request('remarks')
-        ]);
-
-        // Update document status to released
-        $documentRequest->document->update(['status' => 'released']);
-
-        // Notify requester
-        $documentRequest->requester->notify(new DocumentRequestStatusNotification($documentRequest));
-
-        // Log action
-        AccessLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'approve_document_request',
-            'description' => 'Approved document request ID ' . $documentRequest->id,
-            'ip_address' => request()->ip()
-        ]);
-
-        return redirect()->route('legal.index')->with('success', 'Document release request approved successfully!');
-    }
-
-    public function denyRequest($id)
-    {
-        $documentRequest = DocumentRequest::findOrFail($id);
-        
-        if ($documentRequest->status !== 'pending') {
-            return redirect()->back()->with('error', 'This request has already been processed.');
-        }
-
-        $documentRequest->update([
-            'status' => 'denied',
-            'approved_by' => Auth::id(),
-            'remarks' => request('remarks')
-        ]);
-
-        // Notify requester
-        $documentRequest->requester->notify(new DocumentRequestStatusNotification($documentRequest));
-
-        // Log action
-        AccessLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'deny_document_request',
-            'description' => 'Denied document request ID ' . $documentRequest->id,
-            'ip_address' => request()->ip()
-        ]);
-
-        return redirect()->route('legal.index')->with('success', 'Document release request denied.');
-    }
-
+    /**
+     * Document request management (legacy - kept for compatibility)
+     */
     public function pendingRequests()
     {
         $pendingRequests = DocumentRequest::with(['document.uploader', 'requester'])
@@ -366,7 +291,7 @@ class LegalController extends Controller
         return view('legal.approved', compact('approvedRequests'));
     }
 
-        public function deniedRequests()
+    public function deniedRequests()
     {
         $deniedRequests = DocumentRequest::with(['document.uploader', 'requester', 'approver'])
             ->where('status', 'denied')
@@ -377,6 +302,68 @@ class LegalController extends Controller
         return view('legal.denied', compact('deniedRequests'));
     }
 
+    public function approveRequest($id)
+    {
+        $documentRequest = DocumentRequest::findOrFail($id);
+        
+        if ($documentRequest->status !== 'pending') {
+            return redirect()->back()->with('error', 'This request has already been processed.');
+        }
+
+        $documentRequest->update([
+            'status' => 'approved',
+            'approved_by' => Auth::user()->Dept_no,
+            'remarks' => request('remarks')
+        ]);
+
+        // Update document status to released
+        $documentRequest->document->update(['status' => 'released']);
+
+        // Notify requester
+        $documentRequest->requester->notify(new DocumentRequestStatusNotification($documentRequest));
+
+        // Log action
+        AccessLog::create([
+            'user_id' => Auth::user()->Dept_no,
+            'action' => 'approve_document_request',
+            'description' => 'Approved document request ID ' . $documentRequest->id,
+            'ip_address' => request()->ip()
+        ]);
+
+        return redirect()->route('legal.pending')->with('success', 'Document release request approved successfully!');
+    }
+
+    public function denyRequest($id)
+    {
+        $documentRequest = DocumentRequest::findOrFail($id);
+        
+        if ($documentRequest->status !== 'pending') {
+            return redirect()->back()->with('error', 'This request has already been processed.');
+        }
+
+        $documentRequest->update([
+            'status' => 'denied',
+            'approved_by' => Auth::user()->Dept_no,
+            'remarks' => request('remarks')
+        ]);
+
+        // Notify requester
+        $documentRequest->requester->notify(new DocumentRequestStatusNotification($documentRequest));
+
+        // Log action
+        AccessLog::create([
+            'user_id' => Auth::user()->Dept_no,
+            'action' => 'deny_document_request',
+            'description' => 'Denied document request ID ' . $documentRequest->id,
+            'ip_address' => request()->ip()
+        ]);
+
+        return redirect()->route('legal.pending')->with('success', 'Document release request denied.');
+    }
+
+    /**
+     * Category-based document views (legacy - kept for compatibility)
+     */
     public function categoryDocuments($category)
     {
         // Map URL categories to database categories

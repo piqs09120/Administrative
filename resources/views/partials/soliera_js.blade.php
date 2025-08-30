@@ -63,8 +63,10 @@
         const isOpen = icon.closest('.collapse').querySelector('input[type="checkbox"]').checked;
         icon.setAttribute('data-lucide', isOpen ? 'chevron-down' : 'chevron-right');
       }
-      lucide.createIcon(icon);
     });
+    
+    // Recreate all icons after updating attributes
+    lucide.createIcons();
   }
 
   // Handle window resize

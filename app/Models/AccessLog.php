@@ -13,8 +13,5 @@ class AccessLog extends Model
         'user_id', 'action', 'description', 'ip_address'
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    // Removed the user relationship since user_id is now a string field
 } 

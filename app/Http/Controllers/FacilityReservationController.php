@@ -246,7 +246,6 @@ class FacilityReservationController extends Controller
         // No direct status update on reservation here; workflow service handles it
         
         // Log action
-        $reservation->logWorkflowStep('legal_document_process_complete', 'Legal document process completed');
         AccessLog::create([
             'user_id' => Auth::id(),
             'action' => 'legal_approve_facility_reservation',

@@ -60,9 +60,6 @@ class ProcessReservationDocument implements ShouldQueue
                 // Log the routing decision based on AI analysis
                 $this->logRoutingDecision($reservation, $aiResult);
                 
-                // Mark reservation document process complete (per TO-BE)
-                $reservation->logWorkflowStep('reservation_document_process_complete', 'Reservation document process complete');
-                
             } else {
                 $reservation->update(['ai_error' => $aiResult['message'] ?? 'AI error']);
                 $reservation->logWorkflowStep('document_classification_error', 'AI classification failed', [

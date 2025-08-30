@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload</title>
+</head>
+<body>
+    <h1>Test File Upload</h1>
+    
+    <form action="http://localhost:8000/test-upload" method="POST" enctype="multipart/form-data">
+        <div>
+            <label>Title:</label>
+            <input type="text" name="title" value="Test Document">
+        </div>
+        
+        <div>
+            <label>File:</label>
+            <input type="file" name="document_file" required>
+        </div>
+        
+        <button type="submit">Upload</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/test-upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>

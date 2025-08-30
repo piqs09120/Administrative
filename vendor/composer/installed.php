@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'hotel-restaurant/management-system',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '41f4b1078147060ac1480f9f2fff5cdeceee38a6',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -230,9 +230,9 @@
             'dev_requirement' => true,
         ),
         'hotel-restaurant/management-system' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '41f4b1078147060ac1480f9f2fff5cdeceee38a6',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1107,9 +1107,9 @@
             'dev_requirement' => true,
         ),
         'smalot/pdfparser' => array(
-            'pretty_version' => 'v2.12.0',
-            'version' => '2.12.0.0',
-            'reference' => '8440edbf58c8596074e78ada38dcb0bd041a5948',
+            'pretty_version' => 'v2.12.1',
+            'version' => '2.12.1.0',
+            'reference' => '98d31ba34ef5b5a98897ef4b6c3925d502ea53b1',
             'type' => 'library',
             'install_path' => __DIR__ . '/../smalot/pdfparser',
             'aliases' => array(),

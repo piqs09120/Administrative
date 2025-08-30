@@ -37,185 +37,192 @@
 
         <!-- Back button -->
         <div class="flex items-center mb-6">
-          <a href="{{ route('legal.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
+          <a href="{{ route('legal.case_deck') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>Back
           </a>
         </div>
 
-        <!-- Two Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Left Column: Add New Legal Case Form -->
-          <div class="bg-white rounded-xl shadow-lg p-6" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-            <div class="flex items-center mb-6">
-              <i data-lucide="plus" class="w-6 h-6 mr-3" style="color: var(--color-regal-navy);"></i>
-              <h2 class="text-xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);"> Add New Legal Case</h2>
+        <!-- Upload New Document Modal Style Layout -->
+        <div class="bg-white rounded-xl shadow-lg p-8 max-w-6xl mx-auto">
+          <div class="flex items-center justify-between mb-8">
+            <h1 class="text-2xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Add New Legal Case</h1>
+            <button onclick="window.history.back()" class="btn btn-ghost btn-sm">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          @if($errors->any())
+            <div class="alert alert-error mb-6">
+              <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              <ul>
+                @foreach($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
             </div>
+          @endif
 
-            @if($errors->any())
-              <div class="alert alert-error mb-6">
-                <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                <ul>
-                  @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                  @endforeach
-                </ul>
+          <form action="{{ route('legal.store') }}" method="POST" enctype="multipart/form-data" id="legalCaseForm">
+            @csrf
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <!-- Left Column: Form Fields -->
+              <div class="space-y-6">
+                <!-- Case Title -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Case Title*
+                  </label>
+                  <input type="text" name="case_title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                         value="{{ old('case_title') }}" placeholder="Enter case title" required 
+                         style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Enter a descriptive title for the legal case
+                  </p>
+                </div>
+
+                <!-- Case Description -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Case Description
+                  </label>
+                  <textarea name="case_description" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" 
+                            rows="4" placeholder="Brief description of the legal case..." 
+                            style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">{{ old('case_description') }}</textarea>
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Provide a brief description of the case
+                  </p>
+                </div>
+
+                <!-- Case Type -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Case Type*
+                  </label>
+                  <select name="case_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required
+                          style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                    <option value="">Select case type</option>
+                    <option value="contract_dispute" {{ old('case_type') == 'contract_dispute' ? 'selected' : '' }}>Contract Dispute</option>
+                    <option value="employment_law" {{ old('case_type') == 'employment_law' ? 'selected' : '' }}>Employment Law</option>
+                    <option value="intellectual_property" {{ old('case_type') == 'intellectual_property' ? 'selected' : '' }}>Intellectual Property</option>
+                    <option value="regulatory_compliance" {{ old('case_type') == 'regulatory_compliance' ? 'selected' : '' }}>Regulatory Compliance</option>
+                    <option value="litigation" {{ old('case_type') == 'litigation' ? 'selected' : '' }}>Litigation</option>
+                    <option value="other" {{ old('case_type') == 'other' ? 'selected' : '' }}>Other</option>
+                  </select>
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Select the type of legal case
+                  </p>
+                </div>
+
+                <!-- Priority -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Priority*
+                  </label>
+                  <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required
+                          style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                    <option value="">Select priority</option>
+                    <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                    <option value="normal" {{ old('priority') == 'normal' ? 'selected' : '' }}>Normal</option>
+                    <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
+                    <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                  </select>
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Set the priority level for this case
+                  </p>
+                </div>
+
+                <!-- Assigned To -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Assigned To
+                  </label>
+                  <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                    <option value="">Select assignee</option>
+                    <option value="legal_team" {{ old('assigned_to') == 'legal_team' ? 'selected' : '' }}>Legal Team</option>
+                    <option value="senior_counsel" {{ old('assigned_to') == 'senior_counsel' ? 'selected' : '' }}>Senior Counsel</option>
+                    <option value="external_counsel" {{ old('assigned_to') == 'external_counsel' ? 'selected' : '' }}>External Counsel</option>
+                  </select>
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Assign the case to a team member
+                  </p>
+                </div>
               </div>
-            @endif
 
-            <form action="{{ route('legal.store') }}" method="POST" enctype="multipart/form-data" id="legalCaseForm">
-              @csrf
-              
-              <!-- Case Title -->
-              <div class="form-control mb-6">
-                <label class="label">
-                  <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Title *</span>
-                </label>
-                <input type="text" name="case_title" class="input input-bordered w-full" 
-                       value="{{ old('case_title') }}" placeholder="Enter case title" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-              </div>
-
-              <!-- Case Description -->
-              <div class="form-control mb-6">
-                <label class="label">
-                  <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Description</span>
-                </label>
-                <textarea name="case_description" class="textarea textarea-bordered w-full h-32" 
-                          placeholder="Enter case description" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">{{ old('case_description') }}</textarea>
-              </div>
-
-              <!-- File Upload Section -->
-              <div class="form-control mb-6">
-                <label class="label">
-                  <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Upload Legal Document *</span>
-                </label>
-                
-                <!-- File Upload Zone -->
-                <div class="border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
-                     onclick="document.getElementById('legal_document').click()" 
-                     ondrop="handleDrop(event)" 
-                     ondragover="handleDragOver(event)" 
-                     ondragleave="handleDragLeave(event)"
-                     style="border-color: var(--color-regal-navy); background-color: var(--color-white);">
+              <!-- Right Column: Document Upload & AI Analysis -->
+              <div class="space-y-6">
+                <!-- Document File Section -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Document File
+                  </label>
+                  <p class="text-sm text-gray-500 mb-3" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    PDF, Word, Excel, PPT, Text files (Max: 10MB)
+                  </p>
                   
-                  <input type="file" name="legal_document" id="legal_document" class="hidden" 
-                         accept=".pdf,.doc,.docx,.txt" required>
-                  
-                  <div class="space-y-4">
-                    <div class="flex justify-center">
-                      <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
-                        <i data-lucide="cloud-arrow-up" class="w-8 h-8" style="color: var(--color-regal-navy);"></i>
+                  <!-- File Upload Zone -->
+                  <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center transition-colors cursor-pointer bg-blue-50 hover:bg-blue-100"
+                       onclick="document.getElementById('legal_document').click()" 
+                       ondrop="handleDrop(event)" 
+                       ondragover="handleDragOver(event)" 
+                       ondragleave="handleDragLeave(event)"
+                       id="uploadZone">
+                    
+                    <input type="file" name="legal_document" id="legal_document" class="hidden" 
+                           accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" required>
+                    
+                    <div class="space-y-4">
+                      <div class="flex justify-center">
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100">
+                          <i data-lucide="cloud-arrow-up" class="w-8 h-8 text-blue-600"></i>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Drop your legal document here</p>
-                      <p class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">or click to browse files</p>
-                    </div>
-                    <button type="button" class="btn btn-outline btn-primary">
-                      <i data-lucide="file" class="w-4 h-4 mr-2"></i>
-                      CHOOSE FILE
-                    </button>
-                  </div>
-                </div>
-                
-                <!-- File Info -->
-                <div class="mt-4">
-                  <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Accepted: PDF, DOC, DOCX, TXT (max 10MB)</p>
-                </div>
-
-                <!-- File Preview -->
-                <div id="filePreview" class="mt-4 hidden">
-                  <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
-                    <div class="flex items-center gap-3">
-                      <i data-lucide="check-circle" class="w-5 h-5" style="color: var(--color-modern-teal);"></i>
                       <div>
-                        <p class="font-medium text-green-800" id="fileName" style="color: var(--color-charcoal-ink);"></p>
-                        <p class="text-sm text-green-600" id="fileSize" style="color: var(--color-charcoal-ink);"></p>
+                        <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Click to select or drag file</p>
+                        <p class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">Max file size: 10MB</p>
+                      </div>
+                      <p class="text-sm text-blue-600 font-medium">AI will automatically analyze and classify your document</p>
+                    </div>
+                  </div>
+                  
+                  <!-- File Preview -->
+                  <div id="filePreview" class="mt-4 hidden">
+                    <div class="rounded-lg p-4 border border-green-300 bg-green-50">
+                      <div class="flex items-center gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                        <div class="flex-1">
+                          <p class="font-medium text-green-800" id="fileName"></p>
+                          <p class="text-sm text-green-600" id="fileSize"></p>
+                        </div>
+                        <button type="button" onclick="removeFile()" class="text-green-600 hover:text-green-800">
+                          <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Submit Button -->
-              <div class="form-control">
-                <button type="submit" class="btn btn-warning btn-lg w-full" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
-                  <i data-lucide="arrow-up" class="w-5 h-5 mr-2"></i>
-                  ADD CASE
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Right Column: AI Classification Preview -->
-          <div class="bg-white rounded-xl shadow-lg p-6" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-            <div class="flex items-center mb-6">
-              <i data-lucide="brain" class="w-6 h-6 mr-3" style="color: var(--color-regal-navy);"></i>
-              <h2 class="text-xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">AI Classification Preview</h2>
-            </div>
-
-            <!-- AI Preview Content -->
-            <div id="aiPreview" class="text-center py-12">
-              <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
-                <i data-lucide="file-text" class="w-12 h-12" style="color: var(--color-regal-navy);"></i>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Upload a Document</h3>
-              <p class="text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">AI will automatically classify your legal document and show the preview here.</p>
-            </div>
-
-            <!-- AI Analysis Results -->
-            <div id="aiAnalysis" class="hidden space-y-4">
-              <!-- AI Classification -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 90%); border-color: var(--color-regal-navy);">
-                <div class="flex items-center gap-2 mb-2">
-                  <i data-lucide="wrench" class="w-4 h-4" style="color: var(--color-regal-navy);"></i>
-                  <span class="text-sm font-medium" style="color: var(--color-charcoal-ink);">Document Type:</span>
-                </div>
-                <div class="text-lg font-bold text-blue-900 mb-1" id="aiCategory" style="color: var(--color-charcoal-ink);">Legal General</div>
-                <div class="text-sm text-blue-700" id="aiConfidence" style="color: var(--color-charcoal-ink); opacity: 0.8;">AI Confidence: High (95%)</div>
-              </div>
-
-              <!-- AI Summary -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-snow-mist), black 5%); border-color: color-mix(in srgb, var(--color-snow-mist), black 10%);">
-                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">AI Summary</h4>
-                <p class="text-gray-700 text-sm" id="aiSummary" style="color: var(--color-charcoal-ink);">This document has been analyzed by AI and classified as a general legal document.</p>
-              </div>
-
-              <!-- Key Information -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
-                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Key Information</h4>
-                <p class="text-gray-700 text-sm" id="aiKeyInfo" style="color: var(--color-charcoal-ink);">Key information will be extracted during processing.</p>
-              </div>
-
-              <!-- Legal Implications -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-golden-ember), white 90%); border-color: var(--color-golden-ember);">
-                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Legal Implications</h4>
-                <p class="text-gray-700 text-sm" id="aiLegalImplications" style="color: var(--color-charcoal-ink);">Legal implications will be determined based on document content.</p>
+                <!-- AI Analysis Complete Section (matches document modal) -->
+                <div id="aiAnalysis" class="hidden"></div>
               </div>
             </div>
-          </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+              <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="upload" class="w-5 h-5"></i>
+                ADD CASE
+              </button>
+            </div>
+          </form>
         </div>
-      </main>
-    </div>
-  </div>
       </main>
     </div>
   </div>
 
   @include('partials.soliera_js')
   <script>
-    // Real-time date and time
-    function updateDateTime() {
-      const now = new Date();
-      const dateElement = document.getElementById('currentDate');
-      const timeElement = document.getElementById('currentTime');
-      
-      const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-      const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
-      
-      if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-      if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
-    }
-
     // File upload handling
     function handleDrop(e) {
       e.preventDefault();
@@ -245,6 +252,12 @@
       preview.classList.remove('hidden');
     }
 
+    function removeFile() {
+      document.getElementById('legal_document').value = '';
+      document.getElementById('filePreview').classList.add('hidden');
+      document.getElementById('aiAnalysis').classList.add('hidden');
+    }
+
     function formatFileSize(bytes) {
       if (bytes === 0) return '0 Bytes';
       const k = 1024;
@@ -267,23 +280,20 @@
       formData.append('document_file', file);
       formData.append('_token', '{{ csrf_token() }}');
 
-      // Show loading state
-      const aiPreview = document.getElementById('aiPreview');
-      const aiAnalysis = document.getElementById('aiAnalysis');
-      
-      aiPreview.innerHTML = `
-        <div class="flex items-center justify-center py-12">
-          <div class="text-center">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
-              <i data-lucide="loader-2" class="w-8 h-8 animate-spin" style="color: var(--color-regal-navy);"></i>
-            </div>
-            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analyzing Document...</h3>
-            <p style="color: var(--color-charcoal-ink); opacity: 0.8;">AI is classifying your legal document</p>
+      // Show loading state (same as document modal)
+      const aiAnalysisPanel = document.getElementById('aiAnalysis');
+      aiAnalysisPanel.classList.remove('hidden');
+      aiAnalysisPanel.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-blue-500"></i>
+            <h3 class="font-medium text-blue-800">Analyzing Document...</h3>
           </div>
+          <p class="text-sm text-blue-600">AI is processing your document</p>
         </div>
       `;
 
-      fetch('{{ route("document.analyze-upload") }}', {
+      fetch('{{ route("document.analyzeUpload") }}', {
         method: 'POST',
         body: formData,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -301,7 +311,7 @@
       })
       .then(data => {
         if (data.success) {
-          // Update AI analysis results
+          // Update AI analysis results and render like document modal
           const categoryDisplayNames = {
             'memorandum': 'Memorandum',
             'contract': 'Contract',
@@ -319,36 +329,51 @@
 
           const displayCategory = categoryDisplayNames[data.analysis.category] || 'Legal General';
           
-          document.getElementById('aiCategory').textContent = displayCategory;
-          document.getElementById('aiSummary').textContent = data.analysis.summary || 'This document has been analyzed by AI and classified as a legal document.';
-          document.getElementById('aiKeyInfo').textContent = data.analysis.key_info || 'Key information extracted from document content.';
-          document.getElementById('aiLegalImplications').textContent = data.analysis.legal_implications || 'Legal implications will be determined based on document content.';
-          
-          // Show analysis results
-          aiAnalysis.classList.remove('hidden');
-          aiPreview.classList.add('hidden');
-        } else {
-          // Show error state
-          aiPreview.innerHTML = `
-            <div class="text-center py-12">
-              <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-danger-red), white 80%);">
-                <i data-lucide="alert-triangle" class="w-8 h-8" style="color: var(--color-danger-red);"></i>
+          const summary = data.analysis.summary || '—';
+          const compliance = data.analysis.compliance_status || 'review_required';
+          const tags = data.analysis.tags ? (Array.isArray(data.analysis.tags) ? data.analysis.tags.join(', ') : data.analysis.tags) : '—';
+          const risk = data.analysis.legal_risk_score || 'Low';
+          const needsReview = (data.analysis.requires_legal_review ? 'Yes' : 'No');
+
+          aiAnalysisPanel.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <i data-lucide=\"check-circle\" class=\"w-5 h-5 text-green-500\"></i>
+                <h3 class="font-medium text-green-800">AI Analysis Complete</h3>
               </div>
-              <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analysis Failed</h3>
-              <p style="color: var(--color-charcoal-ink); opacity: 0.8;">${data.message}</p>
+              <div class="space-y-2 text-sm">
+                <div><strong>Category:</strong> <span class="font-semibold text-green-700">${displayCategory}</span></div>
+                <div><strong>Summary:</strong> <span class="text-green-700">${summary}</span></div>
+                <div><strong>Compliance:</strong> <span class="text-green-700">${compliance}</span></div>
+                <div><strong>Tags:</strong> <span class="text-green-700">${tags}</span></div>
+                <div><strong>Legal Risk:</strong> <span class="text-green-700">${risk}</span></div>
+                <div><strong>Legal Review Required:</strong> <span class="text-green-700">${needsReview}</span></div>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        } else {
+          // Show error state like document modal
+          aiAnalysisPanel.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <i data-lucide=\"alert-triangle\" class=\"w-5 h-5 text-red-500\"></i>
+                <h3 class="font-medium text-red-800">Analysis Failed</h3>
+              </div>
+              <p class="text-sm text-red-600">${data.message || 'Unable to analyze document'}</p>
             </div>
           `;
         }
       })
       .catch(error => {
-        // Show error state
-        aiPreview.innerHTML = `
-          <div class="text-center py-12">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-danger-red), white 80%);">
-              <i data-lucide="alert-triangle" class="w-8 h-8" style="color: var(--color-danger-red);"></i>
+        // Show error state like document modal
+        aiAnalysisPanel.innerHTML = `
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <i data-lucide=\"alert-triangle\" class=\"w-5 h-5 text-red-500\"></i>
+              <h3 class="font-medium text-red-800">Analysis Failed</h3>
             </div>
-            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analysis Failed</h3>
-            <p style="color: var(--color-charcoal-ink); opacity: 0.8;">Unable to analyze document</p>
+            <p class="text-sm text-red-600">Network or server error</p>
           </div>
         `;
       });
@@ -356,10 +381,8 @@
 
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      updateDateTime();
-      
-      // Update time every second
-      setInterval(updateDateTime, 1000);
+      // Initialize Lucide icons
+      lucide.createIcons();
     });
   </script>
 </body>

@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('access_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('user_id'); // Changed from foreignId to string to match Dept_no
             $table->string('action');
             $table->text('description')->nullable();
             $table->string('ip_address')->nullable();

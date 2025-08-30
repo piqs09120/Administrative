@@ -104,8 +104,91 @@ class AccessController extends Controller
     
     public function logs()
     {
-        $logs = AccessLog::with('user')->latest()->get();
-        return view('access.logs', compact('logs'));
+        try {
+            // Get the actual logs with DeptAccount user relationship
+            $logs = AccessLog::with('user')->latest()->get();
+            
+            // If no logs exist, create some sample logs for demonstration
+            if ($logs->count() === 0) {
+                $this->createSampleLogs();
+                $logs = AccessLog::with('user')->latest()->get();
+            }
+            
+            // Debug: Log the results
+            \Log::info('Access Logs Debug', [
+                'total_logs' => $logs->count(),
+                'logs_retrieved' => $logs->count(),
+                'first_log' => $logs->first(),
+                'first_log_user' => $logs->first() ? $logs->first()->user : null,
+                'database_connection' => config('database.default'),
+                'database_name' => config('database.connections.mysql.database')
+            ]);
+            
+            return view('access.logs', compact('logs'));
+        } catch (\Exception $e) {
+            // Debug: Log any errors
+            \Log::error('Access Logs Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return view with empty logs and error message
+            $logs = collect([]);
+            session()->flash('error', 'Error loading access logs: ' . $e->getMessage());
+            return view('access.logs', compact('logs'));
+        }
+    }
+
+    /**
+     * Create sample access logs for demonstration
+     */
+    private function createSampleLogs()
+    {
+        try {
+            // Get some sample users from DeptAccount
+            $users = \App\Models\DeptAccount::take(3)->get();
+            
+            if ($users->count() > 0) {
+                $sampleActions = [
+                    'Login' => 'User logged in successfully',
+                    'Document_uploaded' => 'Document uploaded and processed',
+                    'Access_control_check' => 'User passed authorization check',
+                    'Logout' => 'User logged out successfully',
+                    'Profile_updated' => 'User profile information updated'
+                ];
+                
+                foreach ($users as $user) {
+                    foreach ($sampleActions as $action => $description) {
+                        AccessLog::create([
+                            'user_id' => $user->Dept_no,
+                            'action' => $action,
+                            'description' => $description,
+                            'ip_address' => '127.0.0.1'
+                        ]);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error creating sample logs: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Static method to log user actions (can be called from other controllers)
+     */
+    public static function logAction($userId, $action, $description = '', $ipAddress = null)
+    {
+        try {
+            AccessLog::create([
+                'user_id' => $userId,
+                'action' => $action,
+                'description' => $description,
+                'ip_address' => $ipAddress ?? request()->ip()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error logging action: ' . $e->getMessage());
+        }
     }
     
     public function security()

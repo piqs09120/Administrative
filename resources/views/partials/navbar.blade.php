@@ -167,8 +167,33 @@
                     </div>
                   </div>
                   <div>
-                    <p class="font-medium text-white">{{ auth()->user()->name ?? 'User' }}</p>
-                    <p class="text-xs text-white">{{ ucfirst(auth()->user()->role ?? 'user') }}</p>
+                    @php
+                      // Resolve current employee_id with fallbacks
+                      $empId = session('emp_id');
+                      if (empty($empId)) {
+                        $empId = auth()->user()->employee_id ?? null;
+                      }
+                      if (empty($empId)) {
+                        $email = auth()->user()->email ?? '';
+                        if (strpos($email, '@') !== false) {
+                          $empId = substr($email, 0, strpos($email, '@'));
+                        }
+                      }
+                      $displayName = auth()->user()->name ?? null;
+                      $displayRole = auth()->user()->role ?? null;
+                      // Prefer department_accounts data if we have an employee_id
+                      if (!empty($empId)) {
+                        try {
+                          $deptUser = \Illuminate\Support\Facades\DB::table('department_accounts')->where('employee_id', $empId)->first();
+                          if ($deptUser) {
+                            $displayName = $deptUser->employee_name ?: $displayName;
+                            $displayRole = $deptUser->role ?: $displayRole;
+                          }
+                        } catch (\Throwable $e) { /* silent fallback */ }
+                      }
+                    @endphp
+                    <p class="font-medium text-white">{{ $displayName ?? 'User' }}</p>
+                    <p class="text-xs text-white">{{ ucfirst($displayRole ?? 'User') }}</p>
                   </div>
                 </div>
               </li>
