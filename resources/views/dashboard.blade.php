@@ -3,9 +3,25 @@
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white flex items-center">
-            <i data-lucide="layout-dashboard" class="w-7 h-7 mr-2 text-blue-700"></i>Dashboard
-        </h1>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white flex items-center">
+                <i data-lucide="layout-dashboard" class="w-7 h-7 mr-2 text-blue-700"></i>Dashboard
+            </h1>
+            @php
+                $roleService = app(\App\Services\RolePermissionService::class);
+                $userRole = $roleService->getUserRole();
+                $roleDescription = $roleService->getRoleDescription();
+            @endphp
+            @if($userRole)
+            <div class="mt-2 flex items-center gap-2">
+                <span class="badge badge-primary badge-sm">{{ $userRole }}</span>
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ $roleDescription }}</span>
+            </div>
+            <div class="mt-2">
+                <span class="text-xs text-gray-500 dark:text-gray-500">Accessible modules: {{ implode(', ', $roleService->getUserModules()) }}</span>
+            </div>
+            @endif
+        </div>
         <div class="flex space-x-2">
             <a href="{{ route('reservations.create') }}" class="btn btn-outline btn-sm flex items-center">
                 <i data-lucide="calendar-plus" class="w-4 h-4 mr-1"></i>New Reservation

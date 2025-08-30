@@ -128,12 +128,16 @@ class AuthController extends Controller
 
         // Persist employee_id in session for consistent identity mapping
         Session::put('emp_id', $user->employee_id);
+        
+        // Store user role in session for RBAC
+        Session::put('user_role', $user->role);
 
         // Clear OTP session
         Session::forget('login_otp');
 
-        // Redirect to dashboard
-        return redirect()->intended('/dashboard')->with('success', 'Welcome back, ' . $user->name . '!');
+        // Redirect based on user role
+        $redirectRoute = $this->getRedirectRouteByRole($user->role);
+        return redirect()->intended($redirectRoute)->with('success', 'Welcome back, ' . $user->name . '!');
     }
 
     /**
@@ -163,6 +167,24 @@ class AuthController extends Controller
         );
 
         return $user;
+    }
+
+    /**
+     * Get redirect route based on user role
+     */
+    private function getRedirectRouteByRole($role)
+    {
+        // Role-based redirection after login
+        switch ($role) {
+            case 'Legal Officer':
+                return route('legal.case_deck');
+            case 'Receptionist':
+                return route('visitor.index');
+            case 'Administrator':
+            case 'Super Admin':
+            default:
+                return route('dashboard');
+        }
     }
 
     /**

@@ -41,6 +41,15 @@ class userController extends Controller
     }
 
     if ($deptAccount && $validPassword) {
+        // Debug logging for role detection
+        \Log::info('userController: Login successful', [
+            'employee_id' => $deptAccount->employee_id,
+            'employee_name' => $deptAccount->employee_name,
+            'role' => $deptAccount->role,
+            'role_type' => gettype($deptAccount->role),
+            'role_length' => strlen($deptAccount->role ?? '')
+        ]);
+        
         // Map department account → Laravel users table for the default guard
         $updateData = [
             'name' => $deptAccount->employee_name ?? 'User',
@@ -72,6 +81,9 @@ class userController extends Controller
 
         // Persist employee_id for UI display (navbar pulls from this)
         Session::put('emp_id', $deptAccount->employee_id);
+        
+        // Store user role in session for RBAC system
+        Session::put('user_role', $deptAccount->role);
 
         // Log the successful login
         \App\Http\Controllers\AccessController::logAction(
@@ -81,7 +93,18 @@ class userController extends Controller
             $request->ip()
         );
 
-        return redirect()->route('dashboard');
+        // Redirect based on user role
+        $redirectRoute = $this->getRedirectRouteByRole($deptAccount->role);
+        
+        // Log the redirect decision for debugging
+        \Log::info('userController: Redirect decision', [
+            'employee_id' => $deptAccount->employee_id,
+            'original_role' => $deptAccount->role,
+            'redirect_route' => $redirectRoute,
+            'redirect_working' => true
+        ]);
+        
+        return redirect($redirectRoute);
     }
 
     // Log failed login attempt
@@ -184,6 +207,28 @@ public function guestlogin(Request $request){
        $request->session()->regenerate();
 
        return redirect('/guestdashboard');
+    }
+}
+
+/**
+ * Get redirect route based on user role
+ */
+private function getRedirectRouteByRole($role)
+{
+    // Role-based redirection after login (case-insensitive)
+    $roleLower = strtolower($role);
+    
+    if (strpos($roleLower, 'legal') !== false && strpos($roleLower, 'officer') !== false) {
+        return route('legal.case_deck');
+    } elseif (strpos($roleLower, 'receptionist') !== false) {
+        return route('visitor.index');
+    } elseif (strpos($roleLower, 'administrator') !== false || strpos($roleLower, 'admin') !== false) {
+        return route('dashboard');
+    } elseif (strpos($roleLower, 'super') !== false && strpos($roleLower, 'admin') !== false) {
+        return route('dashboard');
+    } else {
+        // Default fallback
+        return route('dashboard');
     }
 }
 

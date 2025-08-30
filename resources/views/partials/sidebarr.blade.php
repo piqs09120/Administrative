@@ -15,7 +15,22 @@
           <span class="text-xs font-semibold uppercase tracking-wider text-blue-300 sidebar-text">Main Menu</span>
         </div>
         
-        <!-- Dashboard -->
+        @php
+          $roleService = app(\App\Services\RolePermissionService::class);
+          $sidebarModules = $roleService->getSidebarModules();
+          $userRole = $roleService->getUserRole();
+          $userModules = $roleService->getUserModules();
+          
+          // Debug: Log what modules are available
+          \Log::info('Sidebar rendering', [
+            'user_role' => $userRole,
+            'sidebar_modules' => $sidebarModules,
+            'user_modules' => $userModules
+          ]);
+        @endphp
+
+        <!-- Dashboard - Only show if user has dashboard access -->
+        @if(isset($sidebarModules['dashboard']) && $sidebarModules['dashboard'])
         <a href="{{ route('dashboard') }}" class="block">
           <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
             <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
@@ -24,12 +39,14 @@
             <span class="ml-3 sidebar-text">Dashboard</span>
           </div>
         </a>
+        @endif
 
         <!-- Section Label -->
         <div class="px-4 py-2 mt-4">
           <span class="text-xs font-semibold uppercase tracking-wider text-blue-300 sidebar-text">Management</span>
         </div>
-        
+
+        @if(isset($sidebarModules['legal']))
         <!-- Legal Management -->
         <div class="collapse group">
           <input type="checkbox" class="peer" {{ request()->routeIs('legal.*') ? 'checked' : '' }} /> 
@@ -63,7 +80,9 @@
             </a>
           </div>
         </div>
+        @endif
 
+        @if(isset($sidebarModules['document']))
         <!-- Document Management -->
         <div class="collapse group">
           <input type="checkbox" class="peer" {{ request()->routeIs('document.*') ? 'checked' : '' }} /> 
@@ -97,7 +116,9 @@
             </a>
           </div>
         </div>
+        @endif
 
+        @if(isset($sidebarModules['visitor']))
         <!-- Visitor Management -->
         <div class="collapse group">
           <input type="checkbox" class="peer" {{ request()->routeIs('visitor.*') ? 'checked' : '' }} /> 
@@ -125,7 +146,9 @@
             </a>
           </div>
         </div>
+        @endif
 
+        @if(isset($sidebarModules['facilities']))
         <!-- Facilities Management -->
         <div class="collapse group">
           <input type="checkbox" class="peer" {{ request()->routeIs('facilities.*') ? 'checked' : '' }} /> 
@@ -153,7 +176,9 @@
             </a>
           </div>
         </div>
+        @endif
 
+        @if(isset($sidebarModules['access']))
         <!-- User Management -->
         <div class="collapse group">
           <input type="checkbox" class="peer" {{ request()->routeIs('access.*') ? 'checked' : '' }} /> 
@@ -193,6 +218,7 @@
             </a>
           </div>
         </div>
+        @endif
       </nav>
     </div>
   </div>

@@ -132,6 +132,63 @@ Route::get('/debug-ai', function() {
     }
 })->name('debug.ai');
 
+// Test route for RBAC system
+Route::get('/debug-rbac', function() {
+    try {
+        $roleService = app(\App\Services\RolePermissionService::class);
+        $userRole = $roleService->getUserRole();
+        $userModules = $roleService->getUserModules();
+        $roleDescription = $roleService->getRoleDescription();
+        
+        // Get department accounts to see actual role values
+        $deptAccounts = \Illuminate\Support\Facades\DB::table('department_accounts')
+            ->select('employee_id', 'employee_name', 'role')
+            ->get();
+        
+        // Get current user info
+        $currentUser = auth()->user();
+        $currentUserDeptAccount = null;
+        if ($currentUser) {
+            $currentUserDeptAccount = \Illuminate\Support\Facades\DB::table('department_accounts')
+                ->where('employee_id', $currentUser->employee_id)
+                ->first();
+        }
+        
+        // Test role normalization directly
+        $testResults = [];
+        if ($currentUserDeptAccount && $currentUserDeptAccount->role) {
+            $testResults['legal_officer'] = $roleService->testRoleNormalization('Legal officer');
+            $testResults['legal_officer_lower'] = $roleService->testRoleNormalization('legal officer');
+            $testResults['legal_officer_underscore'] = $roleService->testRoleNormalization('legal_officer');
+        }
+        
+        return response()->json([
+            'success' => true,
+            'user_role' => $userRole,
+            'user_modules' => $userModules,
+            'role_description' => $roleDescription,
+            'available_roles' => $roleService->getAvailableRoles(),
+            'session_data' => [
+                'user_role' => session('user_role'),
+                'emp_id' => session('emp_id'),
+                'auth_user' => auth()->user() ? auth()->user()->only(['id', 'name', 'email', 'role', 'employee_id']) : null
+            ],
+            'department_accounts' => $deptAccounts,
+            'auth_check' => auth()->check(),
+            'current_user_employee_id' => auth()->user() ? auth()->user()->employee_id : null,
+            'current_user_dept_account' => $currentUserDeptAccount,
+            'role_permissions' => $roleService::ROLE_PERMISSIONS,
+            'test_results' => $testResults
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+})->name('debug.rbac');
+
 // Test route for analyze-upload endpoint
 Route::post('/test-analyze', function(Request $request) {
     \Log::info('Test analyze endpoint hit', [
@@ -200,18 +257,26 @@ Route::middleware(['auth'])->group(function () {
     // Legal Documents - moved inside auth middleware
     // Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
     
-    // Legal Case Management
-    Route::get('/legal/cases/create', [LegalController::class, 'create'])->name('legal.create');
-    Route::post('/legal/cases', [LegalController::class, 'store'])->name('legal.store');
-    Route::get('/legal/cases/{id}', [LegalController::class, 'show'])->name('legal.cases.show');
-    Route::get('/legal/cases/{id}/edit', [LegalController::class, 'edit'])->name('legal.cases.edit');
-    Route::put('/legal/cases/{id}', [LegalController::class, 'update'])->name('legal.cases.update');
-    Route::delete('/legal/cases/{id}', [LegalController::class, 'destroy'])->name('legal.cases.destroy');
+    // Legal Case Management - Legal Officer, Administrator, Super Admin only
+    Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
+        Route::get('/legal/cases/create', [LegalController::class, 'create'])->name('legal.create');
+        Route::post('/legal/cases', [LegalController::class, 'store'])->name('legal.store');
+        Route::get('/legal/cases/{id}', [LegalController::class, 'show'])->name('legal.cases.show');
+        Route::get('/legal/cases/{id}/edit', [LegalController::class, 'edit'])->name('legal.cases.edit');
+        Route::put('/legal/cases/{id}', [LegalController::class, 'update'])->name('legal.cases.update');
+        Route::delete('/legal/cases/{id}', [LegalController::class, 'destroy'])->name('legal.cases.destroy');
+    });
     
-    // Constrain document resource to numeric IDs so it won't capture /document/archived
-    Route::resource('document', DocumentController::class)->where(['document' => '[0-9]+']);
-    Route::resource('visitor', VisitorController::class);
-    Route::resource('facilities', FacilitiesController::class);
+    // Document Management - Administrator, Super Admin only
+    Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::resource('document', DocumentController::class)->where(['document' => '[0-9]+']);
+        Route::resource('facilities', FacilitiesController::class);
+    });
+    
+    // Visitor Management - Receptionist, Administrator, Super Admin only
+    Route::middleware(['auth', 'role:Receptionist,Administrator,Super Admin'])->group(function () {
+        Route::resource('visitor', VisitorController::class);
+    });
     
     // Document Management Routes
     Route::post('/document/{id}/request-release', [DocumentController::class, 'requestRelease'])->name('document.requestRelease');
@@ -301,9 +366,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{id}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 
-    // User Role Management
-    Route::get('/access/users/{user}/edit-role', [App\Http\Controllers\AccessController::class, 'editRole'])->name('access.users.editRole');
-    Route::post('/access/users/{user}/update-role', [App\Http\Controllers\AccessController::class, 'updateRole'])->name('access.users.updateRole');
+    // User Role Management - Administrator, Super Admin only
+    Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::get('/access/users/{user}/edit-role', [App\Http\Controllers\AccessController::class, 'editRole'])->name('access.users.editRole');
+        Route::post('/access/users/{user}/update-role', [App\Http\Controllers\AccessController::class, 'updateRole'])->name('access.users.updateRole');
+    });
 });
 
 require __DIR__.'/auth.php';
