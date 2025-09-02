@@ -38,68 +38,82 @@
           </div>
         @endif
 
+        <!-- Page Header -->
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">Documents</h1>
+          <p class="text-gray-600">Manage and organize your document library</p>
+        </div>
+
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Total Documents -->
-          <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 cursor-pointer transform hover:scale-105">
-            <div class="p-6">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+            <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-purple-100 rounded-xl">
-                  <i data-lucide="file-text" class="w-6 h-6 text-purple-600"></i>
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-12 h-12">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                  </div>
                 </div>
-                <span class="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">Documents</span>
+                <div class="badge badge-primary badge-outline">Documents</div>
               </div>
               <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $documents->count() }}</p>
-                <p class="text-sm text-gray-600">Total Documents</p>
+                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2">{{ $documents->count() }}</h2>
+                <p class="text-base-content/70">Total Documents</p>
               </div>
             </div>
           </div>
 
           <!-- Received Today -->
-          <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:shadow-xl hover:border-green-300 transition-all duration-300 cursor-pointer transform hover:scale-105">
-            <div class="p-6">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+            <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-green-100 rounded-xl">
-                  <i data-lucide="calendar-plus" class="w-6 h-6 text-green-600"></i>
+                <div class="avatar placeholder">
+                  <div class="bg-success text-success-content rounded-full w-12 h-12">
+                    <i data-lucide="calendar-plus" class="w-6 h-6"></i>
+                  </div>
                 </div>
-                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Today</span>
+                <div class="badge badge-success badge-outline">Today</div>
               </div>
               <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</p>
-                <p class="text-sm text-gray-600">Received Today</p>
+                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</h2>
+                <p class="text-base-content/70">Received Today</p>
               </div>
             </div>
           </div>
 
           <!-- Released Documents -->
-          <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 cursor-pointer transform hover:scale-105">
-            <div class="p-6">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+            <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-blue-100 rounded-xl">
-                  <i data-lucide="send" class="w-6 h-6 text-blue-600"></i>
+                <div class="avatar placeholder">
+                  <div class="bg-info text-info-content rounded-full w-12 h-12">
+                    <i data-lucide="send" class="w-6 h-6"></i>
+                  </div>
                 </div>
-                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Released</span>
+                <div class="badge badge-info badge-outline">Released</div>
               </div>
               <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $documents->where('status', 'released')->count() }}</p>
-                <p class="text-sm text-gray-600">Released Documents</p>
+                <h2 class="card-title text-4xl font-bold text-info justify-center mb-2">{{ $documents->where('status', 'released')->count() }}</h2>
+                <p class="text-base-content/70">Released Documents</p>
               </div>
             </div>
           </div>
 
           <!-- Archived Documents -->
-          <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:shadow-xl hover:border-gray-400 transition-all duration-300 cursor-pointer transform hover:scale-105" onclick="window.location.href='{{ route('document.archived') }}'" title="View Archived Documents" role="button">
-            <div class="p-6">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-neutral cursor-pointer" onclick="window.location.href='{{ route('document.archived') }}'" title="View Archived Documents" role="button">
+            <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-gray-100 rounded-xl">
-                  <i data-lucide="archive" class="w-6 h-6 text-gray-600"></i>
+                <div class="avatar placeholder">
+                  <div class="bg-neutral text-neutral-content rounded-full w-12 h-12">
+                    <i data-lucide="archive" class="w-6 h-6"></i>
+                  </div>
                 </div>
-                <span class="text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded-full">Archived</span>
+                <div class="badge badge-neutral badge-outline">Archived</div>
               </div>
               <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $documents->where('status', 'archived')->count() }}</p>
-                <p class="text-sm text-gray-600">Archived Documents</p>
+                <h2 class="card-title text-4xl font-bold text-neutral justify-center mb-2">{{ $documents->where('status', 'archived')->count() }}</h2>
+                <p class="text-base-content/70">Archived Documents</p>
               </div>
             </div>
           </div>
@@ -134,11 +148,13 @@
                 </div>
               </div>
               
-              <!-- Right Side: Upload Button -->
-              <button onclick="openUploadModal()" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
-                <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
-                UPLOAD
-              </button>
+              <!-- Right Side: Upload Button - Only for Administrator -->
+              @if(auth()->user()->role === 'Administrator')
+                <button onclick="openUploadModal()" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                  <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
+                  UPLOAD
+                </button>
+              @endif
             </div>
 
             <!-- Document Library Header -->
@@ -149,9 +165,7 @@
                 </div>
                 <h2 class="text-xl font-bold text-gray-800">Document Library ({{ $documents->where('status', '!=', 'archived')->count() }})</h2>
               </div>
-              <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                Total: {{ $documents->count() }} documents
-              </span>
+
             </div>
 
             @if($documents->where('status', '!=', 'archived')->count() > 0)
@@ -163,7 +177,6 @@
                       <th class="text-left py-4 px-6 font-semibold text-gray-700">Document</th>
                       <th class="text-left py-4 px-6 font-semibold text-gray-700">Details</th>
                       <th class="text-center py-4 px-6 font-semibold text-gray-700">Status</th>
-                      <th class="text-center py-4 px-6 font-semibold text-gray-700">Last Modified</th>
                       <th class="text-center py-4 px-6 font-semibold text-gray-700">Actions</th>
                     </tr>
                   </thead>
@@ -232,27 +245,19 @@
                         <td class="py-4 px-6 text-center">
                           @php
                             $statusConfig = [
-                              'active' => ['class' => 'badge-success badge-lg', 'icon' => 'check-circle', 'text' => 'Active'],
-                              'pending_review' => ['class' => 'badge-warning badge-lg', 'icon' => 'clock', 'text' => 'Pending Review'],
-                              'draft' => ['class' => 'badge-info badge-lg', 'icon' => 'edit-3', 'text' => 'Draft'],
-                              'legal' => ['class' => 'badge-primary badge-lg', 'icon' => 'gavel', 'text' => 'Legal'],
-                              'visitor' => ['class' => 'badge-secondary badge-lg', 'icon' => 'users', 'text' => 'Visitor'],
-                              'high_risk' => ['class' => 'badge-error badge-lg', 'icon' => 'alert-triangle', 'text' => 'High Risk'],
-                              'general' => ['class' => 'badge-neutral badge-lg', 'icon' => 'file-text', 'text' => 'General']
+                              'active' => ['icon' => 'check-circle', 'color' => 'text-success'],
+                              'pending_review' => ['icon' => 'clock', 'color' => 'text-warning'],
+                              'draft' => ['icon' => 'edit-3', 'color' => 'text-info'],
+                              'legal' => ['icon' => 'gavel', 'color' => 'text-primary'],
+                              'visitor' => ['icon' => 'users', 'color' => 'text-secondary'],
+                              'high_risk' => ['icon' => 'alert-triangle', 'color' => 'text-error'],
+                              'general' => ['icon' => 'file-text', 'color' => 'text-neutral']
                             ];
                             $status = $document->status ?? 'active';
                             $config = $statusConfig[$status] ?? $statusConfig['active'];
                           @endphp
-                          <span class="{{ $config['class'] }} gap-2">
-                            <i data-lucide="{{ $config['icon'] }}" class="w-4 h-4"></i>
-                            {{ $config['text'] }}
-                          </span>
-                        </td>
-                        
-                        <!-- Last Modified Column -->
-                        <td class="py-4 px-6 text-center">
-                          <div class="text-sm text-gray-600">
-                            {{ $document->updated_at->format('M d, Y') }}
+                          <div class="flex justify-center">
+                            <i data-lucide="{{ $config['icon'] }}" class="w-5 h-5 {{ $config['color'] }}"></i>
                           </div>
                         </td>
                         
@@ -278,29 +283,28 @@
                                  class="absolute right-0 bottom-full mb-2 w-48 max-h-64 overflow-auto bg-white rounded-lg shadow-lg border border-gray-200 z-[100]"
                                  style="display: none;">
                               
-                              <!-- Download Option -->
-                              <button onclick="downloadDocument({{ $document->id }})" 
-                                      class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors rounded-t-lg">
-                                <i data-lucide="download" class="w-4 h-4 text-green-600"></i>
-                                <span>Download</span>
-                              </button>
+                             
                               
-                              <!-- Archive Option -->
-                              <button onclick="archiveDocument({{ $document->id }})" 
-                                      class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors">
-                                <i data-lucide="archive" class="w-4 h-4 text-amber-600"></i>
-                                <span>Archive</span>
-                              </button>
+                              <!-- Archive Option - Only for Administrator -->
+                              @if(auth()->user()->role === 'Administrator')
+                                <button onclick="archiveDocument({{ $document->id }})" 
+                                        class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors">
+                                  <i data-lucide="archive" class="w-4 h-4 text-amber-600"></i>
+                                  <span>Archive</span>
+                                </button>
+                              @endif
                               
                               <!-- Divider -->
                               <div class="border-t border-gray-200"></div>
                               
-                              <!-- Delete Option -->
-                              <button onclick="deleteDocument({{ $document->id }})" 
-                                      class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
-                                <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
-                                <span>Delete</span>
-                              </button>
+                              <!-- Delete Option - Only for Administrator -->
+                              @if(auth()->user()->role === 'Administrator')
+                                <button onclick="deleteDocument({{ $document->id }})" 
+                                        class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
+                                  <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+                                  <span>Delete</span>
+                                </button>
+                              @endif
                             </div>
                           </div>
                         </td>
@@ -321,11 +325,13 @@
                 <h3 class="text-xl font-semibold text-gray-700 mb-3">No Active Documents Found</h3>
                 <p class="text-gray-500 mb-8">Upload your first document to get started.</p>
                 
-                <!-- Primary Call-to-Action -->
-                <button onclick="openUploadModal()" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
-                  <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
-                  UPLOAD DOCUMENT
-                </button>
+                <!-- Primary Call-to-Action - Only for Administrator -->
+                @if(auth()->user()->role === 'Administrator')
+                  <button onclick="openUploadModal()" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                    <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
+                    UPLOAD DOCUMENT
+                  </button>
+                @endif
               </div>
             @endif
           </div>
@@ -378,7 +384,7 @@
         </button>
       </div>
 
-      <form id="uploadForm" action="{{ route('document.store') }}" method="POST" enctype="multipart/form-data" onsubmit="handleUploadSubmit(event)">
+              <form id="uploadForm" action="{{ route('document.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="source" value="document_management">
         
@@ -416,42 +422,7 @@
               </div>
             </div>
 
-            <!-- Category Field (AI Determined) -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Category (AI Determined)</span>
-              </label>
-              <input type="text" name="category" id="aiCategoryField" class="input input-bordered w-full bg-gray-100" 
-                     placeholder="Will be determined by AI analysis" readonly>
-              <input type="hidden" name="ai_category" id="aiCategoryHidden">
-              <div class="label">
-                <span class="label-text-alt">Category will be automatically determined by AI analysis</span>
-              </div>
-            </div>
-
-            <!-- Author Field -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Author</span>
-              </label>
-              <input type="text" name="author" id="uploadAuthor" class="input input-bordered w-full" 
-                     placeholder="e.g. Department Name, Author Name">
-              <div class="label">
-                <span class="label-text-alt">Who authored or prepared this document</span>
-              </div>
-            </div>
-
-            <!-- Summary Field -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Summary</span>
-              </label>
-              <textarea name="summary" id="uploadSummary" class="textarea textarea-bordered w-full h-24" 
-                        placeholder="Brief summary of the document's purpose and content..."></textarea>
-              <div class="label">
-                <span class="label-text-alt">Provide a brief summary of the document</span>
-              </div>
-            </div>
+            
           </div>
 
           <!-- Right Column: File Upload Area -->
@@ -478,9 +449,8 @@
                   </div>
                 </div>
                 <div>
-                  <p class="text-lg font-medium text-gray-700">Click to select or drag file</p>
-                  <p class="text-sm text-gray-500 mt-2">Max file size: 10MB</p>
-                  <p class="text-xs text-blue-600 mt-1">AI will automatically analyze and classify your document</p>
+                                     <p class="text-lg font-medium text-gray-700">Click to select or drag file</p>
+                   <p class="text-sm text-gray-500 mt-2">Max file size: 10MB</p>
                 </div>
               </div>
             </div>
@@ -501,21 +471,7 @@
               </div>
             </div>
 
-            <!-- AI Analysis Preview -->
-            <div id="aiAnalysis" class="hidden">
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div class="flex items-center gap-3 mb-3">
-                  <i data-lucide="brain" class="w-5 h-5 text-blue-500"></i>
-                  <h3 class="font-medium text-blue-800">AI Analysis Complete</h3>
-                </div>
-                <div class="space-y-2 text-sm">
-                  <div><strong>Category:</strong> <span id="aiCategory"></span></div>
-                  <div><strong>Summary:</strong> <span id="aiSummary"></span></div>
-                  <div><strong>Compliance:</strong> <span id="aiCompliance"></span></div>
-                  <div><strong>Tags:</strong> <span id="aiTags"></span></div>
-                </div>
-              </div>
-            </div>
+            
 
             <!-- Submit Button -->
             <div class="pt-4">
@@ -527,6 +483,41 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Archive Confirmation Modal -->
+  <div id="archiveModal" class="modal">
+    <div class="modal-box w-11/12 max-w-md">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+          <i data-lucide="archive" class="w-6 h-6 text-orange-600"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-800">Archive Document</h3>
+          <p class="text-sm text-gray-600">Move to archived documents</p>
+        </div>
+      </div>
+      
+      <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-600 mt-0.5"></i>
+          <div>
+            <p class="font-medium text-orange-800 mb-1">Document will be archived</p>
+            <p class="text-sm text-orange-700">This document will be moved to the archived documents section. You can restore it anytime from there.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex justify-end gap-3">
+        <button onclick="closeArchiveModal()" class="btn btn-ghost">
+          Cancel
+        </button>
+        <button onclick="confirmArchive()" class="btn btn-warning">
+          <i data-lucide="archive" class="w-4 h-4 mr-2"></i>
+          Archive Document
+        </button>
+      </div>
     </div>
   </div>
 
@@ -910,7 +901,7 @@
     function showToast(message, type = 'info') {
       // Create toast element
       const toast = document.createElement('div');
-      toast.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-sm shadow-lg`;
+      toast.className = `alert alert-${type} fixed bottom-4 right-4 z-50 max-w-sm shadow-lg`;
       toast.innerHTML = `
         <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
         <span>${message}</span>
@@ -936,10 +927,7 @@
     function openUploadModal() {
       const modal = document.getElementById('uploadModal');
       modal.classList.add('modal-open');
-      // Initialize AI analysis display
-      document.getElementById('aiAnalysis').classList.add('hidden');
-      document.getElementById('aiCategoryField').value = '';
-      document.getElementById('aiCategoryHidden').value = '';
+      
     }
 
     function closeUploadModal() {
@@ -948,7 +936,6 @@
       const form = document.getElementById('uploadForm');
       if (form) form.reset();
       document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('aiAnalysis').classList.add('hidden');
       document.getElementById('uploadZone').classList.remove('border-blue-500', 'bg-blue-50');
     }
 
@@ -992,18 +979,13 @@
       fileSize.textContent = formatFileSize(file.size);
       preview.classList.remove('hidden');
       
-      // Automatically trigger AI analysis after file preview
-      setTimeout(() => {
-        analyzeDocument(file);
-      }, 500);
+
     }
 
     function removeFile() {
       document.getElementById('document_file').value = '';
       document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('aiAnalysis').classList.add('hidden');
-      document.getElementById('aiCategoryField').value = '';
-      document.getElementById('aiCategoryHidden').value = '';
+
     }
 
     function formatFileSize(bytes) {
@@ -1014,214 +996,7 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // AI Document Analysis
-    function analyzeDocument(file) {
-      console.log('Starting AI analysis for file:', file.name, file.size, file.type);
-      
-      const formData = new FormData();
-      formData.append('document_file', file);
-      formData.append('_token', '{{ csrf_token() }}');
-
-      // Debug FormData contents
-      console.log('FormData created with:');
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(`- ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
-        } else {
-          console.log(`- ${key}: ${value}`);
-        }
-      }
-
-      // Show loading state
-      const aiAnalysis = document.getElementById('aiAnalysis');
-      aiAnalysis.innerHTML = `
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-center gap-3 mb-3">
-            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-blue-500"></i>
-            <h3 class="font-medium text-blue-800">Analyzing Document...</h3>
-          </div>
-          <p class="text-sm text-blue-600">AI is processing your document</p>
-        </div>
-      `;
-      aiAnalysis.classList.remove('hidden');
-
-      console.log('Sending request to:', '{{ route("document.analyzeUpload") }}');
-      console.log('FormData contents:', {
-        file: file.name,
-        token: '{{ csrf_token() }}'
-      });
-
-      fetch('{{ route("document.analyzeUpload") }}', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-      .then(response => {
-        console.log('Response received:', response.status, response.statusText);
-        console.log('Response headers:', response.headers);
-        
-        if (!response.ok) {
-          // Try to get the response body for more details
-          return response.text().then(text => {
-            console.log('Error response body:', text);
-            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-            
-            try {
-              const errorData = JSON.parse(text);
-              if (errorData.message) {
-                errorMessage = errorData.message;
-              }
-              if (errorData.errors) {
-                errorMessage += ' - ' + JSON.stringify(errorData.errors);
-              }
-            } catch (e) {
-              // If we can't parse JSON, use the raw text
-              if (text && text.length < 200) {
-                errorMessage += ' - ' + text;
-              }
-            }
-            
-            throw new Error(errorMessage);
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('AI analysis response data:', data);
-        
-        if (data.success) {
-          // Parse Gemini AI response format (both full AI and fallback)
-          const analysis = data.analysis;
-          
-          // Extract category from the structured response
-          let category = 'General';
-          if (analysis.category) {
-            category = analysis.category;
-          } else if (analysis.CATEGORY) {
-            category = analysis.CATEGORY;
-          }
-          
-          // Extract summary from the structured response
-          let summary = 'Document analyzed successfully';
-          if (analysis.summary) {
-            summary = analysis.summary;
-          } else if (analysis.SUMMARY) {
-            summary = analysis.SUMMARY;
-          }
-          
-          // Extract compliance status
-          let compliance = 'Standard';
-          if (analysis.compliance_status) {
-            compliance = analysis.compliance_status;
-          } else if (analysis.COMPLIANCE_STATUS) {
-            compliance = analysis.COMPLIANCE_STATUS;
-          }
-          
-          // Extract tags
-          let tags = 'Document';
-          if (analysis.tags) {
-            tags = Array.isArray(analysis.tags) ? analysis.tags.join(', ') : analysis.tags;
-          } else if (analysis.TAGS) {
-            tags = Array.isArray(analysis.TAGS) ? analysis.TAGS.join(', ') : analysis.TAGS;
-          }
-          
-          // Extract legal risk score
-          let riskScore = 'Low';
-          if (analysis.legal_risk_score) {
-            riskScore = analysis.legal_risk_score;
-          } else if (analysis.LEGAL_RISK_SCORE) {
-            riskScore = analysis.LEGAL_RISK_SCORE;
-          }
-          
-          // Extract legal review requirement
-          let requiresLegalReview = false;
-          if (analysis.requires_legal_review !== undefined) {
-            requiresLegalReview = analysis.requires_legal_review;
-          } else if (analysis.LEGAL_REVIEW_REQUIRED) {
-            requiresLegalReview = analysis.LEGAL_REVIEW_REQUIRED === 'YES';
-          }
-          
-          // Extract visitor coordination requirement
-          let requiresVisitorCoordination = false;
-          if (analysis.requires_visitor_coordination !== undefined) {
-            requiresVisitorCoordination = analysis.requires_visitor_coordination;
-          } else if (analysis.VISITOR_COORDINATION_REQUIRED) {
-            requiresVisitorCoordination = analysis.VISITOR_COORDINATION_REQUIRED === 'YES';
-          }
-          
-          // Update AI analysis results display
-          document.getElementById('aiCategoryField').value = category;
-          document.getElementById('aiCategoryHidden').value = category;
-          
-          // Show success state with detailed information
-          aiAnalysis.innerHTML = `
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                <h3 class="font-medium text-green-800">AI Analysis Complete</h3>
-              </div>
-              <div class="space-y-2 text-sm">
-                <div><strong>Category:</strong> <span class="font-semibold text-green-700">${category}</span></div>
-                <div><strong>Summary:</strong> <span class="text-green-700">${summary}</span></div>
-                <div><strong>Compliance:</strong> <span class="text-green-700">${compliance}</span></div>
-                <div><strong>Tags:</strong> <span class="text-green-700">${tags}</span></div>
-                <div><strong>Legal Risk:</strong> <span class="text-green-700">${riskScore}</span></div>
-                <div><strong>Legal Review Required:</strong> <span class="text-green-700">${requiresLegalReview ? 'Yes' : 'No'}</span></div>
-              </div>
-            </div>
-          `;
-          
-          // Show analysis results
-          aiAnalysis.classList.remove('hidden');
-          
-          // Log success for debugging
-          console.log('AI Analysis completed successfully:', {
-            category,
-            summary,
-            compliance,
-            tags,
-            riskScore,
-            requiresLegalReview,
-            requiresVisitorCoordination,
-            fullAnalysis: analysis
-          });
-        } else {
-          // Show error state with specific error message
-          const errorMessage = data.message || 'Unable to analyze document';
-          console.error('AI Analysis failed:', data);
-          
-          aiAnalysis.innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-                <h3 class="font-medium text-red-800">Analysis Failed</h3>
-              </div>
-              <p class="text-sm text-red-600">${errorMessage}</p>
-              <p class="text-xs text-red-500 mt-2">Please try again or contact support if the issue persists.</p>
-            </div>
-          `;
-        }
-      })
-      .catch(error => {
-        console.error('AI Analysis request failed:', error);
-        
-        // Show detailed error state
-        aiAnalysis.innerHTML = `
-          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div class="flex items-center gap-3 mb-3">
-              <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-              <h3 class="font-medium text-red-800">Analysis Failed</h3>
-            </div>
-            <p class="text-sm text-red-600">Network or server error: ${error.message}</p>
-            <p class="text-xs text-red-500 mt-2">Please check your connection and try again.</p>
-            <button onclick="analyzeDocument(document.getElementById('document_file').files[0])" class="btn btn-sm btn-outline btn-error mt-2">
-              <i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i>
-              Retry Analysis
-            </button>
-          </div>
-        `;
-      });
-    }
+    
 
     // Document action functions
     function viewDocument(documentId) {
@@ -1252,30 +1027,46 @@
       window.open(`/document/${documentId}/download`, '_blank');
     }
 
+    // Archive modal state
+    let documentToArchive = null;
+
     function archiveDocument(documentId) {
-      if (confirm('Are you sure you want to archive this document?')) {
-        fetch(`/document/${documentId}/archive`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            showToast('Document archived successfully', 'success');
-            // Redirect to Archived Documents page after success
-            setTimeout(() => { window.location.href = '{{ route('document.archived') }}'; }, 700);
-          } else {
-            showToast('Failed to archive document', 'error');
-          }
-        })
-        .catch(error => {
-          console.error('Error archiving document:', error);
-          showToast('Error archiving document', 'error');
-        });
-      }
+      documentToArchive = documentId;
+      document.getElementById('archiveModal').classList.add('modal-open');
+    }
+
+    function closeArchiveModal() {
+      document.getElementById('archiveModal').classList.remove('modal-open');
+      documentToArchive = null;
+    }
+
+    function confirmArchive() {
+      if (!documentToArchive) return;
+      
+      fetch(`/document/${documentToArchive}/archive`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showToast('Document archived successfully', 'success');
+          // Redirect to Archived Documents page after success
+          setTimeout(() => { window.location.href = '{{ route('document.archived') }}'; }, 700);
+        } else {
+          showToast('Failed to archive document', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error archiving document:', error);
+        showToast('Error archiving document', 'error');
+      })
+      .finally(() => {
+        closeArchiveModal();
+      });
     }
 
     function deleteDocument(documentId) {
@@ -1340,15 +1131,7 @@
       
       console.log('Form submission started');
       
-      // Check if AI analysis is complete
-      const aiAnalysis = document.getElementById('aiAnalysis');
-      const isAnalysisComplete = aiAnalysis && !aiAnalysis.classList.contains('hidden') && 
-                                aiAnalysis.innerHTML.includes('AI Analysis Complete');
-      
-      if (!isAnalysisComplete) {
-        showToast('Please wait for AI analysis to complete before uploading', 'warning');
-        return;
-      }
+
       
       // Check if file is selected
       const fileInput = document.getElementById('document_file');
@@ -1367,12 +1150,11 @@
       submitButton.disabled = true;
       
       console.log('Submitting form to:', form.action);
-      console.log('Form data:', {
-        title: formData.get('title'),
-        category: formData.get('category'),
-        source: formData.get('source'),
-        hasFile: formData.has('document_file')
-      });
+              console.log('Form data:', {
+          title: formData.get('title'),
+          source: formData.get('source'),
+          hasFile: formData.has('document_file')
+        });
       
       fetch(form.action, {
         method: 'POST',
@@ -1445,9 +1227,8 @@
             const file = e.target.files[0];
             console.log('File selected:', file);
             
-            // Update preview and analyze
-            updateFilePreview(file);
-            // AI analysis will be triggered automatically by updateFilePreview
+                          // Update preview
+              updateFilePreview(file);
           }
         });
       }
@@ -1468,6 +1249,22 @@
       if (statusFilter) {
         statusFilter.addEventListener('change', filterDocuments);
       }
+      
+      // Modal event listeners
+      // Close archive modal when clicking outside
+      document.addEventListener('click', function(event) {
+        const archiveModal = document.getElementById('archiveModal');
+        if (event.target === archiveModal) {
+          closeArchiveModal();
+        }
+      });
+      
+      // Close archive modal with Escape key
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+          closeArchiveModal();
+        }
+      });
       
       console.log('Document management page initialized');
     });

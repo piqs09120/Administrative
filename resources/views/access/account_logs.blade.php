@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Account Logs - Soliera</title>
+  <title>Department Logs - Soliera</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -39,8 +39,8 @@
         <!-- Page Header -->
         <div class="mb-8">
           <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Account Logs</h1>
-            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track user account activities and system access</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Department Logs</h1>
+            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track department-specific user activities and login events</p>
           </div>
 
           <!-- Log Entry Count -->
@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <!-- Account Logs Table Section -->
+        <!-- Department Logs Table Section -->
         <div class="bg-white rounded-xl shadow-lg p-6">
           <!-- Header with Search and Actions -->
           <div class="mb-6">
@@ -57,7 +57,7 @@
               <div class="flex items-center gap-4">
                 <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   <i data-lucide="activity" class="w-5 h-5 text-blue-600"></i>
-                  User Activity Logs
+                  Department Activity Logs
                 </h3>
                 <!-- Search Bar -->
                 <div class="relative">
@@ -121,16 +121,17 @@
             </div>
           </div>
 
-          <!-- Account Logs Table -->
+          <!-- Department Logs Table -->
           <div class="overflow-x-auto">
             <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
                   <th class="text-left py-3 px-4 font-medium text-gray-700">LOG ID</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">USER</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">ACTION</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">DESCRIPTION</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">IP ADDRESS</th>
+                  <th class="text-left py-3 px-4 font-medium text-gray-700">DEPARTMENT</th>
+                  <th class="text-left py-3 px-4 font-medium text-gray-700">EMPLOYEE</th>
+                  <th class="text-left py-3 px-4 font-medium text-gray-700">TYPE</th>
+                  <th class="text-left py-3 px-4 font-medium text-gray-700">STATUS</th>
+                  <th class="text-left py-3 px-4 font-medium text-gray-700">DETAILS</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DATE</th>
                 </tr>
               </thead>
@@ -141,27 +142,38 @@
                       <span class="font-mono text-sm text-gray-600">#{{ $log->id }}</span>
                     </td>
                     <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">{{ $log->user->Dept_no ?? 'C22510' }}</span>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4">
                       <div class="flex items-center space-x-3">
                         <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                           <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
                         </div>
                         <div>
-                          <div class="font-medium text-gray-900">{{ $log->user->employee_name ?? 'Unknown User' }}</div>
-                          <div class="text-sm text-gray-500">{{ $log->user->dept_name ?? 'No Department' }}</div>
+                          <div class="font-medium text-gray-900">{{ $log->user->employee_name ?? 'Daniel Jonathan' }}</div>
+                          <div class="text-sm text-gray-500">ID: {{ $log->user->employee_id ?? 'SU251001' }}</div>
                         </div>
                       </div>
                     </td>
                     <td class="py-3 px-4">
                       <div class="flex items-center gap-2">
-                        <i data-lucide="activity" class="w-4 h-4 text-gray-500"></i>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500"></i>
                         <span class="text-sm text-gray-600">{{ $log->action }}</span>
                       </div>
                     </td>
                     <td class="py-3 px-4">
-                      <span class="text-sm text-gray-600">{{ $log->description }}</span>
+                      <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>
+                        <span class="text-sm text-green-600 font-medium">Success</span>
+                      </div>
                     </td>
                     <td class="py-3 px-4">
-                      <span class="font-mono text-sm text-gray-500">{{ $log->ip_address }}</span>
+                      <div class="flex items-center gap-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-500"></i>
+                        <span class="text-sm text-gray-600">{{ $log->description }}</span>
+                      </div>
                     </td>
                     <td class="py-3 px-4">
                       <span class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($log->created_at)->format('M d, Y H:i:s') }}</span>
@@ -169,13 +181,13 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="6" class="text-center py-12">
+                    <td colspan="7" class="text-center py-12">
                       <div class="flex flex-col items-center">
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <i data-lucide="activity" class="w-10 h-10 text-gray-400"></i>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-600 mb-2">No Account Logs Found</h3>
-                        <p class="text-gray-500 text-sm">No user activity logs available at the moment.</p>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2">No Department Logs Found</h3>
+                        <p class="text-gray-500 text-sm">No department activity logs available at the moment.</p>
                       </div>
                     </td>
                   </tr>
@@ -234,7 +246,7 @@
         
         // Action filter
         if (actionFilter && showRow) {
-          const action = row.querySelector('td:nth-child(3) .text-sm')?.textContent || '';
+          const action = row.querySelector('td:nth-child(4) .text-sm')?.textContent || '';
           if (action !== actionFilter) {
             showRow = false;
           }
@@ -270,13 +282,13 @@
 
     function exportLogs() {
       // Implement export functionality
-      console.log('Exporting account logs...');
+      console.log('Exporting department logs...');
       // You can implement CSV/Excel export here
     }
 
     function loadMoreLogs() {
       // Implement pagination or load more functionality
-      console.log('Loading more account logs...');
+      console.log('Loading more department logs...');
     }
 
     // Event listeners
@@ -302,4 +314,3 @@
   </script>
 </body>
 </html>
-

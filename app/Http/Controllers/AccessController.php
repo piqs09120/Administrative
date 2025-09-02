@@ -233,4 +233,185 @@ class AccessController extends Controller
         $user->save();
         return redirect()->route('access.users')->with('success', 'User role updated successfully!');
     }
+
+    public function departmentAccounts()
+    {
+        try {
+            // Get department accounts from the database
+            $departmentAccounts = \App\Models\DeptAccount::orderBy('dept_name', 'asc')->get();
+            
+            // Group accounts by department for better organization
+            $departments = $departmentAccounts->groupBy('dept_name');
+            
+            // Get statistics
+            $totalAccounts = $departmentAccounts->count();
+            $activeAccounts = $departmentAccounts->where('status', 'active')->count();
+            $inactiveAccounts = $departmentAccounts->where('status', 'inactive')->count();
+            
+            $stats = [
+                'total' => $totalAccounts,
+                'active' => $activeAccounts,
+                'inactive' => $inactiveAccounts
+            ];
+            
+            return view('access.department_accounts', compact('departmentAccounts', 'departments', 'stats'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error loading department accounts: ' . $e->getMessage());
+            session()->flash('error', 'Error loading department accounts: ' . $e->getMessage());
+            
+            // Return empty data on error
+            return view('access.department_accounts', [
+                'departmentAccounts' => collect([]),
+                'departments' => collect([]),
+                'stats' => ['total' => 0, 'active' => 0, 'inactive' => 0]
+            ]);
+        }
+    }
+
+    public function storeDepartmentAccount(Request $request)
+    {
+        try {
+            $request->validate([
+                'employee_name' => 'required|string|max:255',
+                'dept_name' => 'required|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'role' => 'nullable|string|max:255',
+                'status' => 'required|in:active,inactive',
+                'phone' => 'nullable|string|max:20',
+            ]);
+
+            // Create new department account
+            $deptAccount = new \App\Models\DeptAccount();
+            $deptAccount->employee_name = $request->employee_name;
+            $deptAccount->dept_name = $request->dept_name;
+            $deptAccount->email = $request->email;
+            $deptAccount->role = $request->role;
+            $deptAccount->status = $request->status;
+            $deptAccount->phone = $request->phone;
+            $deptAccount->save();
+
+            return redirect()->route('access.department_accounts')->with('success', 'Department account created successfully!');
+            
+        } catch (\Exception $e) {
+            \Log::error('Error creating department account: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error creating department account: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function departmentLogs()
+    {
+        try {
+            // Get department-specific logs with user information
+            $logs = AccessLog::with('user')
+                ->whereHas('user', function($query) {
+                    $query->whereNotNull('dept_name');
+                })
+                ->latest()
+                ->get();
+            
+            // If no logs exist, create some sample department logs for demonstration
+            if ($logs->count() === 0) {
+                $this->createSampleDepartmentLogs();
+                $logs = AccessLog::with('user')
+                    ->whereHas('user', function($query) {
+                        $query->whereNotNull('dept_name');
+                    })
+                    ->latest()
+                    ->get();
+            }
+            
+            return view('access.account_logs', compact('logs'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error loading department logs: ' . $e->getMessage());
+            $logs = collect([]);
+            session()->flash('error', 'Error loading department logs: ' . $e->getMessage());
+            return view('access.account_logs', compact('logs'));
+        }
+    }
+
+    public function auditLogs()
+    {
+        try {
+            // Get all system audit logs with user information
+            $logs = AccessLog::with('user')
+                ->latest()
+                ->get();
+            
+            // If no logs exist, create some sample audit logs for demonstration
+            if ($logs->count() === 0) {
+                $this->createSampleAuditLogs();
+                $logs = AccessLog::with('user')
+                    ->latest()
+                    ->get();
+            }
+            
+            return view('access.audit_logs', compact('logs'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error loading audit logs: ' . $e->getMessage());
+            $logs = collect([]);
+            session()->flash('error', 'Error loading audit logs: ' . $e->getMessage());
+            return view('access.audit_logs', compact('logs'));
+        }
+    }
+
+    /**
+     * Create sample department logs for demonstration
+     */
+    private function createSampleDepartmentLogs()
+    {
+        try {
+            // Get some sample users from DeptAccount
+            $users = \App\Models\DeptAccount::take(5)->get();
+            
+            if ($users->count() > 0) {
+                foreach ($users as $index => $user) {
+                    AccessLog::create([
+                        'user_id' => $user->Dept_no,
+                        'action' => 'Login',
+                        'description' => 'Login Successful',
+                        'ip_address' => '127.0.0.1'
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error creating sample department logs: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Create sample audit logs for demonstration
+     */
+    private function createSampleAuditLogs()
+    {
+        try {
+            // Get some sample users from DeptAccount
+            $users = \App\Models\DeptAccount::take(3)->get();
+            
+            if ($users->count() > 0) {
+                $sampleActions = [
+                    'Table added' => 'Table Management',
+                    'Login' => 'Authentication',
+                    'Document_uploaded' => 'Document Management',
+                    'Access_control_check' => 'Security',
+                    'Profile_updated' => 'User Management'
+                ];
+                
+                foreach ($users as $index => $user) {
+                    foreach ($sampleActions as $action => $description) {
+                        AccessLog::create([
+                            'user_id' => $user->Dept_no,
+                            'action' => $action,
+                            'description' => $description,
+                            'ip_address' => '127.0.0.1'
+                        ]);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error creating sample audit logs: ' . $e->getMessage());
+        }
+    }
 }

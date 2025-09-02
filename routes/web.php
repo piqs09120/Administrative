@@ -76,8 +76,10 @@ Route::post('/guest/profile-setup/{guestID}', [App\Http\Controllers\userControll
 Route::post('/guest/logout', [App\Http\Controllers\userController::class, 'guestlogout'])->name('guest.logout');
 Route::post('/guest/login', [App\Http\Controllers\userController::class, 'guestlogin'])->name('guest.login');
 
-// Temporary: Legal Documents route without auth for testing
-Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
+// Legal Documents - accessible to Legal Officers, Administrators, and Super Admins
+Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
+    Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
+});
 
 // Temporary: Test legal cases route without auth
 Route::get('/test/legal/cases', [LegalController::class, 'caseDeck'])->name('test.legal.cases');
@@ -233,11 +235,15 @@ Route::middleware(['auth'])->group(function () {
     
     // Access Protection
     Route::prefix('access')->group(function () {
-        Route::get('/logs', [AccessController::class, 'logs'])->name('access.logs');
-        Route::get('/users', [AccessController::class, 'users'])->name('access.users');
-        Route::get('/roles', [AccessController::class, 'roles'])->name('access.roles');
-        Route::get('/security', [AccessController::class, 'security'])->name('access.security');
-    });
+    Route::get('/logs', [AccessController::class, 'logs'])->name('access.logs');
+    Route::get('/audit-logs', [AccessController::class, 'auditLogs'])->name('access.audit_logs');
+    Route::get('/users', [AccessController::class, 'users'])->name('access.users');
+    Route::get('/roles', [AccessController::class, 'roles'])->name('access.roles');
+    Route::get('/security', [AccessController::class, 'security'])->name('access.security');
+    Route::get('/department-accounts', [AccessController::class, 'departmentAccounts'])->name('access.department_accounts');
+    Route::post('/department-accounts', [AccessController::class, 'storeDepartmentAccount'])->name('access.department_accounts.store');
+    Route::get('/department-logs', [AccessController::class, 'departmentLogs'])->name('access.department_logs');
+});
     
     
     
@@ -250,15 +256,16 @@ Route::middleware(['auth'])->group(function () {
     
     Route::resource('legal', LegalController::class);
     
-    // Legal Management Sub-modules
-    Route::get('/legal', [LegalController::class, 'caseDeck'])->name('legal.case_deck');
-    Route::get('/legal/cases', [LegalController::class, 'caseDeck'])->name('legal.legal_cases');
+    // Legal Management Sub-modules - Administrator and Super Admin only
+    Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::get('/legal', [LegalController::class, 'caseDeck'])->name('legal.case_deck');
+        Route::get('/legal/cases', [LegalController::class, 'caseDeck'])->name('legal.legal_cases');
+    });
     
-    // Legal Documents - moved inside auth middleware
-    // Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
+    // Legal Documents route is now properly protected above
     
-    // Legal Case Management - Legal Officer, Administrator, Super Admin only
-    Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
+    // Legal Case Management - Administrator and Super Admin only (Legal Officers excluded)
+    Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
         Route::get('/legal/cases/create', [LegalController::class, 'create'])->name('legal.create');
         Route::post('/legal/cases', [LegalController::class, 'store'])->name('legal.store');
         Route::get('/legal/cases/{id}', [LegalController::class, 'show'])->name('legal.cases.show');
@@ -282,6 +289,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/document/{id}/request-release', [DocumentController::class, 'requestRelease'])->name('document.requestRelease');
     Route::get('/document/{id}/download', [DocumentController::class, 'download'])->name('document.download');
     Route::post('/document/{id}/analyze', [DocumentController::class, 'analyze'])->name('document.analyze');
+Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeAjax'])->name('document.analyzeAjax');
     // Use a unique name for the upload analysis endpoint to avoid name collisions
     Route::post('/document/analyze-upload', [DocumentController::class, 'analyzeUpload'])->name('document.analyzeUpload');
     // OCR test route for debugging document analysis
@@ -304,6 +312,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/legal/pending', [LegalController::class, 'pendingRequests'])->name('legal.pending');
     Route::get('/legal/approved', [LegalController::class, 'approvedRequests'])->name('legal.approved');
     Route::get('/legal/denied', [LegalController::class, 'deniedRequests'])->name('legal.denied');
+    
+    // Legal Case Approval Routes - Administrator and Super Admin only
+    Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::post('/legal/cases/{id}/approve', [LegalController::class, 'approveCase'])->name('legal.cases.approve');
+        Route::post('/legal/cases/{id}/decline', [LegalController::class, 'declineCase'])->name('legal.cases.decline');
+    });
+
+// Super Admin Routes
+Route::get('/hr1', function () { return view('superadmin.hr1'); })->name('hr1.index');
+Route::get('/hr2', function () { return view('superadmin.hr2'); })->name('hr2.index');
+Route::get('/hr3', function () { return view('superadmin.hr3'); })->name('hr3.index');
+Route::get('/hr4', function () { return view('superadmin.hr4'); })->name('hr4.index');
+Route::get('/financials', function () { return view('superadmin.financials'); })->name('financials.index');
+Route::get('/logistic1', function () { return view('superadmin.logistic1'); })->name('logistic1.index');
+Route::get('/logistic2', function () { return view('superadmin.logistic2'); })->name('logistic2.index');
+Route::get('/hotel', function () { return view('superadmin.hotel'); })->name('hotel.index');
+Route::get('/restaurant', function () { return view('superadmin.restaurant'); })->name('restaurant.index');
+Route::get('/superadmin/users', function () { return view('superadmin.users'); })->name('superadmin.users');
     
     // Legal Document Categories
     Route::get('/legal/category/{category}', [LegalController::class, 'categoryDocuments'])->name('legal.category');

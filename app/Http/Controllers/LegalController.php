@@ -25,13 +25,13 @@ class LegalController extends Controller
      */
     public function caseDeck()
     {
-        // Dashboard statistics
+        // Dashboard statistics - Updated to match requested card display
         $stats = [
             'total_cases' => \App\Models\LegalCase::count() ?? 0,
+            'approved_cases' => \App\Models\LegalCase::where('status', 'completed')->count() ?? 0,
             'pending_cases' => \App\Models\LegalCase::where('status', 'pending')->count() ?? 0,
+            'declined_cases' => \App\Models\LegalCase::where('status', 'rejected')->count() ?? 0,
             'ongoing_cases' => \App\Models\LegalCase::where('status', 'ongoing')->count() ?? 0,
-            'completed_cases' => \App\Models\LegalCase::where('status', 'completed')->count() ?? 0,
-            'rejected_cases' => \App\Models\LegalCase::where('status', 'rejected')->count() ?? 0,
             'active_cases' => \App\Models\LegalCase::where('status', 'active')->count() ?? 0,
             'total_documents' => Document::where('source', 'legal_management')->count(),
             'pending_reviews' => DocumentRequest::where('status', 'pending')->count(),
@@ -359,6 +359,92 @@ class LegalController extends Controller
         ]);
 
         return redirect()->route('legal.pending')->with('success', 'Document release request denied.');
+    }
+
+    /**
+     * Approve a legal case
+     */
+    public function approveCase($id)
+    {
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Check if case can be approved (only pending cases)
+            if ($case->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending cases can be approved.'
+                ], 400);
+            }
+
+            $case->update([
+                'status' => 'completed',
+                'outcome' => 'approved'
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::user()->Dept_no,
+                'action' => 'approve_legal_case',
+                'description' => 'Approved legal case ID ' . $case->id,
+                'ip_address' => request()->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Legal case approved successfully!',
+                'case' => $case
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error approving case: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Decline a legal case
+     */
+    public function declineCase($id)
+    {
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Check if case can be declined (only pending cases)
+            if ($case->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending cases can be declined.'
+                ], 400);
+            }
+
+            $case->update([
+                'status' => 'rejected',
+                'outcome' => 'declined'
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::user()->Dept_no,
+                'action' => 'decline_legal_case',
+                'description' => 'Declined legal case ID ' . $case->id,
+                'ip_address' => request()->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Legal case declined successfully!',
+                'case' => $case
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error declining case: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

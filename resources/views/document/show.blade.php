@@ -132,9 +132,12 @@
                     </button>
                   </form>
                   
-                  <a href="{{ route('document.edit', $document->id) }}" class="btn btn-outline" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
-                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>Edit
-                  </a>
+                  <!-- Edit Button - Only for Administrator -->
+                  @if(auth()->user()->role === 'Administrator')
+                    <a href="{{ route('document.edit', $document->id) }}" class="btn btn-outline" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
+                      <i data-lucide="edit" class="w-4 h-4 mr-2"></i>Edit
+                    </a>
+                  @endif
                 </div>
               </div>
             </div>

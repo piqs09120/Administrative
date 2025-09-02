@@ -33,7 +33,6 @@
                     <th class="text-left py-4 px-6 font-semibold text-gray-700">Document Title</th>
                     <th class="text-left py-4 px-6 font-semibold text-gray-700">Department</th>
                     <th class="text-left py-4 px-6 font-semibold text-gray-700">Archived Date</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Category</th>
                     <th class="text-center py-4 px-6 font-semibold text-gray-700">Status</th>
                     <th class="text-center py-4 px-6 font-semibold text-gray-700">Actions</th>
                   </tr>
@@ -44,19 +43,22 @@
                       <td class="font-medium">{{ $document->title }}</td>
                       <td>{{ $document->department ?? '—' }}</td>
                       <td>{{ optional($document->updated_at)->format('M d, Y') }}</td>
-                      <td>{{ ucfirst(str_replace('_',' ', $document->category ?? 'general')) }}</td>
-                      <td>
-                        <div class="badge badge-neutral">{{ ucfirst($document->status ?? 'archived') }}</div>
+                      <td class="text-center">
+                        <div class="flex justify-center">
+                          <div class="badge badge-neutral">{{ ucfirst($document->status ?? 'archived') }}</div>
+                        </div>
                       </td>
-                      <td>
-                        <div class="flex gap-2">
-                          <button class="btn btn-xs" onclick="unarchiveDocument({{ $document->id }})">Unarchive</button>
+                      <td class="text-center">
+                        <div class="flex justify-center">
+                          <button class="btn btn-xs btn-outline btn-success hover:btn-success" onclick="unarchiveDocument({{ $document->id }})" title="Unarchive Document">
+                            <i data-lucide="archive-restore" class="w-4 h-4"></i>
+                          </button>
                         </div>
                       </td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="6" class="text-center py-8">
+                      <td colspan="5" class="text-center py-8">
                         <div class="flex flex-col items-center gap-2">
                           <i data-lucide="archive" class="w-8 h-8 text-gray-400"></i>
                           <span>No archived documents found</span>
@@ -90,9 +92,39 @@
     <div class="modal-box">
       <h3 class="font-bold text-lg mb-4">Confirm Unarchive</h3>
       <p class="py-4">Are you sure you want to restore this document? It will be moved back to the active documents list.</p>
+      
+      <!-- Password Input Field - Only for Administrators -->
+      @if(auth()->user()->role === 'Administrator')
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text font-semibold">Enter Administrator Password to Confirm</span>
+          </label>
+          <input type="password" id="unarchivePassword" class="input input-bordered w-full" placeholder="Enter administrator password" />
+          <div class="label">
+            <span class="label-text-alt">Administrator password required to restore archived documents</span>
+          </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="passwordError" class="alert alert-error mb-4 hidden">
+          <i data-lucide="alert-circle" class="w-4 h-4"></i>
+          <span id="errorMessage">Incorrect password. Please try again.</span>
+        </div>
+      @else
+        <!-- Non-Administrator Message -->
+        <div class="alert alert-warning mb-4">
+          <i data-lucide="shield-x" class="w-4 h-4"></i>
+          <span>Only administrators can restore archived documents. Please contact your system administrator.</span>
+        </div>
+      @endif
+      
       <div class="modal-action">
         <button class="btn btn-ghost" onclick="closeUnarchiveModal()">Cancel</button>
-        <button class="btn btn-success" onclick="confirmUnarchive()">Restore Document</button>
+        @if(auth()->user()->role === 'Administrator')
+          <button class="btn btn-success" onclick="confirmUnarchive()">Restore Document</button>
+        @else
+          <button class="btn btn-disabled" disabled>Restore Document</button>
+        @endif
       </div>
     </div>
   </div>
@@ -119,6 +151,13 @@
     let documentToArchive = null;
     let documentToUnarchive = null;
     let documentToDelete = null;
+    
+    // Predefined password for unarchiving documents
+    const UNARCHIVE_PASSWORD = 'admin123'; // You can change this to your desired password
+    
+    // User role for conditional access control
+    const userRole = '{{ auth()->user()->role }}';
+    const isAdministrator = userRole === 'Administrator';
 
     // Archive functions
     function archiveDocument(documentId) {
@@ -168,11 +207,44 @@
     function closeUnarchiveModal() {
       document.getElementById('unarchiveModal').classList.remove('modal-open');
       documentToUnarchive = null;
+      
+      // Clear password field and hide error message (only for administrators)
+      if (isAdministrator) {
+        const passwordField = document.getElementById('unarchivePassword');
+        const errorElement = document.getElementById('passwordError');
+        
+        if (passwordField) passwordField.value = '';
+        if (errorElement) errorElement.classList.add('hidden');
+      }
     }
 
     function confirmUnarchive() {
       if (!documentToUnarchive) return;
       
+      // Check if user is administrator
+      if (!isAdministrator) {
+        showPasswordError('Access denied. Only administrators can restore archived documents.');
+        return;
+      }
+      
+      // Get password from input field
+      const password = document.getElementById('unarchivePassword').value.trim();
+      
+      // Validate password
+      if (!password) {
+        showPasswordError('Please enter the administrator password');
+        return;
+      }
+      
+      if (password !== UNARCHIVE_PASSWORD) {
+        showPasswordError('Incorrect administrator password. Please try again.');
+        return;
+      }
+      
+      // Hide any previous error messages
+      document.getElementById('passwordError').classList.add('hidden');
+      
+      // Proceed with unarchive request
       fetch(`/document/${documentToUnarchive}/unarchive`, {
         method: 'POST',
         headers: {
@@ -186,16 +258,30 @@
           // Show success message and reload page
           location.reload();
         } else {
-          alert('Error: ' + data.message);
+          showPasswordError('Error: ' + data.message);
         }
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while unarchiving the document');
-      })
-      .finally(() => {
-        closeUnarchiveModal();
+        showPasswordError('An error occurred while unarchiving the document');
       });
+    }
+    
+    // Function to show password error message
+    function showPasswordError(message) {
+      const errorElement = document.getElementById('passwordError');
+      const errorMessageElement = document.getElementById('errorMessage');
+      
+      if (errorElement && errorMessageElement) {
+        errorMessageElement.textContent = message;
+        errorElement.classList.remove('hidden');
+        
+        // Focus on password field for better UX (only for administrators)
+        if (isAdministrator) {
+          const passwordField = document.getElementById('unarchivePassword');
+          if (passwordField) passwordField.focus();
+        }
+      }
     }
 
     // Permanent delete functions
@@ -299,6 +385,18 @@
       document.getElementById('searchInput').addEventListener('input', filterDocuments);
       document.getElementById('categoryFilter').addEventListener('change', filterDocuments);
       document.getElementById('sourceFilter').addEventListener('change', filterDocuments);
+      
+      // Add Enter key support for password field (only for administrators)
+      if (isAdministrator) {
+        const passwordField = document.getElementById('unarchivePassword');
+        if (passwordField) {
+          passwordField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              confirmUnarchive();
+            }
+          });
+        }
+      }
     });
   </script>
 </body>

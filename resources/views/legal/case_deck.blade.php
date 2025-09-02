@@ -153,168 +153,91 @@
 
         <!-- Page Header with Stats -->
         <div class="mb-8">
-          <div class="flex items-center justify-between mb-6">
+          <div class="mb-6">
             <div>
               <h1 class="text-3xl font-bold text-gray-800 mb-2">Legal Cases</h1>
               <p class="text-gray-600">Manage and track all legal cases and proceedings</p>
             </div>
-            <button onclick="openAddCaseModal()" class="btn btn-primary btn-lg">
-              <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
-              Add New Case
-            </button>
           </div>
           
-          <!-- Quick Stats Row -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-              <div class="flex items-center gap-3">
-                <div class="p-2 bg-blue-100 rounded-lg">
-                  <i data-lucide="briefcase" class="w-5 h-5 text-blue-600"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Total Cases</p>
-                  <p class="text-2xl font-bold text-gray-900">{{ $stats['total_cases'] ?? 0 }}</p>
-                </div>
-              </div>
-        </div>
 
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-              <div class="flex items-center gap-3">
-                <div class="p-2 bg-yellow-100 rounded-lg">
-                  <i data-lucide="clock" class="w-5 h-5 text-yellow-600"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Pending Review</p>
-                  <p class="text-2xl font-bold text-gray-900">{{ $stats['pending_cases'] ?? 0 }}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-              <div class="flex items-center gap-3">
-                <div class="p-2 bg-green-100 rounded-lg">
-                  <i data-lucide="activity" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Active Cases</p>
-                  <p class="text-2xl font-bold text-gray-900">{{ $stats['active_cases'] ?? 0 }}</p>
-                </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
         <!-- Status Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <!-- Total Cases -->
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-12 h-12">
+                    <i data-lucide="briefcase" class="w-6 h-6"></i>
+                  </div>
+                </div>
+                <div class="badge badge-primary badge-outline">Total</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2">{{ $stats['total_cases'] ?? 0 }}</h2>
+                <p class="text-base-content/70">All Cases</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Approved Cases -->
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="avatar placeholder">
+                  <div class="bg-success text-success-content rounded-full w-12 h-12">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                  </div>
+                </div>
+                <div class="badge badge-success badge-outline">Approved</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2">{{ $stats['approved_cases'] ?? 0 }}</h2>
+                <p class="text-base-content/70">Completed</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Pending Cases -->
-          <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden">
-            <div class="p-6">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
+            <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-yellow-100 rounded-xl">
-                  <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+                <div class="avatar placeholder">
+                  <div class="bg-warning text-warning-content rounded-full w-12 h-12">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                  </div>
                 </div>
-                <span class="text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">Pending</span>
+                <div class="badge badge-warning badge-outline">Pending</div>
               </div>
               <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['pending_cases'] ?? 0 }}</p>
-                <p class="text-sm text-gray-600">Awaiting Review</p>
+                <h2 class="card-title text-4xl font-bold text-warning justify-center mb-2">{{ $stats['pending_cases'] ?? 0 }}</h2>
+                <p class="text-base-content/70">Awaiting Review</p>
               </div>
             </div>
           </div>
 
-          <!-- Ongoing Cases -->
-          <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden">
-            <div class="p-6">
+          <!-- Declined Cases -->
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-error">
+            <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-blue-100 rounded-xl">
-                  <i data-lucide="gavel" class="w-6 h-6 text-blue-600"></i>
+                <div class="avatar placeholder">
+                  <div class="bg-error text-error-content rounded-full w-12 h-12">
+                    <i data-lucide="x-circle" class="w-6 h-6"></i>
+                  </div>
                 </div>
-                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Active</span>
-              </div>
-              <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['ongoing_cases'] ?? 0 }}</p>
-                <p class="text-sm text-gray-600">In Progress</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Completed Cases -->
-          <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden">
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-green-100 rounded-xl">
-                  <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
-                </div>
-                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Completed</span>
-              </div>
-              <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['completed_cases'] ?? 0 }}</p>
-                <p class="text-sm text-gray-600">Resolved</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rejected Cases -->
-          <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden">
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-red-100 rounded-xl">
-                  <i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>
-                </div>
-                <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">Rejected</span>
+                <div class="badge badge-error badge-outline">Declined</div>
                 </div>
               <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['rejected_cases'] ?? 0 }}</p>
-                <p class="text-sm text-gray-600">Not Approved</p>
+                <h2 class="card-title text-4xl font-bold text-error justify-center mb-2">{{ $stats['declined_cases'] ?? 0 }}</h2>
+                <p class="text-base-content/70">Not Approved</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Search and Filters Section -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-gray-900">Search & Filters</h3>
-              <button onclick="clearFilters()" class="btn btn-outline btn-sm">
-                <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-                Clear All
-              </button>
-                  </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Search Bar -->
-              <div class="relative">
-                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                <input type="text" 
-                       id="caseSearch"
-                       placeholder="Search cases..." 
-                       class="input input-bordered w-full pl-10 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
-                </div>
 
-              <!-- Status Filter -->
-              <div>
-                <select id="statusFilter" class="select select-bordered w-full bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="ongoing">Ongoing</option>
-                  <option value="completed">Completed</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-                </div>
-
-              <!-- Priority Filter -->
-              <div>
-                <select id="priorityFilter" class="select select-bordered w-full bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
-                  <option value="">All Priorities</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-            </div>
-                          </div>
-                        </div>
 
 
 
@@ -332,10 +255,9 @@
                 <thead>
                   <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-4 text-left font-semibold text-gray-700">Case Details</th>
+                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Type</th>
                     <th class="px-6 py-4 text-center font-semibold text-gray-700">Status</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Priority</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Assigned To</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Created</th>
+                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Date</th>
                     <th class="px-6 py-4 text-center font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
@@ -348,11 +270,15 @@
                           <p class="text-sm text-gray-600 mb-2">{{ Str::limit($case->case_description ?? 'No description', 80) }}</p>
                           <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-500">#{{ $case->case_number ?? 'N/A' }}</span>
-                            @if($case->case_type)
-                              <span class="badge badge-outline badge-xs">{{ ucfirst($case->case_type) }}</span>
-                            @endif
                           </div>
                         </div>
+                      </td>
+                      <td class="px-6 py-4 text-center">
+                        @if($case->case_type)
+                          <span class="badge badge-outline badge-sm">{{ ucfirst($case->case_type) }}</span>
+                        @else
+                          <span class="text-gray-400 text-sm">N/A</span>
+                        @endif
                       </td>
                       <td class="px-6 py-4 text-center">
                         @php
@@ -370,33 +296,7 @@
                           {{ ucfirst($status) }}
                         </span>
                       </td>
-                      <td class="px-6 py-4 text-center">
-                        @php
-                          $priorityConfig = [
-                            'low' => 'badge-neutral',
-                            'medium' => 'badge-warning',
-                            'high' => 'badge-error',
-                            'urgent' => 'badge-error badge-outline'
-                          ];
-                          $priority = $case->priority ?? 'medium';
-                          $priorityClass = $priorityConfig[$priority] ?? 'badge-neutral';
-                        @endphp
-                        <span class="badge {{ $priorityClass }}">{{ ucfirst($priority) }}</span>
-                      </td>
-                      <td class="px-6 py-4 text-center">
-                        <div class="flex items-center justify-center">
-                          @if($case->assigned_to)
-                            <div class="avatar placeholder">
-                              <div class="bg-blue-100 text-blue-800 rounded-full w-8">
-                                <span class="text-xs">{{ substr($case->assigned_to, 0, 2) }}</span>
-                              </div>
-                            </div>
-                            <span class="ml-2 text-sm text-gray-700">{{ $case->assigned_to }}</span>
-                          @else
-                            <span class="text-gray-400 text-sm">Unassigned</span>
-                          @endif
-                        </div>
-                      </td>
+
                       <td class="px-6 py-4 text-center">
                         <div class="text-sm text-gray-600">
                           {{ $case->created_at ? $case->created_at->format('M d, Y') : 'N/A' }}
@@ -404,6 +304,19 @@
                       </td>
                       <td class="px-6 py-4 text-center">
                         <div class="flex items-center justify-center gap-2">
+                          @if($case->status === 'pending')
+                            <button onclick="approveCase({{ $case->id ?? 1 }})" 
+                                    class="btn btn-success btn-xs tooltip" 
+                                    data-tip="Approve Case">
+                              <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                            </button>
+                            <button onclick="declineCase({{ $case->id ?? 1 }})" 
+                                    class="btn btn-error btn-xs tooltip" 
+                                    data-tip="Decline Case">
+                              <i data-lucide="x" class="w-4 h-4 text-white"></i>
+                            </button>
+                          @else
+                            @if(auth()->user()->role === 'Administrator')
                           <button onclick="viewCase({{ $case->id ?? 1 }})" 
                                   class="btn btn-ghost btn-xs tooltip" 
                                   data-tip="View Case">
@@ -414,27 +327,26 @@
                                   data-tip="Edit Case">
                             <i data-lucide="edit" class="w-4 h-4 text-green-600"></i>
                           </button>
-                          <button onclick="deleteCase({{ $case->id ?? 1 }})" 
-                                  class="btn btn-ghost btn-xs tooltip" 
-                                  data-tip="Delete Case">
-                            <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
-                          </button>
+                            @endif
+                          @endif
                       </div>
                       </td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="6" class="text-center py-12">
+                      <td colspan="5" class="text-center py-12">
                         <div class="flex flex-col items-center">
                           <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                             <i data-lucide="briefcase" class="w-10 h-10 text-gray-400"></i>
                   </div>
                           <h3 class="text-lg font-semibold text-gray-600 mb-2">No Legal Cases Found</h3>
                           <p class="text-gray-500 text-sm mb-4">Get started by creating your first legal case</p>
+                          @if(auth()->user()->role === 'Administrator')
                           <a href="{{ route('legal.create') }}" class="btn btn-primary">
                             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                             Add New Case
                     </a>
+                          @endif
                   </div>
                       </td>
                     </tr>
@@ -454,218 +366,7 @@
     </div>
   </div>
 
-  <!-- Add New Case Modal -->
-  <div id="addCaseModal" class="modal">
-    <div class="modal-box w-11/12 max-w-4xl">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <i data-lucide="plus" class="w-8 h-8 text-blue-500"></i>
-          Add New Legal Case
-        </h3>
-        <button onclick="closeAddCaseModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
 
-      <form id="addCaseForm" action="{{ route('legal.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          <!-- Left Column: Case Details -->
-          <div class="space-y-6">
-            <!-- Case Title -->
-            <div class="form-control mb-6">
-              <label class="label">
-                <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Title *</span>
-              </label>
-              <input type="text" name="case_title" id="case_title" class="input input-bordered w-full" 
-                     placeholder="Enter case title" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-            </div>
-
-            <!-- Case Description -->
-            <div class="form-control mb-6">
-              <label class="label">
-                <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Description</span>
-              </label>
-              <textarea name="case_description" id="case_description" class="textarea textarea-bordered w-full h-32" 
-                        placeholder="Enter case description" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"></textarea>
-            </div>
-
-            <!-- Case Type -->
-            <div class="form-control mb-6">
-              <label class="label">
-                <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Case Type *</span>
-              </label>
-              <select name="case_type" id="case_type" class="select select-bordered w-full" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-                <option value="">Select case type</option>
-                <option value="contract">Contract</option>
-                <option value="litigation">Litigation</option>
-                <option value="compliance">Compliance</option>
-                <option value="policy">Policy</option>
-                <option value="employment">Employment</option>
-                <option value="intellectual_property">Intellectual Property</option>
-                <option value="real_estate">Real Estate</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <!-- Priority -->
-            <div class="form-control mb-6">
-              <label class="label">
-                <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Priority *</span>
-              </label>
-              <select name="priority" id="priority" class="select select-bordered w-full" required style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-                <option value="">Select priority</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-
-            <!-- Assigned To -->
-            <div class="form-control mb-6">
-              <label class="label">
-                <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Assigned To</span>
-              </label>
-              <select name="assigned_to" id="assigned_to" class="select select-bordered w-full" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-                <option value="">Select assignee</option>
-                @foreach(\App\Models\DeptAccount::all() as $dept)
-                  <option value="{{ $dept->Dept_no }}">{{ $dept->employee_name }} ({{ $dept->dept_name }})</option>
-                @endforeach
-              </select>
-            </div>
-
-            <!-- File Upload Section -->
-            <div class="form-control mb-6">
-              <label class="label">
-                <span class="label-text font-semibold" style="color: var(--color-charcoal-ink);">Upload Legal Document *</span>
-              </label>
-              
-              <!-- File Upload Zone -->
-              <div id="uploadZone" class="border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
-                   onclick="triggerFileSelection()" 
-                   ondrop="handleDrop(event)" 
-                   ondragover="handleDragOver(event)" 
-                   ondragleave="handleDragLeave(event)"
-                   style="border-color: var(--color-regal-navy); background-color: var(--color-white);">
-                
-                <input type="file" name="legal_document" id="legal_document" class="hidden" 
-                       accept=".pdf,.doc,.docx,.txt" required>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-center">
-                    <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
-                      <i data-lucide="cloud-arrow-up" class="w-8 h-8" style="color: var(--color-regal-navy);"></i>
-                    </div>
-                  </div>
-                  <div>
-                    <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Drop your legal document here</p>
-                    <p class="text-sm text-gray-500 mt-2" style="color: var(--color-charcoal-ink); opacity: 0.7;">or click to browse files</p>
-                  </div>
-                  <button type="button" class="btn btn-outline btn-primary">
-                    <i data-lucide="file" class="w-4 h-4 mr-2"></i>
-                    CHOOSE FILE
-                  </button>
-                </div>
-              </div>
-              
-              <!-- File Info -->
-              <div class="mt-4">
-                <p class="text-sm text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Accepted: PDF, DOC, DOCX, TXT (max 10MB)</p>
-              </div>
-
-              <!-- File Preview -->
-              <div id="filePreview" class="mt-4 hidden">
-                <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
-                  <div class="flex items-center gap-3">
-                    <i data-lucide="check-circle" class="w-5 h-5" style="color: var(--color-modern-teal);"></i>
-                    <div>
-                      <p class="font-medium text-green-800" id="fileName" style="color: var(--color-charcoal-ink);"></p>
-                      <p class="text-sm text-green-600" id="fileSize" style="color: var(--color-charcoal-ink);"></p>
-                    </div>
-                    <button type="button" onclick="removeFile()" class="btn btn-ghost btn-sm">
-                      <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: AI Classification Preview -->
-          <div class="space-y-6">
-            <div class="flex items-center mb-6">
-              <i data-lucide="brain" class="w-6 h-6 mr-3" style="color: var(--color-regal-navy);"></i>
-              <h2 class="text-xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">AI Classification Preview</h2>
-            </div>
-
-            <!-- AI Preview Content -->
-            <div id="aiPreview" class="text-center py-12">
-              <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
-                <i data-lucide="file-text" class="w-12 h-12" style="color: var(--color-regal-navy);"></i>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Upload a Document</h3>
-              <p class="text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">AI will automatically classify your legal document and show the preview here.</p>
-            </div>
-
-            <!-- AI Analysis Results -->
-            <div id="aiAnalysis" class="hidden space-y-4">
-              <!-- AI Classification -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 90%); border-color: var(--color-regal-navy);">
-                <div class="flex items-center gap-2 mb-2">
-                  <i data-lucide="wrench" class="w-4 h-4" style="color: var(--color-regal-navy);"></i>
-                  <span class="text-sm font-medium" style="color: var(--color-charcoal-ink);">Document Type:</span>
-                </div>
-                <div class="text-lg font-bold text-blue-900 mb-1" id="aiCategory" style="color: var(--color-charcoal-ink);">Legal General</div>
-                <div class="text-sm text-blue-700" id="aiConfidence" style="color: var(--color-regal-navy); opacity: 0.8;">AI Confidence: High (95%)</div>
-              </div>
-
-              <!-- AI Summary -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-snow-mist), black 5%); border-color: color-mix(in srgb, var(--color-snow-mist), black 10%);">
-                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">AI Summary</h4>
-                <p class="text-gray-700 text-sm" id="aiSummary" style="color: var(--color-charcoal-ink);">This document has been analyzed by AI and classified as a general legal document.</p>
-              </div>
-
-              <!-- Key Information -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 90%); border-color: var(--color-modern-teal);">
-                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Key Information</h4>
-                <p class="text-gray-700 text-sm" id="aiKeyInfo" style="color: var(--color-charcoal-ink);">Key information will be extracted during processing.</p>
-              </div>
-
-              <!-- Legal Implications -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-golden-ember), white 90%); border-color: var(--color-golden-ember);">
-                <h4 class="font-semibold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Legal Implications</h4>
-                <p class="text-gray-700 text-sm" id="aiLegalImplications" style="color: var(--color-charcoal-ink);">Legal implications will be determined based on document content.</p>
-              </div>
-
-              <!-- Tags / Compliance / Risk / Review Required -->
-              <div class="rounded-lg p-4 border" style="background-color: color-mix(in srgb, var(--color-snow-mist), black 5%); border-color: color-mix(in srgb, var(--color-snow-mist), black 10%);">
-                <div class="space-y-1 text-sm" style="color: var(--color-charcoal-ink);">
-                  <div><strong>Compliance:</strong> <span id="aiCompliance">—</span></div>
-                  <div><strong>Tags:</strong> <span id="aiTags">—</span></div>
-                  <div><strong>Legal Risk:</strong> <span id="aiRisk">—</span></div>
-                  <div><strong>Legal Review Required:</strong> <span id="aiReview">—</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Form Actions -->
-        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
-          <button type="button" onclick="closeAddCaseModal()" class="btn btn-outline">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-warning btn-lg" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
-            <i data-lucide="arrow-up" class="w-5 h-5 mr-2"></i>
-            ADD CASE
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   @include('partials.soliera_js')
   
@@ -673,201 +374,12 @@
     // Initialize Lucide icons
     lucide.createIcons();
     
-    // Modal functions
-    function openAddCaseModal() {
-      document.getElementById('addCaseModal').classList.add('modal-open');
-      // Reset form when opening
-      document.getElementById('addCaseForm').reset();
-      document.getElementById('filePreview').classList.add('hidden');
-      // Recreate icons after modal opens
-      setTimeout(() => lucide.createIcons(), 100);
-      
-      // Add click outside to close functionality
-      document.getElementById('addCaseModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeAddCaseModal();
-        }
-      });
-      
-      // Add escape key to close functionality
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          closeAddCaseModal();
-        }
-      });
-    }
+    // Role-based access control
+    const userRole = '{{ auth()->user()->role }}';
     
-    function closeAddCaseModal() {
-      document.getElementById('addCaseModal').classList.remove('modal-open');
-      // Remove event listeners
-      document.removeEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          closeAddCaseModal();
-        }
-      });
-    }
+
     
-    // File upload handling
-    function triggerFileSelection() {
-      document.getElementById('legal_document').click();
-    }
-    
-    function handleDrop(e) {
-      e.preventDefault();
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        document.getElementById('legal_document').files = files;
-        updateFilePreview(files[0]);
-        analyzeDocument(files[0]);
-      }
-    }
 
-    function handleDragOver(e) {
-      e.preventDefault();
-      e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
-    }
-
-    function handleDragLeave(e) {
-      e.preventDefault();
-      e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
-    }
-
-    function updateFilePreview(file) {
-      const preview = document.getElementById('filePreview');
-      const fileName = document.getElementById('fileName');
-      const fileSize = document.getElementById('fileSize');
-      
-      fileName.textContent = file.name;
-      fileSize.textContent = formatFileSize(file.size);
-      preview.classList.remove('hidden');
-    }
-
-    function formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    function removeFile() {
-      document.getElementById('legal_document').value = '';
-      document.getElementById('filePreview').classList.add('hidden');
-      
-      // Reset AI preview
-      document.getElementById('aiAnalysis').classList.add('hidden');
-      document.getElementById('aiPreview').classList.remove('hidden');
-    }
-    
-    // AI Document Analysis
-    function analyzeDocument(file) {
-      const formData = new FormData();
-      formData.append('document_file', file);
-      formData.append('_token', '{{ csrf_token() }}');
-
-      // Show loading state
-      const aiPreview = document.getElementById('aiPreview');
-      const aiAnalysis = document.getElementById('aiAnalysis');
-      
-      aiPreview.innerHTML = `
-        <div class="flex items-center justify-center py-12">
-          <div class="text-center">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%);">
-              <i data-lucide="loader-2" class="w-8 h-8 animate-spin" style="color: var(--color-regal-navy);"></i>
-            </div>
-            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analyzing Document...</h3>
-            <p style="color: var(--color-charcoal-ink); opacity: 0.8;">AI is classifying your legal document</p>
-          </div>
-        </div>
-      `;
-
-      fetch('{{ route("document.analyzeUpload") }}', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-      .then(async response => {
-        const contentType = response.headers.get('content-type') || '';
-        if (!response.ok) {
-          const fallback = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Server error' };
-          return fallback;
-        }
-        if (!contentType.includes('application/json')) {
-          return { success: false, message: 'Unexpected response from server' };
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.success) {
-          // Update AI analysis results
-          const categoryDisplayNames = {
-            'memorandum': 'Memorandum',
-            'contract': 'Contract',
-            'subpoena': 'Subpoena',
-            'affidavit': 'Affidavit',
-            'cease_desist': 'Cease & Desist',
-            'legal_notice': 'Legal Notice',
-            'policy': 'Policy',
-            'legal_brief': 'Legal Brief',
-            'financial': 'Financial Document',
-            'compliance': 'Compliance Document',
-            'report': 'Report',
-            'general': 'Legal General'
-          };
-
-          const displayCategory = categoryDisplayNames[data.analysis.category] || 'Legal General';
-          
-          document.getElementById('aiCategory').textContent = displayCategory;
-          document.getElementById('aiSummary').textContent = data.analysis.summary || 'This document has been analyzed by AI and classified as a legal document.';
-          document.getElementById('aiKeyInfo').textContent = data.analysis.key_info || 'Key information extracted from document content.';
-          document.getElementById('aiLegalImplications').textContent = data.analysis.legal_implications || 'Legal implications will be determined based on document content.';
-          
-          // Optional fields (compliance, tags, risk, review)
-          const compliance = data.analysis.compliance_status || data.analysis.COMPLIANCE_STATUS || '—';
-          const tags = Array.isArray(data.analysis.tags) ? data.analysis.tags.join(', ') : (data.analysis.TAGS || '—');
-          const risk = data.analysis.legal_risk_score || data.analysis.LEGAL_RISK_SCORE || '—';
-          const review = (data.analysis.requires_legal_review !== undefined)
-            ? (data.analysis.requires_legal_review ? 'Yes' : 'No')
-            : (data.analysis.LEGAL_REVIEW_REQUIRED ? (data.analysis.LEGAL_REVIEW_REQUIRED === 'YES' ? 'Yes' : 'No') : '—');
-
-          const cEl = document.getElementById('aiCompliance');
-          const tEl = document.getElementById('aiTags');
-          const rEl = document.getElementById('aiRisk');
-          const reviewEl = document.getElementById('aiReview');
-          if (cEl) cEl.textContent = compliance;
-          if (tEl) tEl.textContent = tags;
-          if (rEl) rEl.textContent = risk;
-          if (reviewEl) reviewEl.textContent = review;
-          
-          // Show analysis results
-          aiAnalysis.classList.remove('hidden');
-          aiPreview.classList.add('hidden');
-        } else {
-          // Show error state
-          aiPreview.innerHTML = `
-            <div class="text-center py-12">
-              <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-danger-red), white 80%);">
-                <i data-lucide="alert-triangle" class="w-8 h-8" style="color: var(--color-danger-red);"></i>
-              </div>
-              <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analysis Failed</h3>
-              <p style="color: var(--color-charcoal-ink); opacity: 0.8;">${data.message}</p>
-            </div>
-          `;
-        }
-      })
-      .catch(error => {
-        // Show error state
-        aiPreview.innerHTML = `
-          <div class="text-center py-12">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: color-mix(in srgb, var(--color-danger-red), white 80%);">
-              <i data-lucide="alert-triangle" class="w-8 h-8" style="color: var(--color-danger-red);"></i>
-            </div>
-            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-charcoal-ink);">Analysis Failed</h3>
-            <p style="color: var(--color-charcoal-ink); opacity: 0.8;">Unable to analyze document</p>
-          </div>
-        `;
-      });
-    }
     
     // Search and filter functionality
     function filterCases() {
@@ -891,7 +403,7 @@
         
         // Status filter
         if (statusFilter && showRow) {
-          const status = row.querySelector('td:nth-child(2) .badge')?.textContent?.toLowerCase() || '';
+          const status = row.querySelector('td:nth-child(3) .badge')?.textContent?.toLowerCase() || '';
           if (!status.includes(statusFilter)) {
             showRow = false;
           }
@@ -899,7 +411,7 @@
         
         // Priority filter
         if (priorityFilter && showRow) {
-          const priority = row.querySelector('td:nth-child(3) .badge')?.textContent?.toLowerCase() || '';
+          const priority = row.querySelector('td:nth-child(4) .badge')?.textContent?.toLowerCase() || '';
           if (!priority.includes(priorityFilter)) {
             showRow = false;
           }
@@ -949,6 +461,60 @@
         .catch(error => {
           console.error('Error:', error);
           alert('An error occurred while deleting the case');
+        });
+      }
+    }
+
+    // Approve a legal case
+    function approveCase(caseId) {
+      if (confirm('Are you sure you want to approve this legal case?')) {
+        fetch(`/legal/cases/${caseId}/approve`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Legal case approved successfully!', 'success');
+            // Reload page to update statistics and table
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            throw new Error(data.message || 'Failed to approve case');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('Error approving case: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Decline a legal case
+    function declineCase(caseId) {
+      if (confirm('Are you sure you want to decline this legal case?')) {
+        fetch(`/legal/cases/${caseId}/decline`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Legal case declined successfully!', 'success');
+            // Reload page to update statistics and table
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            throw new Error(data.message || 'Failed to decline case');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('Error declining case: ' + error.message, 'error');
         });
       }
     }
@@ -1025,7 +591,7 @@
     function showToast(message, type = 'info') {
       // Create toast element
       const toast = document.createElement('div');
-      toast.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-sm shadow-lg`;
+      toast.className = `alert alert-${type} fixed bottom-4 right-4 z-50 max-w-sm shadow-lg`;
       toast.innerHTML = `
         <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
         <span>${message}</span>

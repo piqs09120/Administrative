@@ -200,15 +200,18 @@
           <h2 class="text-xl font-bold text-gray-800 mb-4">Document Actions</h2>
           
           <div class="flex flex-wrap gap-2">
-            <button onclick="editDocument({{ $document->id }})" class="btn btn-outline">
-              <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
-              Edit Document
-            </button>
-            
-            <button onclick="deleteDocument({{ $document->id }})" class="btn btn-error">
-              <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
-              Delete Document
-            </button>
+            <!-- Edit and Delete Buttons - Only for Administrator -->
+            @if(auth()->user()->role === 'Administrator')
+              <button onclick="editDocument({{ $document->id }})" class="btn btn-outline">
+                <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                Edit Document
+              </button>
+              
+              <button onclick="deleteDocument({{ $document->id }})" class="btn btn-error">
+                <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
+                Delete Document
+              </button>
+            @endif
           </div>
         </div>
       </main>

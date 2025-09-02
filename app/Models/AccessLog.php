@@ -13,5 +13,11 @@ class AccessLog extends Model
         'user_id', 'action', 'description', 'ip_address'
     ];
 
-    // Removed the user relationship since user_id is now a string field
+    /**
+     * Get the user that owns the access log.
+     */
+    public function user()
+    {
+        return $this->belongsTo(DeptAccount::class, 'user_id', 'Dept_no');
+    }
 } 
