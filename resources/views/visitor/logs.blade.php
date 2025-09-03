@@ -71,7 +71,7 @@
           </div>
 
           <!-- Quick Stats Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <!-- Total Visitors Today -->
             <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
               <div class="card-body p-4">
@@ -108,45 +108,9 @@
               </div>
             </div>
 
-            <!-- Average Duration -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-warning text-warning-content rounded-full w-10 h-10">
-                      <i data-lucide="clock" class="w-5 h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-warning badge-outline text-xs">Average</div>
-                </div>
-                <div class="text-center">
-                  @php
-                    $avgRaw = $stats['avg_duration'] ?? '0h';
-                    $avgDisplay = preg_replace('/h$/i', ' hr', $avgRaw);
-                  @endphp
-                  <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1 font-mono tabular-nums" id="averageDuration">{{ $avgDisplay }}</h2>
-                  <p class="text-sm text-base-content/70">Visit Duration</p>
-                </div>
-              </div>
-            </div>
 
-            <!-- Peak Hours -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-info text-info-content rounded-full w-10 h-10">
-                      <i data-lucide="trending-up" class="w-5 h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-info badge-outline text-xs">Peak</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-lg sm:text-xl font-bold text-info justify-center mb-1" id="peakHours">{{ $stats['peak_hours'] ?? '9-11 AM' }}</h2>
-                  <p class="text-sm text-base-content/70">Busiest Time</p>
-                </div>
-              </div>
-            </div>
+
+
           </div>
         </div>
 
@@ -170,11 +134,7 @@
                 <span class="hidden sm:inline">Reports</span>
                 <span class="sm:hidden">Reports</span>
               </button>
-              <button onclick="showTab('search')" class="tab-btn py-3 sm:py-4 px-1 border-b-2 border-transparent font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" id="search-tab">
-                <i data-lucide="search" class="w-4 h-4 mr-1 sm:mr-2"></i>
-                <span class="hidden sm:inline">Advanced Search</span>
-                <span class="sm:hidden">Search</span>
-              </button>
+
             </nav>
           </div>
 
@@ -283,13 +243,7 @@
                     </select>
                   </div>
 
-                  <!-- Apply Button -->
-                  <div class="col-span-12 xl:col-span-1 min-w-0">
-                    <button id="apply-logs-filters" aria-label="Apply filters" class="btn btn-primary w-full h-10 md:h-11 px-4 text-sm">
-                      <i data-lucide="filter" class="w-4 h-4 mr-2"></i>
-                      Apply
-                    </button>
-                  </div>
+
                 </div>
               </div>
 
@@ -299,14 +253,13 @@
                   <thead>
                     <tr class="bg-gray-50">
                       <th class="text-left py-3 px-4 font-medium text-gray-700">Visitor Name</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Company</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Contact Number</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Purpose</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Facility</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Check In</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Check Out</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Duration</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Host</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">ID Number</th>
                     </tr>
                   </thead>
                   <tbody id="logs-table-body">
@@ -322,7 +275,7 @@
                             </div>
                           </div>
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $visitor->company ?? 'N/A' }}</td>
+                        <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $visitor->contact ?? 'N/A' }}</td>
                         <td class="py-3 px-4 text-center">
                           <span class="badge badge-outline badge-sm">{{ $visitor->purpose ?? 'N/A' }}</span>
                         </td>
@@ -336,21 +289,11 @@
                             <span class="badge badge-primary badge-sm">Active</span>
                           @endif
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $visitor->host_employee ?? 'N/A' }}</td>
-                        <td class="py-3 px-4 text-center">
-                          <div class="flex items-center justify-center gap-1">
-                            <button onclick="viewVisitorDetails({{ $visitor->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="View Details">
-                              <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
-                            </button>
-                            <button onclick="exportVisitorLog({{ $visitor->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Export">
-                              <i data-lucide="download" class="w-4 h-4 text-green-600"></i>
-                            </button>
-                          </div>
-                        </td>
+                        <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono">#{{ $visitor->id }}</td>
                       </tr>
                     @empty
                       <tr>
-                        <td colspan="9" class="text-center py-12">
+                        <td colspan="8" class="text-center py-12">
                           <div class="flex flex-col items-center">
                             <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                               <i data-lucide="users" class="w-10 h-10 text-gray-400"></i>
@@ -442,8 +385,12 @@
                         <p class="text-sm text-gray-500">Generated 2 hours ago</p>
                       </div>
                       <div class="flex gap-2">
-                        <button class="btn btn-sm btn-outline">Download</button>
-                        <button class="btn btn-sm btn-ghost text-red-600">Delete</button>
+                        <button class="btn btn-sm btn-outline" title="Download">
+                          <i data-lucide="download" class="w-4 h-4"></i>
+                        </button>
+                        <button class="btn btn-sm btn-ghost text-red-600" title="Delete">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                       </div>
                     </div>
                     <div class="flex items-center justify-between p-3 bg-white rounded-lg">
@@ -452,8 +399,12 @@
                         <p class="text-sm text-gray-500">Generated 1 day ago</p>
                       </div>
                       <div class="flex gap-2">
-                        <button class="btn btn-sm btn-outline">Download</button>
-                        <button class="btn btn-sm btn-ghost text-red-600">Delete</button>
+                        <button class="btn btn-sm btn-outline" title="Download">
+                          <i data-lucide="download" class="w-4 h-4"></i>
+                        </button>
+                        <button class="btn btn-sm btn-ghost text-red-600" title="Delete">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -461,80 +412,7 @@
               </div>
             </div>
 
-            <!-- Advanced Search Tab -->
-            <div id="search-content" class="tab-content hidden">
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Search Form -->
-                <div class="bg-gray-50 rounded-lg p-6">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Advanced Search</h3>
-                  <form id="search-form" class="space-y-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Visitor Name:</label>
-                      <input type="text" name="visitor_name" placeholder="Enter visitor name" class="input input-bordered w-full">
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Company:</label>
-                      <input type="text" name="company" placeholder="Enter company name" class="input input-bordered w-full">
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Host Employee:</label>
-                      <input type="text" name="host_employee" placeholder="Enter host name" class="input input-bordered w-full">
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Purpose:</label>
-                      <select name="purpose" class="select select-bordered w-full">
-                        <option value="">All Purposes</option>
-                        <option value="Meeting">Meeting</option>
-                        <option value="Interview">Interview</option>
-                        <option value="Delivery">Delivery</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Consultation">Consultation</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Visit Duration:</label>
-                      <select name="duration" class="select select-bordered w-full">
-                        <option value="">Any Duration</option>
-                        <option value="less_than_1h">Less than 1 hour</option>
-                        <option value="1h_to_2h">1-2 hours</option>
-                        <option value="2h_to_4h">2-4 hours</option>
-                        <option value="more_than_4h">More than 4 hours</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Time Range:</label>
-                      <div class="flex gap-2">
-                        <input type="datetime-local" name="start_time" class="input input-bordered flex-1">
-                        <input type="datetime-local" name="end_time" class="input input-bordered flex-1">
-                      </div>
-                    </div>
-                    <div class="flex gap-2">
-                      <button type="submit" class="btn btn-primary flex-1">
-                        <i data-lucide="search" class="w-4 h-4 mr-2"></i>
-                        Search
-                      </button>
-                      <button type="button" onclick="clearSearch()" class="btn btn-outline">
-                        Clear
-                      </button>
-                    </div>
-                  </form>
-                </div>
 
-                <!-- Search Results -->
-                <div class="bg-gray-50 rounded-lg p-6">
-                  <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Search Results</h3>
-                    <span class="text-sm text-gray-500" id="search-results-count">0 results</span>
-                  </div>
-                  <div id="search-results" class="space-y-3">
-                    <div class="text-center py-8 text-gray-500">
-                      <i data-lucide="search" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
-                      <p>Enter search criteria to find visitors</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </main>
@@ -588,9 +466,7 @@
         case 'reports':
           loadReportsData();
           break;
-        case 'search':
-          // Search form is static, no data loading needed
-          break;
+
       }
     }
 
@@ -763,17 +639,7 @@
       console.log('Loading reports data...');
     }
 
-    // Search functions
-    function clearSearch() {
-      document.getElementById('search-form').reset();
-      document.getElementById('search-results').innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-          <i data-lucide="search" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
-          <p>Enter search criteria to find visitors</p>
-        </div>
-      `;
-      document.getElementById('search-results-count').textContent = '0 results';
-    }
+
 
     // Utility functions
     function viewVisitorDetails(visitorId) {
@@ -798,54 +664,9 @@
       showNotification('Report generated successfully!', 'success');
     });
 
-    document.getElementById('search-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      
-      // Perform search
-      console.log('Searching with criteria:', Object.fromEntries(formData));
-      
-      // Mock search results
-      const mockResults = [
-        { name: 'John Doe', company: 'ABC Corp', purpose: 'Meeting', checkIn: '2024-12-15 09:00' },
-        { name: 'Jane Smith', company: 'XYZ Ltd', purpose: 'Interview', checkIn: '2024-12-15 10:30' }
-      ];
-      
-      displaySearchResults(mockResults);
-    });
 
-    function displaySearchResults(results) {
-      const resultsContainer = document.getElementById('search-results');
-      const countElement = document.getElementById('search-results-count');
-      
-      countElement.textContent = `${results.length} results`;
-      
-      if (results.length === 0) {
-        resultsContainer.innerHTML = `
-          <div class="text-center py-8 text-gray-500">
-            <i data-lucide="search" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
-            <p>No visitors found matching your criteria</p>
-          </div>
-        `;
-      } else {
-        resultsContainer.innerHTML = results.map(result => `
-          <div class="flex items-center justify-between p-3 bg-white rounded-lg">
-            <div>
-              <p class="font-medium text-gray-900">${result.name}</p>
-              <p class="text-sm text-gray-500">${result.company} • ${result.purpose}</p>
-            </div>
-            <div class="text-sm text-gray-500">
-              ${result.checkIn}
-            </div>
-          </div>
-        `).join('');
-      }
-      
-      // Recreate icons
-      if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-      }
-    }
+
+
 
     function showNotification(message, type = 'info') {
       const notification = document.createElement('div');
@@ -876,21 +697,7 @@
         window.lucide.createIcons();
       }
 
-      // Debounce Apply Filters button to prevent double submits
-      const applyBtn = document.getElementById('apply-logs-filters');
-      if (applyBtn) {
-        let lastClick = 0;
-        applyBtn.addEventListener('click', function(e) {
-          const now = Date.now();
-          if (now - lastClick < 300) {
-            e.preventDefault();
-            return;
-          }
-          lastClick = now;
-          e.preventDefault();
-          applyLogsFilters();
-        });
-      }
+
     });
   </script>
 </body>

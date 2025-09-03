@@ -47,73 +47,73 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Total Documents -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-primary cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
                   <div class="bg-primary text-primary-content rounded-full w-12 h-12">
                     <i data-lucide="file-text" class="w-6 h-6"></i>
                   </div>
                 </div>
-                <div class="badge badge-primary badge-outline">Documents</div>
+                <div class="badge badge-primary badge-outline group-hover:badge-primary transition-colors duration-300">Documents</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2">{{ $documents->count() }}</h2>
-                <p class="text-base-content/70">Total Documents</p>
+                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2 group-hover:text-primary-focus transition-colors duration-300">{{ $documents->count() }}</h2>
+                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Total Documents</p>
               </div>
             </div>
           </div>
 
           <!-- Received Today -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-success cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
                   <div class="bg-success text-success-content rounded-full w-12 h-12">
                     <i data-lucide="calendar-plus" class="w-6 h-6"></i>
                   </div>
                 </div>
-                <div class="badge badge-success badge-outline">Today</div>
+                <div class="badge badge-success badge-outline group-hover:badge-success transition-colors duration-300">Today</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</h2>
-                <p class="text-base-content/70">Received Today</p>
+                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2 group-hover:text-success-focus transition-colors duration-300">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</h2>
+                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Received Today</p>
               </div>
             </div>
           </div>
 
           <!-- Released Documents -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-info cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
                   <div class="bg-info text-info-content rounded-full w-12 h-12">
                     <i data-lucide="send" class="w-6 h-6"></i>
                   </div>
                 </div>
-                <div class="badge badge-info badge-outline">Released</div>
+                <div class="badge badge-info badge-outline group-hover:badge-info transition-colors duration-300">Released</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-info justify-center mb-2">{{ $documents->where('status', 'released')->count() }}</h2>
-                <p class="text-base-content/70">Released Documents</p>
+                <h2 class="card-title text-4xl font-bold text-info justify-center mb-2 group-hover:text-info-focus transition-colors duration-300">{{ $documents->where('status', 'released')->count() }}</h2>
+                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Released Documents</p>
               </div>
             </div>
           </div>
 
           <!-- Archived Documents -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-neutral cursor-pointer" onclick="window.location.href='{{ route('document.archived') }}'" title="View Archived Documents" role="button">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-neutral cursor-pointer group" onclick="window.location.href='{{ route('document.archived') }}'" title="View Archived Documents" role="button">
             <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
                   <div class="bg-neutral text-neutral-content rounded-full w-12 h-12">
                     <i data-lucide="archive" class="w-6 h-6"></i>
                   </div>
                 </div>
-                <div class="badge badge-neutral badge-outline">Archived</div>
+                <div class="badge badge-neutral badge-outline group-hover:badge-neutral transition-colors duration-300">Archived</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-neutral justify-center mb-2">{{ $documents->where('status', 'archived')->count() }}</h2>
-                <p class="text-base-content/70">Archived Documents</p>
+                <h2 class="card-title text-4xl font-bold text-neutral justify-center mb-2 group-hover:text-neutral-focus transition-colors duration-300">{{ $documents->where('status', 'archived')->count() }}</h2>
+                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Archived Documents</p>
               </div>
             </div>
           </div>
