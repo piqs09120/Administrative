@@ -236,7 +236,7 @@
                 View Visitors
               </span>
             </a>
-            <a href="{{ route('visitor.stats') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.stats') ? 'bg-blue-700 text-white' : '' }}">
+            <a href="{{ route('visitor.logs.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.logs.*') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
                 <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#F7B32B]"></i>
                 Visitor Logs

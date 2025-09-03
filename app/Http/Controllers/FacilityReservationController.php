@@ -45,7 +45,9 @@ class FacilityReservationController extends Controller
     {
         // Show all reservations to all users - role restrictions removed
         $reservations = FacilityReservation::with(['facility', 'reserver', 'approver'])->latest()->get();
-        return view('facility_reservations.index', compact('reservations'));
+        // Facilities list for the modal form on the index page
+        $facilities = Facility::where('status', 'available')->get();
+        return view('facility_reservations.index', compact('reservations', 'facilities'));
     }
 
     public function create()

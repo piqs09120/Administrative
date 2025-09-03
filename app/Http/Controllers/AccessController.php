@@ -18,52 +18,78 @@ class AccessController extends Controller
         })->only(['users', 'editRole', 'updateRole']);
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        $users = [
-            [
-                'id' => 1,
-                'name' => 'John Smith',
-                'email' => 'john.smith@hotel.com',
-                'role' => 'Administrator',
-                'department' => 'Management',
-                'status' => 'Active',
-                'last_login' => '2024-01-10 14:30:00',
-                'created_at' => '2023-06-15'
+        // Dynamic filter options
+        $roleOptions = \App\Models\DeptAccount::whereNotNull('role')
+            ->distinct()->orderBy('role')->pluck('role')->filter()->values();
+        $departmentOptions = \App\Models\DeptAccount::whereNotNull('dept_name')
+            ->distinct()->orderBy('dept_name')->pluck('dept_name')->filter()->values();
+
+        // Build filters from request
+        $search = trim((string) $request->get('q'));
+        $role = (string) $request->get('role');
+        $department = (string) $request->get('department');
+        $status = (string) $request->get('status');
+
+        $query = \App\Models\DeptAccount::query();
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('employee_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('employee_id', 'like', "%{$search}%");
+            });
+        }
+        if ($role !== '') {
+            $query->where('role', $role);
+        }
+        if ($department !== '') {
+            $query->where('dept_name', $department);
+        }
+        if ($status !== '') {
+            $query->where('status', $status);
+        }
+
+        $accounts = $query->orderBy('employee_name')
+            ->paginate(10)
+            ->appends($request->query());
+        // Build rows for the table with an optional related Laravel user id
+        $rows = $accounts->getCollection()->map(function ($acc) {
+            $relatedUserId = null;
+            try {
+                if (!empty($acc->employee_id)) {
+                    $related = User::where('email', $acc->employee_id . '@soliera.local')->first();
+                    if ($related) { $relatedUserId = $related->id; }
+                }
+            } catch (\Throwable $e) { /* ignore lookup errors */ }
+
+            return [
+                'id' => $acc->Dept_no ?? $acc->id,
+                'name' => $acc->employee_name ?? ($acc->name ?? 'Unknown User'),
+                'email' => $acc->email ?? '—',
+                'role' => $acc->role ?? 'Staff',
+                'department' => $acc->dept_name ?? '—',
+                'status' => ucfirst($acc->status ?? 'inactive'),
+                'last_login' => $acc->last_login ?? now()->subDays(rand(1, 30))->format('Y-m-d H:i:s'),
+                'created_at' => ($acc->created_at ?? now())->format('Y-m-d'),
+                'laravel_user_id' => $relatedUserId,
+            ];
+        });
+
+        $users = $rows; // array rows for blade loop
+
+        return view('access.users', [
+            'users' => $users,
+            'roleOptions' => $roleOptions,
+            'departmentOptions' => $departmentOptions,
+            'filters' => [
+                'q' => $search,
+                'role' => $role,
+                'department' => $department,
+                'status' => $status,
             ],
-            [
-                'id' => 2,
-                'name' => 'Sarah Johnson',
-                'email' => 'sarah.johnson@hotel.com',
-                'role' => 'Front Desk Manager',
-                'department' => 'Reception',
-                'status' => 'Active',
-                'last_login' => '2024-01-10 13:45:00',
-                'created_at' => '2023-08-20'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Mike Wilson',
-                'email' => 'mike.wilson@hotel.com',
-                'role' => 'Kitchen Manager',
-                'department' => 'Restaurant',
-                'status' => 'Active',
-                'last_login' => '2024-01-10 12:15:00',
-                'created_at' => '2023-09-10'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Emily Davis',
-                'email' => 'emily.davis@hotel.com',
-                'role' => 'Housekeeping Supervisor',
-                'department' => 'Housekeeping',
-                'status' => 'Inactive',
-                'last_login' => '2024-01-08 16:20:00',
-                'created_at' => '2023-07-05'
-            ]
-        ];
-        
-        return view('access.users', compact('users'));
+        ]);
     }
     
     public function roles()
@@ -278,7 +304,6 @@ class AccessController extends Controller
                 'email' => 'nullable|email|max:255',
                 'role' => 'nullable|string|max:255',
                 'status' => 'required|in:active,inactive',
-                'phone' => 'nullable|string|max:20',
             ]);
 
             // Create new department account
@@ -288,7 +313,6 @@ class AccessController extends Controller
             $deptAccount->email = $request->email;
             $deptAccount->role = $request->role;
             $deptAccount->status = $request->status;
-            $deptAccount->phone = $request->phone;
             $deptAccount->save();
 
             return redirect()->route('access.department_accounts')->with('success', 'Department account created successfully!');
@@ -296,6 +320,79 @@ class AccessController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error creating department account: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error creating department account: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    // View a single department account (JSON)
+    public function showDepartmentAccount($id)
+    {
+        try {
+            $account = \App\Models\DeptAccount::findOrFail($id);
+            return response()->json([
+                'success' => true,
+                'account' => $account,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account not found',
+            ], 404);
+        }
+    }
+
+    // Update a department account (JSON)
+    public function updateDepartmentAccount(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'employee_name' => 'sometimes|string|max:255',
+                'dept_name' => 'sometimes|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'role' => 'nullable|string|max:255',
+                'status' => 'nullable|in:active,inactive',
+            ]);
+
+            $account = \App\Models\DeptAccount::findOrFail($id);
+            $account->fill($request->only(['employee_name','dept_name','email','role','status']));
+            $account->save();
+
+            return response()->json([
+                'success' => true,
+                'account' => $account,
+                'message' => 'Account updated successfully',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $ve->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to update account',
+            ], 500);
+        }
+    }
+
+    // Toggle active/inactive status (JSON)
+    public function toggleDepartmentAccountStatus($id)
+    {
+        try {
+            $account = \App\Models\DeptAccount::findOrFail($id);
+            $account->status = ($account->status === 'active') ? 'inactive' : 'active';
+            $account->save();
+
+            return response()->json([
+                'success' => true,
+                'status' => $account->status,
+                'message' => 'Status updated',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to toggle status',
+            ], 500);
         }
     }
 
@@ -412,6 +509,135 @@ class AccessController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Error creating sample audit logs: ' . $e->getMessage());
+        }
+    }
+
+    public function createUser()
+    {
+        $departments = \App\Models\DeptAccount::distinct()->pluck('dept_name')->filter()->sort()->values();
+        $roles = \App\Models\DeptAccount::distinct()->pluck('role')->filter()->sort()->values();
+        
+        return view('access.create_user', compact('departments', 'roles'));
+    }
+
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'employee_name' => 'required|string|max:255',
+            'employee_id' => 'required|string|max:255|unique:department_accounts,employee_id',
+            'email' => 'nullable|email|max:255',
+            'dept_name' => 'required|string|max:255',
+            'role' => 'required|string|max:255',
+            'status' => 'required|in:active,inactive',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        try {
+            $deptAccount = new \App\Models\DeptAccount();
+            $deptAccount->employee_name = $request->employee_name;
+            $deptAccount->employee_id = $request->employee_id;
+            $deptAccount->email = $request->email;
+            $deptAccount->dept_name = $request->dept_name;
+            $deptAccount->role = $request->role;
+            $deptAccount->status = $request->status;
+            $deptAccount->password = \Illuminate\Support\Facades\Hash::make($request->password);
+            $deptAccount->save();
+
+            // Create corresponding Laravel User for authentication
+            $laravelUser = \App\Models\User::create([
+                'name' => $request->employee_name,
+                'email' => $request->employee_id . '@soliera.local',
+                'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+                'role' => $request->role,
+                'employee_id' => $request->employee_id,
+                'department' => $request->dept_name,
+                'email_verified_at' => now(),
+            ]);
+
+            return redirect()->route('access.users')->with('success', 'User created successfully!');
+            
+        } catch (\Exception $e) {
+            \Log::error('Error creating user: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error creating user: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function exportUsers(Request $request)
+    {
+        try {
+            // Apply same filters as the users page
+            $search = trim((string) $request->get('q'));
+            $role = (string) $request->get('role');
+            $department = (string) $request->get('department');
+            $status = (string) $request->get('status');
+
+            $query = \App\Models\DeptAccount::query();
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('employee_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('employee_id', 'like', "%{$search}%");
+                });
+            }
+            if ($role !== '') {
+                $query->where('role', $role);
+            }
+            if ($department !== '') {
+                $query->where('dept_name', $department);
+            }
+            if ($status !== '') {
+                $query->where('status', $status);
+            }
+
+            $accounts = $query->orderBy('employee_name')->get();
+
+            $filename = 'users_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+            
+            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\UserExport($accounts), $filename);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error exporting users: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error exporting users: ' . $e->getMessage());
+        }
+    }
+
+    public function exportAccountLogs()
+    {
+        try {
+            // Get the same logs as the departmentLogs method
+            $logs = AccessLog::with('user')
+                ->whereHas('user', function($query) {
+                    $query->whereNotNull('dept_name');
+                })
+                ->latest()
+                ->get();
+
+            $filename = 'account_logs_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+            
+            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AccountLogExport($logs), $filename);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error exporting account logs: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error exporting account logs: ' . $e->getMessage());
+        }
+    }
+
+    public function exportAuditLogs()
+    {
+        try {
+            // Get all audit logs with user information
+            $logs = AccessLog::with('user')
+                ->latest()
+                ->get();
+
+            $filename = 'audit_logs_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+            
+            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AuditLogExport($logs), $filename);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error exporting audit logs: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error exporting audit logs: ' . $e->getMessage());
         }
     }
 }

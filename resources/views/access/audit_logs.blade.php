@@ -70,10 +70,10 @@
               </div>
               
               <!-- Export Button -->
-              <button onclick="exportLogs()" class="btn btn-outline btn-sm">
+              <a href="{{ route('access.audit_logs.export') }}" class="btn btn-outline btn-sm">
                 <i data-lucide="download" class="w-4 h-4 mr-1"></i>
                 Export
-              </button>
+              </a>
             </div>
 
             <!-- Filters Row -->
@@ -287,11 +287,7 @@
       });
     }
 
-    function exportLogs() {
-      // Implement export functionality
-      console.log('Exporting logs...');
-      // You can implement CSV/Excel export here
-    }
+
 
     function loadMoreLogs() {
       // Implement pagination or load more functionality

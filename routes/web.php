@@ -238,11 +238,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/logs', [AccessController::class, 'logs'])->name('access.logs');
     Route::get('/audit-logs', [AccessController::class, 'auditLogs'])->name('access.audit_logs');
     Route::get('/users', [AccessController::class, 'users'])->name('access.users');
+    Route::get('/users/create', [AccessController::class, 'createUser'])->name('access.users.create');
+    Route::post('/users', [AccessController::class, 'storeUser'])->name('access.users.store');
+    Route::get('/users/export', [AccessController::class, 'exportUsers'])->name('access.users.export');
     Route::get('/roles', [AccessController::class, 'roles'])->name('access.roles');
     Route::get('/security', [AccessController::class, 'security'])->name('access.security');
     Route::get('/department-accounts', [AccessController::class, 'departmentAccounts'])->name('access.department_accounts');
     Route::post('/department-accounts', [AccessController::class, 'storeDepartmentAccount'])->name('access.department_accounts.store');
+    Route::get('/department-accounts/{id}', [AccessController::class, 'showDepartmentAccount'])->name('access.department_accounts.show');
+    Route::put('/department-accounts/{id}', [AccessController::class, 'updateDepartmentAccount'])->name('access.department_accounts.update');
+    Route::post('/department-accounts/{id}/toggle', [AccessController::class, 'toggleDepartmentAccountStatus'])->name('access.department_accounts.toggle');
     Route::get('/department-logs', [AccessController::class, 'departmentLogs'])->name('access.department_logs');
+    Route::get('/account-logs/export', [AccessController::class, 'exportAccountLogs'])->name('access.account_logs.export');
+    Route::get('/audit-logs/export', [AccessController::class, 'exportAuditLogs'])->name('access.audit_logs.export');
 });
     
     
@@ -278,6 +286,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
         Route::resource('document', DocumentController::class)->where(['document' => '[0-9]+']);
         Route::resource('facilities', FacilitiesController::class);
+        Route::get('/facilities/{id}/ajax', [FacilitiesController::class, 'showAjax'])->name('facilities.showAjax');
     });
     
     // Visitor Management - Receptionist, Administrator, Super Admin only
@@ -385,6 +394,16 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
         Route::post('/quick/schedule', [App\Http\Controllers\VisitorController::class, 'scheduleVisit'])->name('quick.schedule');
         Route::post('/quick/emergency', [App\Http\Controllers\VisitorController::class, 'emergencyEvacuation'])->name('quick.emergency');
         Route::get('/quick/directory', [App\Http\Controllers\VisitorController::class, 'buildingDirectory'])->name('quick.directory');
+    });
+
+    // Visitor Logs Routes
+    Route::prefix('visitor-logs')->name('visitor.logs.')->group(function () {
+        Route::get('/', [App\Http\Controllers\VisitorLogController::class, 'index'])->name('index');
+        Route::get('/analytics', [App\Http\Controllers\VisitorLogController::class, 'getAnalytics'])->name('analytics');
+        Route::get('/logs', [App\Http\Controllers\VisitorLogController::class, 'getLogs'])->name('logs');
+        Route::post('/search', [App\Http\Controllers\VisitorLogController::class, 'search'])->name('search');
+        Route::post('/generate-report', [App\Http\Controllers\VisitorLogController::class, 'generateReport'])->name('generate-report');
+        Route::get('/export', [App\Http\Controllers\VisitorLogController::class, 'exportLogs'])->name('export');
     });
 
     // Notifications

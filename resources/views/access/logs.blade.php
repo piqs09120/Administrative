@@ -70,10 +70,10 @@
               </div>
               
               <!-- Export Button -->
-              <button onclick="exportLogs()" class="btn btn-outline btn-sm">
+              <a href="{{ route('access.account_logs.export') }}" class="btn btn-outline btn-sm">
                 <i data-lucide="download" class="w-4 h-4 mr-1"></i>
                 Export
-              </button>
+              </a>
             </div>
 
             <!-- Filters Row -->
@@ -130,7 +130,6 @@
                   <th class="text-left py-3 px-4 font-medium text-gray-700">USER</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">ACTION</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DESCRIPTION</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">IP ADDRESS</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DATE</th>
                 </tr>
               </thead>
@@ -161,15 +160,12 @@
                       <span class="text-sm text-gray-600">{{ $log->description }}</span>
                     </td>
                     <td class="py-3 px-4">
-                      <span class="font-mono text-sm text-gray-500">{{ $log->ip_address }}</span>
-                    </td>
-                    <td class="py-3 px-4">
                       <span class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($log->created_at)->format('M d, Y H:i:s') }}</span>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="6" class="text-center py-12">
+                    <td colspan="5" class="text-center py-12">
                       <div class="flex flex-col items-center">
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <i data-lucide="activity" class="w-10 h-10 text-gray-400"></i>
@@ -268,11 +264,7 @@
       });
     }
 
-    function exportLogs() {
-      // Implement export functionality
-      console.log('Exporting account logs...');
-      // You can implement CSV/Excel export here
-    }
+
 
     function loadMoreLogs() {
       // Implement pagination or load more functionality
@@ -302,4 +294,5 @@
   </script>
 </body>
 </html>
+
 

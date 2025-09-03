@@ -42,64 +42,68 @@
             <p class="text-gray-600">Manage user accounts, roles, and access permissions</p>
           </div>
           <div class="flex gap-2">
-            <button class="btn btn-primary">
+            <button onclick="addUserModal.showModal()" class="btn btn-primary">
               <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
               Add New User
             </button>
-            <button class="btn btn-outline">
+            <a href="{{ route('access.users.export', request()->query()) }}" class="btn btn-outline">
               <i data-lucide="download" class="w-4 h-4 mr-2"></i>
               Export Users
-            </button>
+            </a>
           </div>
         </div>
 
         <!-- Search and Filters -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Search Users</span>
-              </label>
-              <input type="text" placeholder="Name or email..." class="input input-bordered" />
+          <form method="GET" action="{{ url()->current() }}" id="filtersForm">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Search Users</span>
+                </label>
+                <input type="text" name="q" id="searchUsers" value="{{ $filters['q'] ?? '' }}" placeholder="Name, email or ID..." class="input input-bordered" autocomplete="off" />
+              </div>
+              
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Role</span>
+                </label>
+                <select name="role" class="select select-bordered" onchange="this.form.submit()">
+                  <option value="">All Roles</option>
+                  @isset($roleOptions)
+                    @foreach($roleOptions as $role)
+                      <option value="{{ $role }}" @selected(($filters['role'] ?? '') === $role)>{{ $role }}</option>
+                    @endforeach
+                  @endisset
+                </select>
+              </div>
+              
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Department</span>
+                </label>
+                <select name="department" class="select select-bordered" onchange="this.form.submit()">
+                  <option value="">All Departments</option>
+                  @isset($departmentOptions)
+                    @foreach($departmentOptions as $dept)
+                      <option value="{{ $dept }}" @selected(($filters['department'] ?? '') === $dept)>{{ $dept }}</option>
+                    @endforeach
+                  @endisset
+                </select>
+              </div>
+              
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Status</span>
+                </label>
+                <select name="status" class="select select-bordered" onchange="this.form.submit()">
+                  <option value="">All Status</option>
+                  <option value="active" @selected(($filters['status'] ?? '') === 'active')>Active</option>
+                  <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>Inactive</option>
+                </select>
+              </div>
             </div>
-            
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Role</span>
-              </label>
-              <select class="select select-bordered">
-                <option value="">All Roles</option>
-                <option value="administrator">Administrator</option>
-                <option value="manager">Manager</option>
-                <option value="staff">Staff</option>
-              </select>
-            </div>
-            
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Department</span>
-              </label>
-              <select class="select select-bordered">
-                <option value="">All Departments</option>
-                <option value="management">Management</option>
-                <option value="reception">Reception</option>
-                <option value="restaurant">Restaurant</option>
-                <option value="housekeeping">Housekeeping</option>
-              </select>
-            </div>
-            
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Status</span>
-              </label>
-              <select class="select select-bordered">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </div>
-          </div>
+          </form>
         </div>
         
         <!-- Users Table -->
@@ -173,9 +177,17 @@
                         <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
                           <i data-lucide="edit" class="w-4 h-4"></i> Edit User
                         </a></li>
-                        <li><a href="{{ route('access.users.editRole', $user['id']) }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                        <li>
+                          @if(!empty($user['laravel_user_id']))
+                          <a href="{{ route('access.users.editRole', $user['laravel_user_id']) }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
                           <i data-lucide="user-check" class="w-4 h-4"></i> Edit Role
-                        </a></li>
+                          </a>
+                          @else
+                          <span class="flex items-center gap-3 px-3 py-2 text-gray-400 cursor-not-allowed">
+                            <i data-lucide="user-check" class="w-4 h-4"></i> Edit Role
+                          </span>
+                          @endif
+                        </li>
                         <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
                           <i data-lucide="key" class="w-4 h-4"></i> Reset Password
                         </a></li>
@@ -202,25 +214,204 @@
           </div>
           
           <!-- Pagination -->
+          @if(isset($users) && method_exists($users, 'links'))
           <div class="flex justify-between items-center mt-6">
             <div class="text-sm text-gray-600">
-              Showing 1 to 4 of 24 users
+              Showing {{ $users->firstItem() ?? 0 }} to {{ $users->lastItem() ?? 0 }} of {{ $users->total() ?? 0 }} users
             </div>
-            <div class="join">
-              <button class="join-item btn btn-sm">«</button>
-              <button class="join-item btn btn-sm btn-active">1</button>
-              <button class="join-item btn btn-sm">2</button>
-              <button class="join-item btn btn-sm">3</button>
-              <button class="join-item btn btn-sm">»</button>
+            <div>
+              {{ $users->onEachSide(1)->links() }}
             </div>
           </div>
+          @endif
         </div>
       </main>
     </div>
   </div>
 
+  <!-- Add User Modal -->
+  <dialog id="addUserModal" class="modal">
+    <div class="modal-box w-11/12 max-w-4xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+      </form>
+      <h3 class="font-bold text-lg mb-4">Add New User</h3>
+      
+      <form method="POST" action="{{ route('access.users.store') }}" id="addUserForm">
+        @csrf
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Personal Information -->
+          <div class="space-y-3">
+            <h4 class="font-semibold text-gray-800 mb-3">Personal Information</h4>
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Full Name *</span>
+              </label>
+              <input type="text" name="employee_name" value="{{ old('employee_name') }}" 
+                     class="input input-bordered input-sm @error('employee_name') input-error @enderror" 
+                     placeholder="Enter full name" required>
+              @error('employee_name')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Employee ID *</span>
+              </label>
+              <input type="text" name="employee_id" value="{{ old('employee_id') }}" 
+                     class="input input-bordered input-sm @error('employee_id') input-error @enderror" 
+                     placeholder="Enter employee ID" required>
+              @error('employee_id')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Email Address</span>
+              </label>
+              <input type="email" name="email" value="{{ old('email') }}" 
+                     class="input input-bordered input-sm @error('email') input-error @enderror" 
+                     placeholder="Enter email address">
+              @error('email')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+
+
+          </div>
+
+          <!-- Work Information -->
+          <div class="space-y-3">
+            <h4 class="font-semibold text-gray-800 mb-3">Work Information</h4>
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Department *</span>
+              </label>
+              <select name="dept_name" class="select select-bordered select-sm @error('dept_name') select-error @enderror" required>
+                <option value="">Select Department</option>
+                @isset($departmentOptions)
+                  @foreach($departmentOptions as $dept)
+                    <option value="{{ $dept }}" @selected(old('dept_name') === $dept)>{{ $dept }}</option>
+                  @endforeach
+                @endisset
+              </select>
+              @error('dept_name')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Role *</span>
+              </label>
+              <select name="role" class="select select-bordered select-sm @error('role') select-error @enderror" required>
+                <option value="">Select Role</option>
+                @isset($roleOptions)
+                  @foreach($roleOptions as $role)
+                    <option value="{{ $role }}" @selected(old('role') === $role)>{{ $role }}</option>
+                  @endforeach
+                @endisset
+              </select>
+              @error('role')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Status *</span>
+              </label>
+              <select name="status" class="select select-bordered select-sm @error('status') select-error @enderror" required>
+                <option value="">Select Status</option>
+                <option value="active" @selected(old('status') === 'active')>Active</option>
+                <option value="inactive" @selected(old('status') === 'inactive')>Inactive</option>
+              </select>
+              @error('status')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Information -->
+        <div class="mt-6">
+          <h4 class="font-semibold text-gray-800 mb-3">Security Information</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Password *</span>
+              </label>
+              <input type="password" name="password" 
+                     class="input input-bordered input-sm @error('password') input-error @enderror" 
+                     placeholder="Enter password" required>
+              @error('password')
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ $message }}</span>
+                </label>
+              @enderror
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Confirm Password *</span>
+              </label>
+              <input type="password" name="password_confirmation" 
+                     class="input input-bordered input-sm" 
+                     placeholder="Confirm password" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="modal-action">
+          <button type="button" onclick="addUserModal.close()" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
+            Create User
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
   @include('partials.soliera_js')
   <script>
+    // Instant search: debounce and update URL + reload results
+    (function(){
+      const input = document.getElementById('searchUsers');
+      const form = document.getElementById('filtersForm');
+      if (!input || !form) return;
+      let t = null;
+      const debounce = (fn, delay) => { return function(){ clearTimeout(t); t = setTimeout(fn, delay); }; };
+      const submitWithQuery = () => {
+        const url = new URL(window.location.href);
+        const val = input.value.trim();
+        if (val) { url.searchParams.set('q', val); } else { url.searchParams.delete('q'); }
+        // Preserve other selects
+        ['role','department','status'].forEach(n => {
+          const el = form.querySelector(`[name="${n}"]`); if (el && el.value) url.searchParams.set(n, el.value); else url.searchParams.delete(n);
+        });
+        window.location.assign(url.toString());
+      };
+      input.addEventListener('input', debounce(submitWithQuery, 250));
+    })();
+
     // Dark mode functionality
     function setupDarkMode() {
       const toggle = document.getElementById('darkModeToggle');
