@@ -14,14 +14,16 @@
          
           <!-- Notification Dropdown -->
           <div class="dropdown dropdown-end">
-            <!-- Button -->
-            <button id="notification-button" tabindex="0" class="btn btn-ghost btn-circle btn-sm relative">
-              <i data-lucide="bell" class="w-5 h-5"></i>
-              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <!-- Button (standard indicator layout) -->
+            <button id="notification-button" tabindex="0" class="btn btn-ghost btn-circle">
+              <div class="indicator">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+                <span class="badge badge-xs badge-error indicator-item"></span>
+              </div>
             </button>
             
             <!-- Dropdown Content - Responsive -->
-            <ul tabindex="0" class="dropdown-content menu mt-3 z-[1] bg-[#001f54] rounded-lg shadow-xl overflow-hidden transform md:translate-x-0 sm:translate-x-1/2 sm:-translate-x-1/2">
+            <ul tabindex="0" class="dropdown-content menu mt-3 z-[1] bg-[#001f54] rounded-lg shadow-xl overflow-hidden">
               <!-- Header -->
               <li class="px-4 py-3 border-b  flex justify-between items-center sticky top-0 bg-[#001f54] backdrop-blur-sm z-10">
                 <div class="flex items-center gap-2">
@@ -229,10 +231,4 @@
   </header>
 
 <style>
-  @media (max-width: 767px) {
-    .dropdown-content {
-      left: 50% !important;
-      transform: translateX(-80%) !important;
-    }
-  }
 </style>

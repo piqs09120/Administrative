@@ -71,7 +71,7 @@
           </div>
 
           <!-- Quick Stats Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Total Visitors Today -->
             <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
               <div class="card-body p-4">
@@ -108,8 +108,41 @@
               </div>
             </div>
 
+            <!-- Average Visit Duration -->
+            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="avatar placeholder">
+                    <div class="bg-warning text-warning-content rounded-full w-10 h-10">
+                      <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                  </div>
+                  <div class="badge badge-warning badge-outline text-xs">Avg</div>
+                </div>
+                <div class="text-center">
+                  <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1" id="avgDuration">{{ $stats['avg_duration'] ?? '0m' }}</h2>
+                  <p class="text-sm text-base-content/70">Average Duration</p>
+                </div>
+              </div>
+            </div>
 
-
+            <!-- Peak Hours -->
+            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="avatar placeholder">
+                    <div class="bg-info text-info-content rounded-full w-10 h-10">
+                      <i data-lucide="activity" class="w-5 h-5"></i>
+                    </div>
+                  </div>
+                  <div class="badge badge-info badge-outline text-xs">Peak</div>
+                </div>
+                <div class="text-center">
+                  <h2 class="card-title text-xl sm:text-2xl font-bold text-info justify-center mb-1" id="peakHours">{{ $stats['peak_hours'] ?? '—' }}</h2>
+                  <p class="text-sm text-base-content/70">Busiest Hour</p>
+                </div>
+              </div>
+            </div>
 
           </div>
         </div>

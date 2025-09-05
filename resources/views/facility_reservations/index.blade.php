@@ -38,9 +38,17 @@
         <!-- Page Header -->
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Facility Reservations</h2>
-          <button type="button" id="openReserveFacilityModal" class="btn btn-primary">
-            <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>Reserve Facility
-          </button>
+          <div class="flex items-center gap-3">
+            <a href="{{ route('facility_reservations.user_history') }}" class="btn btn-outline">
+              <i data-lucide="history" class="w-4 h-4 mr-2"></i>My History
+            </a>
+            <a href="{{ route('facility_reservations.admin_analytics') }}" class="btn btn-outline">
+              <i data-lucide="bar-chart" class="w-4 h-4 mr-2"></i>Analytics
+            </a>
+            <button type="button" id="openReserveFacilityModal" class="btn btn-primary">
+              <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>Reserve Facility
+            </button>
+          </div>
         </div>
 
         <!-- AI Processing Stats -->

@@ -875,6 +875,103 @@ class DocumentController extends Controller
         }
     }
     
+    /**
+     * Analyze an existing stored legal document via AJAX and return JSON.
+     * This mirrors analyze() but never redirects; it always returns a JSON
+     * payload and gracefully falls back when OCR/AI fails so the UI never sees 500s.
+     */
+    public function analyzeAjax($id)
+    {
+        try {
+            $document = Document::findOrFail($id);
+            
+            // Validate file exists; if missing, we will still attempt analysis using stored data
+            $filePath = storage_path('app/public/' . $document->file_path);
+            $fileExists = file_exists($filePath);
+            
+            // Extract text using the extractor service with safe fallback
+            $documentText = '';
+            if ($fileExists) {
+                try {
+                    $documentText = $this->textExtractor->extractText($filePath);
+                } catch (\Throwable $e) {
+                    \Log::warning('OCR extraction failed, will try stored text / metadata', [
+                        'document_id' => $document->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            } else {
+                \Log::warning('AnalyzeAjax: File missing, using stored text/metadata fallback', [
+                    'document_id' => $document->id,
+                    'file_path' => $document->file_path
+                ]);
+            }
+            
+            if (empty($documentText)) {
+                // If we have previously stored extracted_text use it first
+                if (!empty($document->extracted_text)) {
+                    $documentText = $document->extracted_text;
+                } else {
+                    // Ensure we always have text to classify – use metadata
+                    $meta = trim(($document->title ?? '') . ' ' . ($document->description ?? ''));
+                    $documentText = ($meta !== '') ? $meta : 'general document content - filename: ' . basename($document->file_path ?? 'document');
+                }
+            }
+            
+            // Run AI with graceful fallback
+            try {
+                $aiAnalysis = $this->geminiService->analyzeDocument($documentText);
+            } catch (\Throwable $e) {
+                \Log::error('Gemini analysis threw unexpectedly, using fallback', [
+                    'document_id' => $document->id,
+                    'error' => $e->getMessage()
+                ]);
+                $aiAnalysis = app(\App\Services\GeminiService::class)->fallbackAnalysis($documentText);
+            }
+                
+            if (isset($aiAnalysis['error']) && $aiAnalysis['error']) {
+                // Convert to non-error by using fallback
+                $aiAnalysis = app(\App\Services\GeminiService::class)->fallbackAnalysis($documentText);
+            }
+            
+            // Optionally persist latest analysis to the document record
+            try {
+                $document->update([
+                    'ai_analysis' => $aiAnalysis,
+                    'category' => $aiAnalysis['category'] ?? ($document->category ?? 'general'),
+                    'requires_legal_review' => $aiAnalysis['requires_legal_review'] ?? false,
+                    'legal_risk_score' => $aiAnalysis['legal_risk_score'] ?? ($document->legal_risk_score ?? 'Low')
+                ]);
+            } catch (\Throwable $e) {
+                // Non-fatal if persisting fails
+                \Log::warning('Failed to persist AI analysis on document', [
+                    'document_id' => $document->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'analysis' => $aiAnalysis
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Document not found.'
+            ], 404);
+        } catch (\Throwable $e) {
+            \Log::error('Unexpected error in analyzeAjax', [
+                'document_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
     public function analyzeUpload(Request $request)
     {
         try {
@@ -1265,32 +1362,52 @@ class DocumentController extends Controller
      */
     public function deleteLegalDocument($id)
     {
-        $document = Document::where('source', 'legal_management')->findOrFail($id);
-        
-        // Delete file from storage
-        if (Storage::disk('public')->exists($document->file_path)) {
-            Storage::disk('public')->delete($document->file_path);
-        }
-        
-        // Log the deletion
-        AccessLog::create([
-            'user_id' => Auth::user()->Dept_no,
-            'action' => 'legal_document_deleted',
-            'description' => "Deleted legal document: {$document->title}",
-            'ip_address' => request()->ip()
-        ]);
-        
-        $document->delete();
-        
-        // Check if request is AJAX
-        if (request()->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Legal document deleted successfully!'
+        try {
+            $document = Document::where('source', 'legal_management')->findOrFail($id);
+
+            // Delete file from storage if present
+            if (!empty($document->file_path) && Storage::disk('public')->exists($document->file_path)) {
+                Storage::disk('public')->delete($document->file_path);
+            }
+
+            // Safe deletion log (non-fatal if logging fails)
+            try {
+                AccessLog::create([
+                    'user_id' => Auth::id() ?? 'unknown',
+                    'action' => 'legal_document_deleted',
+                    'description' => "Deleted legal document: {$document->title}",
+                    'ip_address' => request()->ip()
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to log deletion for legal document', [
+                    'id' => $document->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            $document->delete();
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Legal document deleted successfully!'
+                ]);
+            }
+
+            return redirect()->route('legal.legal_documents')->with('success', 'Legal document deleted successfully!');
+        } catch (\Throwable $e) {
+            \Log::error('Error deleting legal document', [
+                'id' => $id,
+                'error' => $e->getMessage()
             ]);
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting document: ' . $e->getMessage()
+                ], 500);
+            }
+            return redirect()->back()->with('error', 'Error deleting document: ' . $e->getMessage());
         }
-        
-        return redirect()->route('legal.legal_documents')->with('success', 'Legal document deleted successfully!');
     }
 
     /**

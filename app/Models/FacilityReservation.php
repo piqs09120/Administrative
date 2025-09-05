@@ -29,7 +29,12 @@ class FacilityReservation extends Model
         'requester_contact',
         'workflow_stage',
         'workflow_log',
-        'current_workflow_status'
+        'current_workflow_status',
+        'payment_status',
+        'payment_method',
+        'payment_amount',
+        'payment_transaction_id',
+        'payment_processed_at'
     ];
 
     protected $casts = [
@@ -38,6 +43,8 @@ class FacilityReservation extends Model
         'auto_approved_at' => 'datetime',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
+        'payment_processed_at' => 'datetime',
+        'payment_amount' => 'decimal:2',
         // New workflow casts
         'workflow_log' => 'array',
     ];

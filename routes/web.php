@@ -238,6 +238,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/logs', [AccessController::class, 'logs'])->name('access.logs');
     Route::get('/audit-logs', [AccessController::class, 'auditLogs'])->name('access.audit_logs');
     Route::get('/users', [AccessController::class, 'users'])->name('access.users');
+    Route::get('/users/{id}', [AccessController::class, 'showUser'])->name('access.users.show');
     Route::get('/users/create', [AccessController::class, 'createUser'])->name('access.users.create');
     Route::post('/users', [AccessController::class, 'storeUser'])->name('access.users.store');
     Route::get('/users/export', [AccessController::class, 'exportUsers'])->name('access.users.export');
@@ -287,6 +288,13 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('document', DocumentController::class)->where(['document' => '[0-9]+']);
         Route::resource('facilities', FacilitiesController::class);
         Route::get('/facilities/{id}/ajax', [FacilitiesController::class, 'showAjax'])->name('facilities.showAjax');
+        Route::get('/facilities-calendar', [FacilitiesController::class, 'calendar'])->name('facilities.calendar');
+        Route::post('/facilities-check-availability', [FacilitiesController::class, 'checkAvailability'])->name('facilities.checkAvailability');
+        Route::get('/my-reservations', [App\Http\Controllers\FacilityReservationController::class, 'userHistory'])->name('facility_reservations.user_history');
+        Route::get('/admin-analytics', [App\Http\Controllers\FacilityReservationController::class, 'adminAnalytics'])->name('facility_reservations.admin_analytics');
+        Route::post('/payments/process', [App\Http\Controllers\PaymentController::class, 'processPayment'])->name('payments.process');
+        Route::get('/payments/details/{reservationId}', [App\Http\Controllers\PaymentController::class, 'getPaymentDetails'])->name('payments.details');
+        Route::get('/payments/history', [App\Http\Controllers\PaymentController::class, 'paymentHistory'])->name('payments.history');
     });
     
     // Visitor Management - Receptionist, Administrator, Super Admin only

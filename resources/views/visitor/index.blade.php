@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,64 +32,76 @@
           </div>
         @endif
         
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        <!-- Stats Cards (DaisyUI, same as Visitor Logs) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           <!-- Total Visitors -->
-          <div class="card bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.1s">
-            <div class="card-body">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-lg font-semibold text-blue-800" style="color: var(--color-charcoal-ink);">Total Visitors</h3>
-                  <p class="text-3xl font-bold text-blue-900" style="color: var(--color-regal-navy);">{{ $visitors->count() }}</p>
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-10 h-10">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                  </div>
                 </div>
-                <div class="p-3 rounded-full bg-blue-200 text-blue-600" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-regal-navy);">
-                  <i data-lucide="users" class="w-8 h-8"></i>
-                </div>
+                <div class="badge badge-primary badge-outline text-xs">All</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1">{{ $visitors->count() }}</h2>
+                <p class="text-sm text-base-content/70">Total Visitors</p>
               </div>
             </div>
           </div>
           
           <!-- Active Visitors -->
-          <div class="card bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.2s">
-            <div class="card-body">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-lg font-semibold text-green-800" style="color: var(--color-charcoal-ink);">Currently In</h3>
-                  <p class="text-3xl font-bold text-green-900" style="color: var(--color-modern-teal);">{{ $visitors->whereNull('time_out')->count() }}</p>
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-success text-success-content rounded-full w-10 h-10">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                  </div>
                 </div>
-                <div class="p-3 rounded-full bg-green-200 text-green-600" style="background-color: color-mix(in srgb, var(--color-modern-teal), white 80%); color: var(--color-modern-teal);">
-                  <i data-lucide="user-check" class="w-8 h-8"></i>
-                </div>
+                <div class="badge badge-success badge-outline text-xs">Active</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1">{{ $visitors->whereNull('time_out')->count() }}</h2>
+                <p class="text-sm text-base-content/70">Currently In</p>
               </div>
             </div>
           </div>
           
           <!-- Today's Visitors -->
-          <div class="card bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.3s">
-            <div class="card-body">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-lg font-semibold text-purple-800" style="color: var(--color-charcoal-ink);">Today's Visitors</h3>
-                  <p class="text-3xl font-bold text-purple-900" style="color: var(--color-purple);">{{ $visitors->where('time_in', '>=', now()->startOfDay())->count() }}</p>
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-warning text-warning-content rounded-full w-10 h-10">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                  </div>
                 </div>
-                <div class="p-3 rounded-full bg-purple-200 text-purple-600" style="background-color: color-mix(in srgb, var(--color-purple), white 80%); color: var(--color-purple);">
-                  <i data-lucide="calendar" class="w-8 h-8"></i>
-                </div>
+                <div class="badge badge-warning badge-outline text-xs">Today</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1">{{ $visitors->where('time_in', '>=', now()->startOfDay())->count() }}</h2>
+                <p class="text-sm text-base-content/70">Today's Visitors</p>
               </div>
             </div>
           </div>
           
           <!-- Completed Visits -->
-          <div class="card bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn" style="background-color: var(--color-white); border-color: var(--color-snow-mist); animation-delay: 0.4s">
-            <div class="card-body">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-lg font-semibold text-orange-800" style="color: var(--color-charcoal-ink);">Completed</h3>
-                  <p class="text-3xl font-bold text-orange-900" style="color: var(--color-golden-ember);">{{ $visitors->whereNotNull('time_out')->count() }}</p>
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-info text-info-content rounded-full w-10 h-10">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                  </div>
                 </div>
-                <div class="p-3 rounded-full bg-orange-200 text-orange-600" style="background-color: color-mix(in srgb, var(--color-golden-ember), white 80%); color: var(--color-golden-ember);">
-                  <i data-lucide="check-circle" class="w-8 h-8"></i>
-                </div>
+                <div class="badge badge-info badge-outline text-xs">Done</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1">{{ $visitors->whereNotNull('time_out')->count() }}</h2>
+                <p class="text-sm text-base-content/70">Completed</p>
               </div>
             </div>
           </div>

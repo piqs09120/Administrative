@@ -91,6 +91,29 @@ class AccessController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Show a single user's profile (DeptAccount + related Laravel User if available)
+     */
+    public function showUser($id)
+    {
+        // Locate DeptAccount by either Dept_no (PK) or employee_id (business ID)
+        $account = \App\Models\DeptAccount::where('Dept_no', $id)
+            ->orWhere('employee_id', $id)
+            ->firstOrFail();
+
+        $laravelUser = null;
+        try {
+            if (!empty($account->employee_id)) {
+                $laravelUser = User::where('email', $account->employee_id . '@soliera.local')->first();
+            }
+        } catch (\Throwable $e) { /* ignore lookup errors */ }
+
+        return view('access.user_profile', [
+            'account' => $account,
+            'laravelUser' => $laravelUser,
+        ]);
+    }
     
     public function roles()
     {

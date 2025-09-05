@@ -10,7 +10,15 @@ class Facility extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'location', 'description', 'status'
+        'name', 'location', 'description', 'status', 'capacity', 'amenities', 'rating', 'facility_type', 'images', 'hourly_rate', 'operating_hours_start', 'operating_hours_end'
+    ];
+
+    protected $casts = [
+        'images' => 'array',
+        'rating' => 'decimal:2',
+        'hourly_rate' => 'decimal:2',
+        'operating_hours_start' => 'datetime:H:i',
+        'operating_hours_end' => 'datetime:H:i',
     ];
 
     public function reservations()

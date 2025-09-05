@@ -171,9 +171,11 @@
                         <i data-lucide="more-horizontal" class="w-4 h-4"></i>
                       </div>
                       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-white rounded-lg w-52 border border-gray-200">
-                        <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                          <i data-lucide="eye" class="w-4 h-4"></i> View Profile
-                        </a></li>
+                        <li>
+                          <a href="{{ route('access.users.show', $user['id']) }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                            <i data-lucide="eye" class="w-4 h-4"></i> View Profile
+                          </a>
+                        </li>
                         <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
                           <i data-lucide="edit" class="w-4 h-4"></i> Edit User
                         </a></li>

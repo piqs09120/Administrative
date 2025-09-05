@@ -217,6 +217,66 @@ class FacilityReservationController extends Controller
         return redirect()->route('facility_reservations.index')->with('success', 'Reservation denied.');
     }
 
+    public function userHistory(Request $request)
+    {
+        $userId = auth()->id();
+        
+        // Get user's reservations with pagination
+        $reservations = FacilityReservation::where('reserved_by', $userId)
+            ->with(['facility', 'approver'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
+        // Get analytics data
+        $analytics = [
+            'total_reservations' => FacilityReservation::where('reserved_by', $userId)->count(),
+            'approved_reservations' => FacilityReservation::where('reserved_by', $userId)->where('status', 'approved')->count(),
+            'pending_reservations' => FacilityReservation::where('reserved_by', $userId)->where('status', 'pending')->count(),
+            'denied_reservations' => FacilityReservation::where('reserved_by', $userId)->where('status', 'denied')->count(),
+            'most_used_facility' => $this->getMostUsedFacility($userId),
+            'upcoming_reservations' => FacilityReservation::where('reserved_by', $userId)
+                ->where('start_time', '>', now())
+                ->where('status', 'approved')
+                ->count(),
+            'monthly_stats' => $this->getMonthlyStats($userId),
+            'peak_booking_times' => $this->getPeakBookingTimes($userId)
+        ];
+        
+        return view('facility_reservations.user_history', compact('reservations', 'analytics'));
+    }
+
+    private function getMostUsedFacility($userId)
+    {
+        return FacilityReservation::where('reserved_by', $userId)
+            ->where('status', 'approved')
+            ->join('facilities', 'facility_reservations.facility_id', '=', 'facilities.id')
+            ->selectRaw('facilities.name, COUNT(*) as usage_count')
+            ->groupBy('facilities.id', 'facilities.name')
+            ->orderBy('usage_count', 'desc')
+            ->first();
+    }
+
+    private function getMonthlyStats($userId)
+    {
+        return FacilityReservation::where('reserved_by', $userId)
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+    }
+
+    private function getPeakBookingTimes($userId)
+    {
+        return FacilityReservation::where('reserved_by', $userId)
+            ->where('status', 'approved')
+            ->selectRaw('HOUR(start_time) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get();
+    }
+
     public function legalReview($id)
     {
         $reservation = FacilityReservation::with(['facility', 'reserver', 'approver', 'tasks'])->findOrFail($id);
@@ -400,5 +460,153 @@ class FacilityReservationController extends Controller
         
         $reservation->delete();
         return redirect()->route('facility_reservations.index')->with('success', 'Reservation deleted.');
+    }
+
+    public function adminAnalytics(Request $request)
+    {
+        // Get comprehensive admin analytics
+        $analytics = [
+            'overview' => $this->getOverviewStats(),
+            'facility_usage' => $this->getFacilityUsageStats(),
+            'reservation_trends' => $this->getReservationTrends(),
+            'user_activity' => $this->getUserActivityStats(),
+            'conflict_analysis' => $this->getConflictAnalysis(),
+            'revenue_analytics' => $this->getRevenueAnalytics(),
+            'peak_hours' => $this->getPeakHoursAnalysis(),
+            'monthly_comparison' => $this->getMonthlyComparison()
+        ];
+
+        // Get recent reservations for admin review
+        $recentReservations = FacilityReservation::with(['facility', 'reserver', 'approver'])
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        // Get pending reservations requiring attention
+        $pendingReservations = FacilityReservation::with(['facility', 'reserver'])
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return view('facility_reservations.admin_analytics', compact('analytics', 'recentReservations', 'pendingReservations'));
+    }
+
+    private function getOverviewStats()
+    {
+        return [
+            'total_reservations' => FacilityReservation::count(),
+            'approved_reservations' => FacilityReservation::where('status', 'approved')->count(),
+            'pending_reservations' => FacilityReservation::where('status', 'pending')->count(),
+            'denied_reservations' => FacilityReservation::where('status', 'denied')->count(),
+            'total_facilities' => \App\Models\Facility::count(),
+            'active_users' => FacilityReservation::distinct('reserved_by')->count('reserved_by'),
+            'this_month_reservations' => FacilityReservation::whereMonth('created_at', now()->month)->count(),
+            'approval_rate' => $this->calculateApprovalRate()
+        ];
+    }
+
+    private function getFacilityUsageStats()
+    {
+        return \App\Models\Facility::withCount(['reservations' => function($query) {
+            $query->where('status', 'approved');
+        }])
+        ->orderBy('reservations_count', 'desc')
+        ->limit(10)
+        ->get();
+    }
+
+    private function getReservationTrends()
+    {
+        return FacilityReservation::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
+            ->where('created_at', '>=', now()->subMonths(12))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+    }
+
+    private function getUserActivityStats()
+    {
+        return FacilityReservation::selectRaw('reserved_by, COUNT(*) as reservation_count')
+            ->with('reserver:id,name')
+            ->groupBy('reserved_by')
+            ->orderBy('reservation_count', 'desc')
+            ->limit(10)
+            ->get();
+    }
+
+    private function getConflictAnalysis()
+    {
+        // This would analyze potential conflicts and overlapping reservations
+        return [
+            'potential_conflicts' => 0, // Implement conflict detection logic
+            'resolved_conflicts' => 0,
+            'conflict_rate' => 0
+        ];
+    }
+
+    private function getRevenueAnalytics()
+    {
+        // Calculate revenue from paid reservations
+        $totalRevenue = FacilityReservation::where('status', 'approved')
+            ->join('facilities', 'facility_reservations.facility_id', '=', 'facilities.id')
+            ->selectRaw('SUM(facilities.hourly_rate * TIMESTAMPDIFF(HOUR, facility_reservations.start_time, facility_reservations.end_time)) as total_revenue')
+            ->value('total_revenue') ?? 0;
+
+        return [
+            'total_revenue' => $totalRevenue,
+            'monthly_revenue' => $this->getMonthlyRevenue(),
+            'average_booking_value' => $this->getAverageBookingValue()
+        ];
+    }
+
+    private function getPeakHoursAnalysis()
+    {
+        return FacilityReservation::where('status', 'approved')
+            ->selectRaw('HOUR(start_time) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->orderBy('count', 'desc')
+            ->get();
+    }
+
+    private function getMonthlyComparison()
+    {
+        $currentMonth = FacilityReservation::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        
+        $lastMonth = FacilityReservation::whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+
+        return [
+            'current_month' => $currentMonth,
+            'last_month' => $lastMonth,
+            'growth_rate' => $lastMonth > 0 ? (($currentMonth - $lastMonth) / $lastMonth) * 100 : 0
+        ];
+    }
+
+    private function calculateApprovalRate()
+    {
+        $total = FacilityReservation::whereIn('status', ['approved', 'denied'])->count();
+        $approved = FacilityReservation::where('status', 'approved')->count();
+        
+        return $total > 0 ? ($approved / $total) * 100 : 0;
+    }
+
+    private function getMonthlyRevenue()
+    {
+        return FacilityReservation::where('status', 'approved')
+            ->whereMonth('created_at', now()->month)
+            ->join('facilities', 'facility_reservations.facility_id', '=', 'facilities.id')
+            ->selectRaw('SUM(facilities.hourly_rate * TIMESTAMPDIFF(HOUR, facility_reservations.start_time, facility_reservations.end_time)) as monthly_revenue')
+            ->value('monthly_revenue') ?? 0;
+    }
+
+    private function getAverageBookingValue()
+    {
+        $totalRevenue = $this->getRevenueAnalytics()['total_revenue'];
+        $totalBookings = FacilityReservation::where('status', 'approved')->count();
+        
+        return $totalBookings > 0 ? $totalRevenue / $totalBookings : 0;
     }
 }
