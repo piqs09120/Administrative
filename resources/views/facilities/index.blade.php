@@ -1222,6 +1222,7 @@
       const selectedStatus = document.getElementById('statusFilter')?.value || '';
       const minCapacity = document.getElementById('capacityFilter')?.value || '';
       const selectedLocation = document.getElementById('locationFilter')?.value || '';
+      
 
       const facilityCards = document.querySelectorAll('[id^="facility-card-"]');
       let visibleCount = 0;
@@ -1290,7 +1291,8 @@
       const name = card.querySelector('.facility-card-title')?.textContent || '';
       const location = card.querySelector('.meta-item span')?.textContent || '';
       const description = card.querySelector('.line-clamp-2')?.textContent || '';
-      const status = card.querySelector('.badge')?.textContent?.toLowerCase() || '';
+      const statusText = card.querySelector('.badge')?.textContent?.trim() || '';
+      const status = statusText.toLowerCase();
       const capacityText = card.querySelector('.meta-item span')?.textContent || '';
       const capacity = capacityText.includes('Capacity:') ? capacityText.split('Capacity: ')[1] : '';
 
@@ -1488,6 +1490,9 @@
       
       // Initialize view mode buttons
       setViewMode('grid'); // Set initial state to grid
+      
+      // Apply initial filters
+      applyFilters();
       
       // Update time every second
       setInterval(updateDateTime, 1000);
