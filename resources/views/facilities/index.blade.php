@@ -319,6 +319,58 @@
     .img-edit-wrap:hover .img-edit-overlay { display: flex; }
     .img-edit-btn { background: #fff; color: #111827; border-radius: .5rem; padding: .35rem .6rem; font-size: .875rem; box-shadow: 0 2px 8px rgba(0,0,0,.15); display: inline-flex; align-items: center; gap: .35rem; }
     .img-edit-btn:hover { background: #f3f4f6; }
+    
+    /* View toggle button styles */
+    #viewToggleBtn {
+      transition: all 0.2s ease;
+      flex-shrink: 0; /* Prevent button from shrinking */
+      min-width: 2.5rem; /* Ensure minimum touch target */
+      min-height: 2.5rem;
+      display: inline-flex !important; /* Force visibility */
+      visibility: visible !important; /* Override any hidden states */
+      opacity: 1 !important; /* Ensure full opacity */
+    }
+    
+    #viewToggleBtn:hover {
+      transform: scale(1.05);
+    }
+    
+    #viewToggleBtn:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+    
+    /* Ensure button is always visible at all breakpoints */
+    @media (max-width: 640px) {
+      #viewToggleBtn {
+        min-width: 2rem;
+        min-height: 2rem;
+        padding: 0.25rem;
+      }
+    }
+    
+    /* Ensure the toolbar container doesn't hide the button */
+    .flex.items-center.space-x-2 {
+      flex-wrap: nowrap;
+      overflow: visible;
+    }
+    
+    /* Smooth transitions for layout changes */
+    .facility-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      .facility-card,
+      #viewToggleBtn {
+        transition: none;
+      }
+      
+      #viewToggleBtn:hover {
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body class="bg-base-100">
@@ -541,10 +593,10 @@
             <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
             View Reservations
           </a>
-          <button onclick="toggleCalendarView()" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+          <a href="{{ route('facility_reservations.calendar') }}" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
             <i data-lucide="calendar-days" class="w-4 h-4 mr-2"></i>
-            <span id="calendarToggleText">Calendar View</span>
-          </button>
+            <span>Calendar View</span>
+          </a>
           <button onclick="exportFacilities()" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
             <i data-lucide="download" class="w-4 h-4 mr-2"></i>
             Export Data
@@ -566,8 +618,7 @@
                 @endforeach
               </select>
               <button onclick="toggleCalendarView()" class="btn btn-ghost btn-sm">
-                <i data-lucide="grid-3x3" class="w-4 h-4 mr-1"></i>
-                Grid View
+                <i data-lucide="grid-3x3" class="w-4 h-4"></i>
               </button>
             </div>
           </div>
@@ -591,14 +642,17 @@
             </h2>
             <div class="flex items-center space-x-2">
               <span class="text-sm text-gray-500">Total: <span id="facilityCount">{{ $facilities->count() }}</span> facilities</span>
-              <div class="flex items-center gap-2">
-                <button onclick="setViewMode('grid')" class="btn btn-ghost btn-sm" id="gridViewBtn">
-                  <i data-lucide="grid-3x3" class="w-4 h-4"></i>
-                </button>
-                <button onclick="setViewMode('list')" class="btn btn-ghost btn-sm" id="listViewBtn">
-                  <i data-lucide="list" class="w-4 h-4"></i>
-                </button>
-              </div>
+              <button 
+                id="viewToggleBtn" 
+                class="btn btn-ghost btn-sm" 
+                title="Switch to list view"
+                aria-label="Switch to list view"
+                aria-pressed="false"
+                tabindex="0"
+              >
+                <i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i>
+                <span class="fallback-icon" style="display: none;">☰</span>
+              </button>
             </div>
           </div>
 
@@ -606,50 +660,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               @foreach($facilities as $facility)
                 <div id="facility-card-{{ $facility->id }}" class="facility-card hover:shadow-lg transition-all duration-300 hover:scale-105">
-                  @php
-                    $slug = \Illuminate\Support\Str::slug($facility->name);
-                    $positionIndex = $loop->index + 1; // 1-based index as a soft fallback
-
-                    // First, check the public storage disk where updates are saved
-                    $coverImage = null;
-                    foreach (['jpg','jpeg','png','webp'] as $ext) {
-                      $storageRel = 'facilities/' . $facility->id . '/cover.' . $ext;
-                      if (Storage::disk('public')->exists($storageRel)) {
-                        $abs = storage_path('app/public/' . $storageRel);
-                        $ver = file_exists($abs) ? filemtime($abs) : time();
-                        $coverImage = asset('storage/' . $storageRel) . '?v=' . $ver; 
-                        break; 
-                      }
-                    }
-
-                    // If not found, fall back to previous candidate probing under public path
-                    if (!$coverImage) {
-                      $candidates = [
-                        // Also support direct public/facilities path (if not using storage:link)
-                        'facilities/' . $facility->id . '/cover.jpg',
-                        'facilities/' . $facility->id . '/cover.png',
-                        // Per-position fallback (helps when folders 1,2,... were created manually)
-                        'storage/facilities/' . $positionIndex . '/cover.jpg',
-                        'storage/facilities/' . $positionIndex . '/cover.png',
-                        'facilities/' . $positionIndex . '/cover.jpg',
-                        'facilities/' . $positionIndex . '/cover.png',
-                        // By slug name (alternative naming scheme)
-                        'storage/facilities/' . $slug . '.jpg',
-                        'storage/facilities/' . $slug . '.png',
-                        'facilities/' . $slug . '.jpg',
-                        'facilities/' . $slug . '.png',
-                        // Global defaults
-                        'images/defaults/facility_' . (($loop->index % 3) + 1) . '.jpg',
-                        'images/defaults/facility.jpg',
-                      ];
-                      foreach ($candidates as $relPath) {
-                        if (file_exists(public_path($relPath))) { $coverImage = asset($relPath); break; }
-                      }
-                    }
-                  @endphp
-                  @if($coverImage)
+                  @if($facility->cover_url)
                     <div class="facility-card-image">
-                      <img src="{{ $coverImage }}" alt="{{ $facility->name }}">
+                      <img src="{{ $facility->cover_url }}" alt="{{ $facility->name }}">
                       <div class="facility-status-badge">
                         <div class="badge badge-lg {{ $facility->status === 'available' ? 'badge-success' : ($facility->status === 'occupied' ? 'badge-error' : 'badge-warning') }}">
                           {{ ucfirst($facility->status) }}
@@ -1268,7 +1281,7 @@
         card.style.display = showCard ? '' : 'none';
         if (showCard) visibleCount++;
         
-        // Apply list-view class if in list mode
+        // Apply list-view class if in list mode (only for visible cards)
         if (showCard && currentViewMode === 'list') {
           card.classList.add('list-view');
         } else if (showCard && currentViewMode === 'grid') {
@@ -1376,7 +1389,7 @@
       if (isCalendarView) {
         calendarView.classList.remove('hidden');
         gridView.classList.add('hidden');
-        toggleText.textContent = 'Grid View';
+        toggleText.textContent = 'Calendar View';
         loadFacilityCalendar();
       } else {
         calendarView.classList.add('hidden');
@@ -1385,42 +1398,63 @@
       }
     }
 
-    // Set view mode (grid/list)
-    function setViewMode(mode) {
-      // If clicking the same mode, toggle to the other mode
-      if (currentViewMode === mode) {
-        mode = mode === 'grid' ? 'list' : 'grid';
-      }
-      
-      currentViewMode = mode;
-      const gridBtn = document.getElementById('gridViewBtn');
-      const listBtn = document.getElementById('listViewBtn');
+    // Toggle view mode (grid/list)
+    function toggleViewMode() {
+      const toggleBtn = document.getElementById('viewToggleBtn');
       const grid = document.querySelector('#facilitiesGridView .grid');
       const facilityCards = document.querySelectorAll('.facility-card');
       
-      if (mode === 'grid') {
+      // Toggle between grid and list
+      currentViewMode = currentViewMode === 'grid' ? 'list' : 'grid';
+      
+      if (currentViewMode === 'grid') {
+        // Switch to grid view
         grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
-        gridBtn.classList.add('btn-primary');
-        gridBtn.classList.remove('btn-ghost');
-        listBtn.classList.add('btn-ghost');
-        listBtn.classList.remove('btn-primary');
+        
+        // Update button state
+        toggleBtn.innerHTML = '<i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">☰</span>';
+        toggleBtn.setAttribute('title', 'Switch to list view');
+        toggleBtn.setAttribute('aria-label', 'Switch to list view');
+        toggleBtn.setAttribute('aria-pressed', 'false');
         
         // Remove list-view class from all cards
         facilityCards.forEach(card => {
           card.classList.remove('list-view');
         });
       } else {
-        grid.className = 'grid grid-cols-1 gap-4';
-        listBtn.classList.add('btn-primary');
-        listBtn.classList.remove('btn-ghost');
-        gridBtn.classList.add('btn-ghost');
-        gridBtn.classList.remove('btn-primary');
+        // Switch to list view
+        grid.className = 'grid grid-cols-1 gap-3';
+        
+        // Update button state
+        toggleBtn.innerHTML = '<i data-lucide="grid-3x3" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">⊞</span>';
+        toggleBtn.setAttribute('title', 'Switch to grid view');
+        toggleBtn.setAttribute('aria-label', 'Switch to grid view');
+        toggleBtn.setAttribute('aria-pressed', 'true');
         
         // Add list-view class to all cards
         facilityCards.forEach(card => {
           card.classList.add('list-view');
         });
       }
+      
+      // Recreate icons for the new button content
+      lucide.createIcons();
+      
+      // Add fallback icon handling
+      setTimeout(() => {
+        const icon = toggleBtn.querySelector('i[data-lucide]');
+        const fallback = toggleBtn.querySelector('.fallback-icon');
+        if (icon && !icon.querySelector('svg')) {
+          // Lucide icon failed to load, show fallback
+          if (fallback) {
+            icon.style.display = 'none';
+            fallback.style.display = 'inline-block';
+          }
+        }
+      }, 100);
+      
+      // Save preference to localStorage
+      localStorage.setItem('facilityView', currentViewMode);
     }
 
     // Load facility calendar
@@ -1488,8 +1522,74 @@
       updateDateTime();
       setupAdvancedSearch();
       
-      // Initialize view mode buttons
-      setViewMode('grid'); // Set initial state to grid
+      // Initialize view mode from localStorage or default to grid
+      const savedView = localStorage.getItem('facilityView') || 'grid';
+      currentViewMode = savedView;
+      
+      // Set up toggle button event listeners
+      const toggleBtn = document.getElementById('viewToggleBtn');
+      if (toggleBtn) {
+        // Click handler
+        toggleBtn.addEventListener('click', toggleViewMode);
+        
+        // Keyboard handler (Enter/Space)
+        toggleBtn.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleViewMode();
+          }
+        });
+        
+        // Initialize button state based on saved preference
+        if (currentViewMode === 'list') {
+          toggleBtn.innerHTML = '<i data-lucide="grid-3x3" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">⊞</span>';
+          toggleBtn.setAttribute('title', 'Switch to grid view');
+          toggleBtn.setAttribute('aria-label', 'Switch to grid view');
+          toggleBtn.setAttribute('aria-pressed', 'true');
+        } else {
+          toggleBtn.innerHTML = '<i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">☰</span>';
+          toggleBtn.setAttribute('title', 'Switch to list view');
+          toggleBtn.setAttribute('aria-label', 'Switch to list view');
+          toggleBtn.setAttribute('aria-pressed', 'false');
+        }
+        
+        // Recreate icons after updating innerHTML
+        lucide.createIcons();
+        
+        // Ensure button is visible and has fallback
+        toggleBtn.style.display = 'inline-flex';
+        toggleBtn.style.visibility = 'visible';
+        toggleBtn.style.opacity = '1';
+        
+        // Add fallback icon handling
+        setTimeout(() => {
+          const icon = toggleBtn.querySelector('i[data-lucide]');
+          const fallback = toggleBtn.querySelector('.fallback-icon');
+          if (icon && !icon.querySelector('svg')) {
+            // Lucide icon failed to load, show fallback
+            if (fallback) {
+              icon.style.display = 'none';
+              fallback.style.display = 'inline-block';
+            }
+          }
+        }, 100);
+        
+        // Apply the saved view mode
+        const grid = document.querySelector('#facilitiesGridView .grid');
+        const facilityCards = document.querySelectorAll('.facility-card');
+        
+        if (currentViewMode === 'list') {
+          grid.className = 'grid grid-cols-1 gap-3';
+          facilityCards.forEach(card => {
+            card.classList.add('list-view');
+          });
+        } else {
+          grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+          facilityCards.forEach(card => {
+            card.classList.remove('list-view');
+          });
+        }
+      }
       
       // Apply initial filters
       applyFilters();
@@ -1538,22 +1638,12 @@
           document.getElementById('edit_status').value = status;
           editForm.setAttribute('action', `{{ url('facilities') }}/${id}`);
 
-          // Try to preload current image using same candidate logic
-          const positionIndex = Array.from(document.querySelectorAll('.openEditFacilityBtn')).indexOf(btn) + 1;
-          const slug = (name || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+          // Try to preload current image using facility-specific path only
           const candidates = [
             `{{ url('storage/facilities') }}/${id}/cover.jpg`,
             `{{ url('storage/facilities') }}/${id}/cover.png`,
-            `{{ url('facilities') }}/${id}/cover.jpg`,
-            `{{ url('facilities') }}/${id}/cover.png`,
-            `{{ url('storage/facilities') }}/${positionIndex}/cover.jpg`,
-            `{{ url('storage/facilities') }}/${positionIndex}/cover.png`,
-            `{{ url('facilities') }}/${positionIndex}/cover.jpg`,
-            `{{ url('facilities') }}/${positionIndex}/cover.png`,
-            `{{ url('storage/facilities') }}/${slug}.jpg`,
-            `{{ url('storage/facilities') }}/${slug}.png`,
-            `{{ url('facilities') }}/${slug}.jpg`,
-            `{{ url('facilities') }}/${slug}.png`,
+            `{{ url('storage/facilities') }}/${id}/cover.jpeg`,
+            `{{ url('storage/facilities') }}/${id}/cover.webp`,
           ];
           const imgEl = document.getElementById('edit_image_preview');
           const removeInput = document.getElementById('edit_remove_image');
@@ -1875,8 +1965,11 @@
                 // Update stats cards
                 updateFacilityStats();
                 
+                // Reapply filters to ensure remaining cards are properly displayed
+                applyFilters();
+                
                 // Check if no facilities left
-                const remainingCards = document.querySelectorAll('.bg-white.border.border-gray-200.rounded-xl');
+                const remainingCards = document.querySelectorAll('.facility-card');
                 if (remainingCards.length === 0) {
                   showEmptyState();
                 }
@@ -1905,9 +1998,15 @@
       
       // Helper function to update facility stats
       function updateFacilityStats() {
-        const totalFacilities = document.querySelectorAll('.bg-white.border.border-gray-200.rounded-xl').length;
-        const availableFacilities = document.querySelectorAll('.badge-success').length;
-        const occupiedFacilities = document.querySelectorAll('.badge-error').length;
+        const totalFacilities = document.querySelectorAll('.facility-card').length;
+        const availableFacilities = document.querySelectorAll('.facility-card .badge-success').length;
+        const occupiedFacilities = document.querySelectorAll('.facility-card .badge-error').length;
+        
+        // Update facility count in header
+        const facilityCountElement = document.getElementById('facilityCount');
+        if (facilityCountElement) {
+          facilityCountElement.textContent = totalFacilities;
+        }
         
         // Update stats cards if they exist
         const totalCard = document.querySelector('.text-3xl.font-bold');
@@ -1920,18 +2019,22 @@
       function showEmptyState() {
         const grid = document.querySelector('#facilitiesGridView .grid');
         if (grid) {
-          grid.innerHTML = `
-            <div class="col-span-full text-center py-12">
-              <i data-lucide="building" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
-              <h3 class="text-lg font-semibold text-gray-600 mb-2">No Facilities Found</h3>
-              <p class="text-gray-500 mb-6">Add your first facility to get started.</p>
-              <button type="button" id="openCreateFacilityModal" class="btn btn-primary btn-md hover:btn-primary-focus transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
-                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                Add Facility
-              </button>
-            </div>
-          `;
-          lucide.createIcons();
+          // Double-check that there are really no facilities
+          const remainingCards = document.querySelectorAll('.facility-card');
+          if (remainingCards.length === 0) {
+            grid.innerHTML = `
+              <div class="col-span-full text-center py-12">
+                <i data-lucide="building" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <h3 class="text-lg font-semibold text-gray-600 mb-2">No Facilities Found</h3>
+                <p class="text-gray-500 mb-6">Add your first facility to get started.</p>
+                <button type="button" id="openCreateFacilityModal" class="btn btn-primary btn-md hover:btn-primary-focus transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+                  <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                  Add Facility
+                </button>
+              </div>
+            `;
+            lucide.createIcons();
+          }
         }
       }
       

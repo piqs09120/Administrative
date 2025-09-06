@@ -3,12 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>My Reservation History - Soliera</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   @vite(['resources/css/soliera.css'])
+  <style>
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+      min-height: 250px;
+    }
+    .card {
+      min-height: auto;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table th, .table td {
+      padding: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+    .btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+    @media (max-width: 768px) {
+      .grid-cols-1 {
+        gap: 1rem;
+      }
+      .card-body {
+        padding: 1rem;
+      }
+      .text-3xl {
+        font-size: 1.875rem;
+      }
+      .chart-container {
+        height: 250px;
+      }
+      .table th, .table td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+    }
+    @media (max-width: 480px) {
+      .text-3xl {
+        font-size: 1.5rem;
+      }
+      .chart-container {
+        height: 200px;
+      }
+    }
+  </style>
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -22,83 +77,102 @@
 
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
-        <!-- Back button and title -->
-        <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center">
-            <a href="{{ route('facility_reservations.index') }}" class="btn btn-ghost btn-sm mr-4">
-              <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Reservations
-            </a>
-            <h1 class="text-3xl font-bold text-gray-800">My Reservation History</h1>
+        @if(session('success'))
+          <div class="alert alert-success mb-6">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span>{{ session('success') }}</span>
           </div>
-          <div class="flex items-center gap-3">
-            <button onclick="exportHistory()" class="btn btn-outline btn-sm">
-              <i data-lucide="download" class="w-4 h-4 mr-2"></i>
-              Export
-            </button>
-            <a href="{{ route('facility_reservations.create') }}" class="btn btn-primary btn-sm">
-              <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-              New Reservation
-            </a>
+        @endif
+
+        @if(session('error'))
+          <div class="alert alert-error mb-6">
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+            <span>{{ session('error') }}</span>
+          </div>
+        @endif
+
+        <!-- Page Header -->
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <a href="{{ route('facility_reservations.index') }}" class="btn btn-ghost btn-sm" title="Back to Reservations">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              </a>
+              <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">My Reservation History</h1>
+                <p class="text-gray-600">View and manage your facility reservation history</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="exportHistory()" class="btn btn-outline">
+                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                Export
+              </button>
+              <a href="{{ route('facility_reservations.create') }}" class="btn btn-primary">
+                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                New Reservation
+              </a>
+            </div>
           </div>
         </div>
 
-        <!-- Analytics Cards -->
+        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Total Reservations -->
-          <div class="card bg-white shadow-lg">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-primary cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600">Total Reservations</p>
-                  <p class="text-3xl font-bold text-blue-600">{{ $analytics['total_reservations'] }}</p>
+                  <p class="text-sm font-medium text-base-content/70">Total Reservations</p>
+                  <p class="text-3xl font-bold text-primary">{{ $analytics['total_reservations'] }}</p>
                 </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <i data-lucide="calendar" class="w-6 h-6 text-blue-600"></i>
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <i data-lucide="calendar" class="w-6 h-6 text-primary"></i>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Approved Reservations -->
-          <div class="card bg-white shadow-lg">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-success cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600">Approved</p>
-                  <p class="text-3xl font-bold text-green-600">{{ $analytics['approved_reservations'] }}</p>
+                  <p class="text-sm font-medium text-base-content/70">Approved</p>
+                  <p class="text-3xl font-bold text-success">{{ $analytics['approved_reservations'] }}</p>
                 </div>
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                <div class="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center group-hover:bg-success/20 transition-colors">
+                  <i data-lucide="check-circle" class="w-6 h-6 text-success"></i>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Pending Reservations -->
-          <div class="card bg-white shadow-lg">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-warning cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600">Pending</p>
-                  <p class="text-3xl font-bold text-yellow-600">{{ $analytics['pending_reservations'] }}</p>
+                  <p class="text-sm font-medium text-base-content/70">Pending</p>
+                  <p class="text-3xl font-bold text-warning">{{ $analytics['pending_reservations'] }}</p>
                 </div>
-                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+                <div class="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center group-hover:bg-warning/20 transition-colors">
+                  <i data-lucide="clock" class="w-6 h-6 text-warning"></i>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Upcoming Reservations -->
-          <div class="card bg-white shadow-lg">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-secondary cursor-pointer group">
             <div class="card-body p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600">Upcoming</p>
-                  <p class="text-3xl font-bold text-purple-600">{{ $analytics['upcoming_reservations'] }}</p>
+                  <p class="text-sm font-medium text-base-content/70">Upcoming</p>
+                  <p class="text-3xl font-bold text-secondary">{{ $analytics['upcoming_reservations'] }}</p>
                 </div>
-                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <i data-lucide="calendar-days" class="w-6 h-6 text-purple-600"></i>
+                <div class="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+                  <i data-lucide="calendar-days" class="w-6 h-6 text-secondary"></i>
                 </div>
               </div>
             </div>
@@ -108,34 +182,38 @@
         <!-- Charts Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <!-- Monthly Trends Chart -->
-          <div class="card bg-white shadow-lg">
+          <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
               <h3 class="card-title text-lg font-semibold mb-4">Reservation Trends (Last 6 Months)</h3>
-              <canvas id="monthlyChart" width="400" height="200"></canvas>
+              <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+              </div>
             </div>
           </div>
 
           <!-- Peak Booking Times Chart -->
-          <div class="card bg-white shadow-lg">
+          <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
               <h3 class="card-title text-lg font-semibold mb-4">Peak Booking Times</h3>
-              <canvas id="peakTimesChart" width="400" height="200"></canvas>
+              <div class="chart-container">
+                <canvas id="peakTimesChart"></canvas>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Most Used Facility -->
         @if($analytics['most_used_facility'])
-        <div class="card bg-white shadow-lg mb-8">
+        <div class="card bg-base-100 shadow-xl mb-8">
           <div class="card-body">
             <h3 class="card-title text-lg font-semibold mb-4">Most Used Facility</h3>
-            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+            <div class="flex items-center justify-between p-4 bg-primary/10 rounded-lg">
               <div>
-                <h4 class="font-semibold text-blue-800">{{ $analytics['most_used_facility']->name }}</h4>
-                <p class="text-sm text-blue-600">{{ $analytics['most_used_facility']->usage_count }} reservations</p>
+                <h4 class="font-semibold text-primary">{{ $analytics['most_used_facility']->name }}</h4>
+                <p class="text-sm text-primary/70">{{ $analytics['most_used_facility']->usage_count }} reservations</p>
               </div>
-              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <i data-lucide="trophy" class="w-8 h-8 text-blue-600"></i>
+              <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                <i data-lucide="trophy" class="w-8 h-8 text-primary"></i>
               </div>
             </div>
           </div>
@@ -143,13 +221,13 @@
         @endif
 
         <!-- Reservation History Table -->
-        <div class="card bg-white shadow-lg">
+        <div class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <h3 class="card-title text-lg font-semibold mb-6">Reservation History</h3>
             
             @if($reservations->count() > 0)
-              <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
+              <div class="table-responsive overflow-x-auto">
+                <table class="table table-zebra w-full min-w-full">
                   <thead>
                     <tr>
                       <th>Facility</th>
@@ -266,6 +344,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          aspectRatio: 2,
           plugins: {
             legend: {
               display: false
@@ -307,6 +386,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          aspectRatio: 2,
           plugins: {
             legend: {
               display: false
@@ -378,5 +458,7 @@
       }
     }
   </script>
+
+  @include('partials.soliera_js')
 </body>
 </html>

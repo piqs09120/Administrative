@@ -40,21 +40,9 @@
           <div class="lg:col-span-2">
             <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
               <div class="card-body">
-                @php
-                  $coverImage = null;
-                  foreach (['jpg','jpeg','png','webp'] as $ext) {
-                    $rel = 'facilities/' . $facility->id . '/cover.' . $ext;
-                    if (Storage::disk('public')->exists($rel)) {
-                      $abs = storage_path('app/public/' . $rel);
-                      $ver = file_exists($abs) ? filemtime($abs) : time();
-                      $coverImage = asset('storage/' . $rel) . '?v=' . $ver; 
-                      break; 
-                    }
-                  }
-                @endphp
-                @if($coverImage)
+                @if($facility->cover_url)
                   <div class="rounded-xl overflow-hidden mb-6 border" style="border-color: var(--color-snow-mist); height: 220px; background:#f3f4f6;">
-                    <img src="{{ $coverImage }}" alt="{{ $facility->name }}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                    <img src="{{ $facility->cover_url }}" alt="{{ $facility->name }}" style="width:100%; height:100%; object-fit:cover; display:block;">
                   </div>
                 @endif
                 <div class="flex items-center justify-between mb-6">

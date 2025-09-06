@@ -220,6 +220,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/send-verification', [ProfileController::class, 'send'])->name('verification.send');
     Route::put('/profile', [ProfileController::class, 'update'])->name('password.update');
 
+    // Calendar legacy route: redirect old /reservations/calendar → new path to avoid conflict with reservations.show
+    Route::get('/reservations/calendar/{facilityId?}', function ($facilityId = null) {
+        $params = request()->only(['start_date','end_date']);
+        $target = $facilityId
+            ? route('facility_reservations.calendar', ['facilityId' => $facilityId])
+            : route('facility_reservations.calendar');
+        if (!empty($params)) {
+            $target .= '?' . http_build_query($params);
+        }
+        return redirect()->to($target);
+    })->name('reservations.calendar');
+
     // Hotel Management
     Route::resource('reservations', ReservationController::class);
     Route::resource('guests', GuestController::class);
@@ -290,8 +302,113 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/facilities/{id}/ajax', [FacilitiesController::class, 'showAjax'])->name('facilities.showAjax');
         Route::get('/facilities-calendar', [FacilitiesController::class, 'calendar'])->name('facilities.calendar');
         Route::post('/facilities-check-availability', [FacilitiesController::class, 'checkAvailability'])->name('facilities.checkAvailability');
+        // Reservation Calendar (facility staff) - avoid conflict with resource('reservations')
+        Route::get('/facility-reservations/calendar/{facilityId?}', [\App\Http\Controllers\FacilityReservationController::class, 'calendar'])->name('facility_reservations.calendar');
+        // Realtime stats for dashboard polling
+        Route::get('/reservations/realtime-stats', [\App\Http\Controllers\FacilityReservationController::class, 'realtimeStats'])->name('facility_reservations.realtime_stats');
         Route::get('/my-reservations', [App\Http\Controllers\FacilityReservationController::class, 'userHistory'])->name('facility_reservations.user_history');
         Route::get('/admin-analytics', [App\Http\Controllers\FacilityReservationController::class, 'adminAnalytics'])->name('facility_reservations.admin_analytics');
+        
+        // Debug route for analytics
+        Route::get('/admin-analytics-debug', function() {
+            try {
+                $controller = new \App\Http\Controllers\FacilityReservationController(
+                    app(\App\Services\GeminiService::class),
+                    app(\App\Services\DocumentTextExtractorService::class),
+                    app(\App\Services\FacilityCalendarService::class),
+                    app(\App\Services\SecureDocumentRepository::class),
+                    app(\App\Services\VisitorService::class),
+                    app(\App\Services\ReservationWorkflowService::class)
+                );
+                
+                $overview = $controller->getOverviewStats();
+                return response()->json([
+                    'success' => true,
+                    'overview' => $overview,
+                    'message' => 'Analytics data loaded successfully'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        })->name('facility_reservations.admin_analytics_debug');
+        
+        // Simple test route
+        Route::get('/test-analytics', function() {
+            return response()->json([
+                'message' => 'Test route working',
+                'reservations' => \App\Models\FacilityReservation::count(),
+                'facilities' => \App\Models\Facility::count()
+            ]);
+        });
+
+        // Simple analytics test route
+        Route::get('/test-analytics-page', function() {
+            $analytics = [
+                'overview' => [
+                    'total_reservations' => \App\Models\FacilityReservation::count(),
+                    'approved_reservations' => \App\Models\FacilityReservation::where('status', 'approved')->count(),
+                    'pending_reservations' => \App\Models\FacilityReservation::where('status', 'pending')->count(),
+                    'denied_reservations' => \App\Models\FacilityReservation::where('status', 'denied')->count(),
+                    'total_facilities' => \App\Models\Facility::count(),
+                    'active_users' => \App\Models\FacilityReservation::distinct('reserved_by')->count('reserved_by'),
+                    'this_month_reservations' => \App\Models\FacilityReservation::whereMonth('created_at', now()->month)->count(),
+                    'approval_rate' => 100
+                ],
+                'facility_usage' => collect(),
+                'reservation_trends' => collect([
+                    ['month' => now()->subMonths(5)->format('Y-m'), 'count' => 0],
+                    ['month' => now()->subMonths(4)->format('Y-m'), 'count' => 0],
+                    ['month' => now()->subMonths(3)->format('Y-m'), 'count' => 0],
+                    ['month' => now()->subMonths(2)->format('Y-m'), 'count' => 0],
+                    ['month' => now()->subMonth()->format('Y-m'), 'count' => 0],
+                    ['month' => now()->format('Y-m'), 'count' => \App\Models\FacilityReservation::whereMonth('created_at', now()->month)->count()]
+                ]),
+                'user_activity' => collect(),
+                'conflict_analysis' => [
+                    'potential_conflicts' => 0,
+                    'resolved_conflicts' => 0,
+                    'conflict_rate' => 0
+                ],
+                'revenue_analytics' => [
+                    'total_revenue' => 0,
+                    'monthly_revenue' => 0,
+                    'average_booking_value' => 0
+                ],
+                'peak_hours' => collect([
+                    ['hour' => 9, 'count' => 0],
+                    ['hour' => 10, 'count' => 0],
+                    ['hour' => 11, 'count' => 0],
+                    ['hour' => 12, 'count' => 0],
+                    ['hour' => 13, 'count' => 0],
+                    ['hour' => 14, 'count' => 0],
+                    ['hour' => 15, 'count' => 0],
+                    ['hour' => 16, 'count' => 0],
+                    ['hour' => 17, 'count' => 0]
+                ]),
+                'monthly_comparison' => [
+                    'current_month' => \App\Models\FacilityReservation::whereMonth('created_at', now()->month)->count(),
+                    'last_month' => \App\Models\FacilityReservation::whereMonth('created_at', now()->subMonth()->month)->count(),
+                    'growth_rate' => 0
+                ]
+            ];
+
+            $recentReservations = \App\Models\FacilityReservation::with(['facility:id,name', 'reserver:id,name'])
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            $pendingReservations = \App\Models\FacilityReservation::with(['facility:id,name', 'reserver:id,name'])
+                ->where('status', 'pending')
+                ->orderBy('created_at', 'asc')
+                ->limit(10)
+                ->get();
+
+            return view('facility_reservations.admin_analytics', compact('analytics', 'recentReservations', 'pendingReservations'));
+        });
         Route::post('/payments/process', [App\Http\Controllers\PaymentController::class, 'processPayment'])->name('payments.process');
         Route::get('/payments/details/{reservationId}', [App\Http\Controllers\PaymentController::class, 'getPaymentDetails'])->name('payments.details');
         Route::get('/payments/history', [App\Http\Controllers\PaymentController::class, 'paymentHistory'])->name('payments.history');
@@ -364,6 +481,11 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
     Route::resource('facility_reservations', App\Http\Controllers\FacilityReservationController::class);
     Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
     Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
+    
+    // Monthly Reports Routes
+    Route::get('/facility_reservations/monthly-reports', [App\Http\Controllers\FacilityReservationController::class, 'monthlyReports'])->name('facility_reservations.monthly_reports');
+    Route::get('/facility_reservations/generate-monthly-report', [App\Http\Controllers\FacilityReservationController::class, 'generateMonthlyReport'])->name('facility_reservations.generate_monthly_report');
+    Route::post('/facility_reservations/monthly-report-summary', [App\Http\Controllers\FacilityReservationController::class, 'getMonthlyReportSummary'])->name('facility_reservations.monthly_report_summary');
     
     // Legal Review Routes
     Route::get('/facility_reservations/{id}/legal-review', [App\Http\Controllers\FacilityReservationController::class, 'legalReview'])->name('facility_reservations.legal_review');

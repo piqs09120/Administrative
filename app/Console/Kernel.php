@@ -14,6 +14,11 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('facility:update-status')->everyMinute();
+        
+        // Generate monthly reports on the 1st of each month at 9:00 AM
+        $schedule->command('reports:generate-monthly --all-facilities --email=' . config('mail.admin_email', 'admin@example.com'))
+                 ->monthlyOn(1, '09:00')
+                 ->timezone('America/New_York');
     }
 
     /**

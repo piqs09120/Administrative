@@ -52,7 +52,7 @@
                                 Today's Reservations
                             </p>
                             <h3 class="text-2xl font-bold mt-2 text-blue-900 dark:text-blue-100">
-                                {{ $todaysReservations ?? '24' }}
+                                <span id="todaysReservationsCount">{{ $todaysReservations ?? '24' }}</span>
                             </h3>
                             <p class="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center">
                                 <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i>
@@ -135,4 +135,35 @@
 
 @push('scripts')
 @include('partials.soliera_js')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const endpoint = `{{ route('facility_reservations.realtime_stats') }}`;
+    const todaysEl = document.getElementById('todaysReservationsCount');
+    let lastCount = parseInt(todaysEl ? todaysEl.textContent : '0', 10) || 0;
+
+    async function poll() {
+        try {
+            const res = await fetch(endpoint, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && data.success && typeof data.today_reservations === 'number') {
+                if (todaysEl) {
+                    const newCount = data.today_reservations;
+                    if (newCount !== lastCount) {
+                        todaysEl.textContent = newCount;
+                        lastCount = newCount;
+                        if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+                    }
+                }
+                window.dispatchEvent(new CustomEvent('reservations:realtime', { detail: data }));
+            }
+        } catch (e) {
+            // silent fail
+        }
+    }
+
+    poll();
+    setInterval(poll, 10000);
+});
+</script>
 @endpush

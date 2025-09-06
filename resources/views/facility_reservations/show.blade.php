@@ -36,8 +36,8 @@
 
         <!-- Back button and title -->
         <div class="flex items-center mb-6">
-          <a href="{{ route('facility_reservations.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>Back
+          <a href="{{ route('facility_reservations.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);" title="Back to Reservations">
+            <i data-lucide="arrow-left" class="w-4 h-4" style="color: var(--color-regal-navy);"></i>
           </a>
           <h1 class="text-3xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Reservation Details</h1>
         </div>

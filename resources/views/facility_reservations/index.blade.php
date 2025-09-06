@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   @vite(['resources/css/soliera.css'])
-
 </head>
-<body class="bg-base-100">
+<body class="bg-gray-50">
   <div class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     @include('partials.sidebarr')
@@ -36,60 +35,102 @@
         @endif
 
         <!-- Page Header -->
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Facility Reservations</h2>
-          <div class="flex items-center gap-3">
-            <a href="{{ route('facility_reservations.user_history') }}" class="btn btn-outline">
-              <i data-lucide="history" class="w-4 h-4 mr-2"></i>My History
-            </a>
-            <a href="{{ route('facility_reservations.admin_analytics') }}" class="btn btn-outline">
-              <i data-lucide="bar-chart" class="w-4 h-4 mr-2"></i>Analytics
-            </a>
-            <button type="button" id="openReserveFacilityModal" class="btn btn-primary">
-              <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>Reserve Facility
-            </button>
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <a href="{{ route('facilities.index') }}" class="btn btn-ghost btn-sm" title="Back to Facilities">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+              </a>
+              <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Facility Reservations</h1>
+                <p class="text-gray-600">Manage and track facility reservation requests</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <a href="{{ route('facility_reservations.user_history') }}" class="btn btn-outline">
+                <i data-lucide="history" class="w-4 h-4 mr-2"></i>My History
+              </a>
+              <a href="{{ route('facility_reservations.admin_analytics') }}" class="btn btn-outline">
+                <i data-lucide="bar-chart" class="w-4 h-4 mr-2"></i>Analytics
+              </a>
+              <button type="button" id="openReserveFacilityModal" class="btn btn-primary">
+                <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>Reserve Facility
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- AI Processing Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-blue-100 text-sm">Total Reservations</p>
-                <p class="text-2xl font-bold">{{ $reservations->count() }}</p>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <!-- Total Reservations -->
+          <div class="card bg-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-primary cursor-pointer group">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
+                  <div class="bg-primary text-white rounded-full w-12 h-12">
+                    <i data-lucide="calendar" class="w-6 h-6"></i>
+                  </div>
+                </div>
+                <div class="badge badge-primary badge-outline group-hover:badge-primary transition-colors duration-300">Reservations</div>
               </div>
-              <i data-lucide="calendar" class="w-8 h-8 text-blue-200"></i>
+              <div class="text-center">
+                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2 group-hover:text-primary-focus transition-colors duration-300">{{ $reservations->count() }}</h2>
+                <p class="text-gray-600 group-hover:text-gray-800 transition-colors duration-300">Total Reservations</p>
+              </div>
             </div>
           </div>
-          
-          <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-green-100 text-sm">Auto-Approved</p>
-                <p class="text-2xl font-bold">{{ $reservations->where('auto_approved_at', '!=', null)->count() }}</p>
+
+          <!-- Auto-Approved -->
+          <div class="card bg-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-success cursor-pointer group">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
+                  <div class="bg-success text-white rounded-full w-12 h-12">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                  </div>
+                </div>
+                <div class="badge badge-success badge-outline group-hover:badge-success transition-colors duration-300">Auto-Approved</div>
               </div>
-              <i data-lucide="check-circle" class="w-8 h-8 text-green-200"></i>
+              <div class="text-center">
+                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2 group-hover:text-success-focus transition-colors duration-300">{{ $reservations->where('auto_approved_at', '!=', null)->count() }}</h2>
+                <p class="text-gray-600 group-hover:text-gray-800 transition-colors duration-300">Auto-Approved</p>
+              </div>
             </div>
           </div>
-          
-          <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-purple-100 text-sm">Documents Awaiting Processing</p>
-                <p class="text-2xl font-bold">{{ $reservations->where('current_workflow_status', 'pending_document_processing')->count() }}</p>
+
+          <!-- Documents Awaiting Processing -->
+          <div class="card bg-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-info cursor-pointer group">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
+                  <div class="bg-info text-white rounded-full w-12 h-12">
+                    <i data-lucide="brain" class="w-6 h-6"></i>
+                  </div>
+                </div>
+                <div class="badge badge-info badge-outline group-hover:badge-info transition-colors duration-300">Processing</div>
               </div>
-              <i data-lucide="brain" class="w-8 h-8 text-purple-200"></i>
+              <div class="text-center">
+                <h2 class="card-title text-4xl font-bold text-info justify-center mb-2 group-hover:text-info-focus transition-colors duration-300">{{ $reservations->where('current_workflow_status', 'pending_document_processing')->count() }}</h2>
+                <p class="text-gray-600 group-hover:text-gray-800 transition-colors duration-300">Documents Awaiting Processing</p>
+              </div>
             </div>
           </div>
-          
-          <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-4 text-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-orange-100 text-sm">Pending Tasks</p>
-                <p class="text-2xl font-bold">{{ $reservations->where('current_workflow_status', 'pending_tasks')->count() }}</p>
+
+          <!-- Pending Tasks -->
+          <div class="card bg-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-neutral cursor-pointer group">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
+                  <div class="bg-neutral text-white rounded-full w-12 h-12">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                  </div>
+                </div>
+                <div class="badge badge-neutral badge-outline group-hover:badge-neutral transition-colors duration-300">Pending</div>
               </div>
-              <i data-lucide="clock" class="w-8 h-8 text-orange-200"></i>
+              <div class="text-center">
+                <h2 class="card-title text-4xl font-bold text-neutral justify-center mb-2 group-hover:text-neutral-focus transition-colors duration-300">{{ $reservations->where('current_workflow_status', 'pending_tasks')->count() }}</h2>
+                <p class="text-gray-600 group-hover:text-gray-800 transition-colors duration-300">Pending Tasks</p>
+              </div>
             </div>
           </div>
         </div>

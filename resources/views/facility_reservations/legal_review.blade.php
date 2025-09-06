@@ -36,8 +36,8 @@
 
         <!-- Back button and title -->
         <div class="flex items-center mb-6">
-          <a href="{{ route('facility_reservations.show', $reservation->id) }}" class="btn btn-ghost btn-sm mr-4">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back
+          <a href="{{ route('facility_reservations.show', $reservation->id) }}" class="btn btn-ghost btn-sm mr-4" title="Back to Reservation Details">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
           </a>
           <h1 class="text-3xl font-bold text-gray-800">Legal Review</h1>
         </div>
