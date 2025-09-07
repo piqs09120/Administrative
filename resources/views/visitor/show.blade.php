@@ -18,9 +18,15 @@
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <h2 class="card-title text-xl mb-4">{{ $visitor->name }}</h2>
+            <div class="mb-2"><span class="font-semibold">Email:</span> {{ $visitor->email ?? '-' }}</div>
             <div class="mb-2"><span class="font-semibold">Contact:</span> {{ $visitor->contact ?? '-' }}</div>
             <div class="mb-2"><span class="font-semibold">Purpose:</span> {{ $visitor->purpose ?? '-' }}</div>
-            <div class="mb-2"><span class="font-semibold">Facility/Department:</span> {{ $visitor->facility->name ?? '-' }}</div>
+            <div class="mb-2"><span class="font-semibold">Department:</span> {{ $visitor->department ?? '-' }}</div>
+            <div class="mb-2"><span class="font-semibold">Host:</span> {{ $visitor->host_employee ?? '-' }}</div>
+            <div class="mb-2"><span class="font-semibold">Company:</span> {{ $visitor->company ?? '-' }}</div>
+            <div class="mb-2"><span class="font-semibold">ID Type:</span> {{ $visitor->id_type ?? '-' }}</div>
+            <div class="mb-2"><span class="font-semibold">ID Number:</span> {{ $visitor->id_number ?? '-' }}</div>
+            <div class="mb-2"><span class="font-semibold">Vehicle Plate:</span> {{ $visitor->vehicle_plate ?? '-' }}</div>
             <div class="mb-2"><span class="font-semibold">Time In:</span> {{ \Carbon\Carbon::parse($visitor->time_in)->format('M d, Y H:i') }}</div>
             <div class="mb-2"><span class="font-semibold">Time Out:</span>
                 @if($visitor->time_out)

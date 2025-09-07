@@ -260,10 +260,29 @@ class LegalController extends Controller
      */
     public function destroy($id)
     {
-        $case = \App\Models\LegalCase::findOrFail($id);
-        $case->delete();
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            $case->delete();
 
-        return redirect()->route('legal.legal_cases')->with('success', 'Legal case deleted successfully!');
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::user()->Dept_no,
+                'action' => 'delete_legal_case',
+                'description' => 'Deleted legal case ID ' . $case->id,
+                'ip_address' => request()->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Legal case deleted successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting case: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

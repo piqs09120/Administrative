@@ -13,4 +13,21 @@ class LandingController extends Controller
     {
         return view('landing.index');
     }
+
+    /**
+     * Display the visitor management landing page
+     */
+    public function visitorManagement()
+    {
+        return view('visitor_management_landing');
+    }
+
+    /**
+     * Display the facilities reservation landing page
+     */
+    public function facilitiesReservation()
+    {
+        $facilities = \App\Models\Facility::all();
+        return view('facilities_reservation_landing', compact('facilities'));
+    }
 }

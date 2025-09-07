@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Facility;
 use App\Models\FacilityReservation;
+use App\Mail\RequestSubmittedMail;
+use App\Mail\RequestApprovedMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use App\Services\GeminiService;
 use App\Services\DocumentTextExtractorService;
@@ -53,6 +56,116 @@ class FacilityReservationController extends Controller
         // Facilities list for the modal form on the index page
         $facilities = Facility::where('status', 'available')->get();
         return view('facility_reservations.index', compact('reservations', 'facilities'));
+    }
+
+    public function newRequest()
+    {
+        $facilities = Facility::all();
+        $requests = \App\Models\FacilityRequest::with(['facility', 'assignedTo'])->latest()->get();
+        
+        return view('facility_reservations.new_request', compact('facilities', 'requests'));
+    }
+
+    public function storeRequest(Request $request)
+    {
+        $validated = $request->validate([
+            'request_type' => 'required|string|in:maintenance,reservation,equipment_request',
+            'department' => 'required|string',
+            'priority' => 'required|string|in:low,medium,high,urgent',
+            'location' => 'required|string',
+            'facility_id' => 'nullable|exists:facilities,id',
+            'requested_datetime' => 'required|date',
+            'description' => 'required|string',
+            'contact_name' => 'required|string',
+            'contact_email' => 'required|email',
+        ]);
+
+        // If reservation type, facility_id is required
+        if ($validated['request_type'] === 'reservation' && !$validated['facility_id']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please select a facility for reservation requests.'
+            ], 422);
+        }
+
+        $request_data = \App\Models\FacilityRequest::create($validated);
+
+        // Send email notification
+        try {
+            Mail::to($request_data->contact_email)->send(new RequestSubmittedMail($request_data));
+        } catch (\Exception $e) {
+            Log::error('Failed to send request submitted email: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Request submitted successfully!',
+            'data' => $request_data
+        ]);
+    }
+
+    public function approveRequest($id)
+    {
+        $request = \App\Models\FacilityRequest::findOrFail($id);
+        
+        if ($request->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This request has already been processed.'
+            ], 400);
+        }
+        
+        $request->update(['status' => 'approved']);
+        
+        // Update facility status to occupied if it's a reservation
+        if ($request->request_type === 'reservation' && $request->facility_id) {
+            $facility = Facility::find($request->facility_id);
+            if ($facility) {
+                $facility->update(['status' => 'occupied']);
+                Log::info("Facility {$facility->name} (ID: {$facility->id}) status updated to occupied for approved reservation");
+            }
+        }
+        
+        // Send email notification
+        try {
+            Mail::to($request->contact_email)->send(new RequestApprovedMail($request));
+        } catch (\Exception $e) {
+            Log::error('Failed to send request approved email: ' . $e->getMessage());
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Request approved successfully!'
+        ]);
+    }
+
+    public function showRequest($id)
+    {
+        $request = \App\Models\FacilityRequest::with('facility')->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $request
+        ]);
+    }
+
+    public function freeFacility($id)
+    {
+        $facility = Facility::findOrFail($id);
+        
+        if ($facility->status !== 'occupied') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This facility is not currently occupied.'
+            ], 400);
+        }
+        
+        $facility->update(['status' => 'available']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Facility has been freed and is now available.'
+        ]);
     }
 
     public function create()

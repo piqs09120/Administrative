@@ -184,8 +184,8 @@ class VisitorLogController extends Controller
         $endOfDay = now()->endOfDay();
         
         return [
-            'today' => Visitor::whereBetween('time_in', [$today, $endOfDay])->count(),
-            'currently_in' => Visitor::whereNull('time_out')->count(),
+            'today' => Visitor::whereBetween('created_at', [$today, $endOfDay])->count(),
+            'currently_in' => Visitor::whereNotNull('time_in')->whereNull('time_out')->count(),
             'avg_duration' => $this->getAverageDuration(),
             'peak_hours' => $this->getPeakHoursString()
         ];
@@ -231,7 +231,8 @@ class VisitorLogController extends Controller
             $dayStart = $current->copy()->startOfDay();
             $dayEnd = $current->copy()->endOfDay();
             
-            $count = Visitor::whereBetween('time_in', [$dayStart, $dayEnd])->count();
+            // Count visitors created on this day (both registered and checked in)
+            $count = Visitor::whereBetween('created_at', [$dayStart, $dayEnd])->count();
             
             $trends[] = [
                 'date' => $current->format('Y-m-d'),
@@ -247,7 +248,7 @@ class VisitorLogController extends Controller
 
     private function getVisitorTypes(Carbon $start, Carbon $end): array
     {
-        $types = Visitor::whereBetween('time_in', [$start, $end])
+        $types = Visitor::whereBetween('created_at', [$start, $end])
             ->select('purpose', DB::raw('count(*) as count'))
             ->groupBy('purpose')
             ->get()
@@ -262,8 +263,8 @@ class VisitorLogController extends Controller
         $hours = [];
         
         for ($i = 0; $i < 24; $i++) {
-            $count = Visitor::whereBetween('time_in', [$start, $end])
-                ->whereRaw('HOUR(time_in) = ?', [$i])
+            $count = Visitor::whereBetween('created_at', [$start, $end])
+                ->whereRaw('HOUR(created_at) = ?', [$i])
                 ->count();
                 
             $hours[] = [
@@ -278,7 +279,7 @@ class VisitorLogController extends Controller
 
     private function getMostVisitedFacility(Carbon $start, Carbon $end): string
     {
-        $facility = Visitor::whereBetween('time_in', [$start, $end])
+        $facility = Visitor::whereBetween('visitors.created_at', [$start, $end])
             ->join('facilities', 'visitors.facility_id', '=', 'facilities.id')
             ->select('facilities.name', DB::raw('count(*) as count'))
             ->groupBy('facilities.id', 'facilities.name')
@@ -290,13 +291,13 @@ class VisitorLogController extends Controller
 
     private function getReturnVisitors(Carbon $start, Carbon $end): float
     {
-        $totalVisitors = Visitor::whereBetween('time_in', [$start, $end])->count();
+        $totalVisitors = Visitor::whereBetween('created_at', [$start, $end])->count();
         
         if ($totalVisitors === 0) {
             return 0;
         }
         
-        $returnVisitors = Visitor::whereBetween('time_in', [$start, $end])
+        $returnVisitors = Visitor::whereBetween('created_at', [$start, $end])
             ->select('name', 'company')
             ->groupBy('name', 'company')
             ->havingRaw('count(*) > 1')
@@ -307,11 +308,13 @@ class VisitorLogController extends Controller
 
     private function getDetailedStats(Carbon $start, Carbon $end): array
     {
-        $totalVisitors = Visitor::whereBetween('time_in', [$start, $end])->count();
-        $currentlyIn = Visitor::whereBetween('time_in', [$start, $end])
+        $totalVisitors = Visitor::whereBetween('created_at', [$start, $end])->count();
+        $currentlyIn = Visitor::whereBetween('created_at', [$start, $end])
+            ->whereNotNull('time_in')
             ->whereNull('time_out')
             ->count();
-        $completedVisits = Visitor::whereBetween('time_in', [$start, $end])
+        $completedVisits = Visitor::whereBetween('created_at', [$start, $end])
+            ->whereNotNull('time_in')
             ->whereNotNull('time_out')
             ->count();
             
@@ -325,10 +328,10 @@ class VisitorLogController extends Controller
 
     private function getAverageDuration(?Carbon $start = null, ?Carbon $end = null): string
     {
-        $query = Visitor::whereNotNull('time_out');
+        $query = Visitor::whereNotNull('time_out')->whereNotNull('time_in');
         
         if ($start && $end) {
-            $query->whereBetween('time_in', [$start, $end]);
+            $query->whereBetween('created_at', [$start, $end]);
         }
         
         $avgMinutes = $query->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, time_in, time_out)) as avg_duration')
@@ -350,7 +353,7 @@ class VisitorLogController extends Controller
         $maxCount = max(array_column($peakHours, 'count'));
         $peakHour = collect($peakHours)->firstWhere('count', $maxCount);
         
-        if ($peakHour) {
+        if ($peakHour && $maxCount > 0) {
             $hour = $peakHour['hour'];
             return sprintf('%02d:00 - %02d:00', $hour, $hour + 1);
         }

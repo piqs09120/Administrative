@@ -154,9 +154,17 @@
         <!-- Page Header with Stats -->
         <div class="mb-8">
           <div class="mb-6">
+            <div class="flex items-center justify-between">
             <div>
               <h1 class="text-3xl font-bold text-gray-800 mb-2">Legal Cases</h1>
               <p class="text-gray-600">Manage and track all legal cases and proceedings</p>
+              </div>
+              @if(auth()->user()->role === 'Administrator')
+              <button onclick="openAddCaseModal()" class="btn btn-primary">
+                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                Add New Case
+              </button>
+              @endif
             </div>
           </div>
           
@@ -256,7 +264,6 @@
                   <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-4 text-left font-semibold text-gray-700">Case Details</th>
                     <th class="px-6 py-4 text-center font-semibold text-gray-700">Type</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Status</th>
                     <th class="px-6 py-4 text-center font-semibold text-gray-700">Date</th>
                     <th class="px-6 py-4 text-center font-semibold text-gray-700">Actions</th>
                   </tr>
@@ -281,23 +288,6 @@
                         @endif
                       </td>
                       <td class="px-6 py-4 text-center">
-                        @php
-                          $statusConfig = [
-                            'pending' => ['class' => 'badge-warning', 'icon' => 'clock'],
-                            'ongoing' => ['class' => 'badge-info', 'icon' => 'gavel'],
-                            'completed' => ['class' => 'badge-success', 'icon' => 'check-circle'],
-                            'rejected' => ['class' => 'badge-error', 'icon' => 'x-circle']
-                          ];
-                          $status = $case->status ?? 'pending';
-                          $config = $statusConfig[$status] ?? $statusConfig['pending'];
-                        @endphp
-                        <span class="badge {{ $config['class'] }} gap-1">
-                          <i data-lucide="{{ $config['icon'] }}" class="w-3 h-3"></i>
-                          {{ ucfirst($status) }}
-                        </span>
-                      </td>
-
-                      <td class="px-6 py-4 text-center">
                         <div class="text-sm text-gray-600">
                           {{ $case->created_at ? $case->created_at->format('M d, Y') : 'N/A' }}
                         </div>
@@ -315,26 +305,18 @@
                                     data-tip="Decline Case">
                               <i data-lucide="x" class="w-4 h-4 text-white"></i>
                             </button>
-                          @else
-                            @if(auth()->user()->role === 'Administrator')
-                          <button onclick="viewCase({{ $case->id ?? 1 }})" 
-                                  class="btn btn-ghost btn-xs tooltip" 
-                                  data-tip="View Case">
-                            <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
-                          </button>
-                          <button onclick="editCase({{ $case->id ?? 1 }})" 
-                                  class="btn btn-ghost btn-xs tooltip" 
-                                  data-tip="Edit Case">
-                            <i data-lucide="edit" class="w-4 h-4 text-green-600"></i>
-                          </button>
-                            @endif
                           @endif
-                      </div>
+                          <button onclick="deleteCase({{ $case->id ?? 1 }})" 
+                                  class="btn btn-error btn-xs tooltip" 
+                                  data-tip="Delete Case">
+                            <i data-lucide="trash-2" class="w-4 h-4 text-white"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="5" class="text-center py-12">
+                      <td colspan="4" class="text-center py-12">
                         <div class="flex flex-col items-center">
                           <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                             <i data-lucide="briefcase" class="w-10 h-10 text-gray-400"></i>
@@ -342,10 +324,10 @@
                           <h3 class="text-lg font-semibold text-gray-600 mb-2">No Legal Cases Found</h3>
                           <p class="text-gray-500 text-sm mb-4">Get started by creating your first legal case</p>
                           @if(auth()->user()->role === 'Administrator')
-                          <a href="{{ route('legal.create') }}" class="btn btn-primary">
+                          <button onclick="openAddCaseModal()" class="btn btn-primary">
                             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                             Add New Case
-                    </a>
+                          </button>
                           @endif
                   </div>
                       </td>
@@ -366,7 +348,172 @@
     </div>
   </div>
 
+  <!-- Add New Case Modal -->
+  <div id="addCaseModal" class="modal">
+    <div class="modal-box w-11/12 max-w-6xl bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Add New Legal Case</h2>
+        <button onclick="closeAddCaseModal()" class="btn btn-sm btn-circle btn-ghost">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
 
+      <form action="{{ route('legal.store') }}" method="POST" enctype="multipart/form-data" id="addCaseForm">
+        @csrf
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Left Column: Form Fields -->
+          <div class="space-y-6">
+            <!-- Case Title -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                Case Title*
+              </label>
+              <input type="text" name="case_title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                     value="{{ old('case_title') }}" placeholder="Enter case title" required 
+                     style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                Enter a descriptive title for the legal case
+              </p>
+            </div>
+
+            <!-- Case Description -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                Case Description
+              </label>
+              <textarea name="case_description" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" 
+                        rows="4" placeholder="Brief description of the legal case..." 
+                        style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">{{ old('case_description') }}</textarea>
+              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                Provide a brief description of the case
+              </p>
+            </div>
+
+            <!-- Case Type -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                Case Type*
+              </label>
+              <select name="case_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required
+                      style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                <option value="">Select case type</option>
+                <option value="contract_dispute" {{ old('case_type') == 'contract_dispute' ? 'selected' : '' }}>Contract Dispute</option>
+                <option value="employment_law" {{ old('case_type') == 'employment_law' ? 'selected' : '' }}>Employment Law</option>
+                <option value="intellectual_property" {{ old('case_type') == 'intellectual_property' ? 'selected' : '' }}>Intellectual Property</option>
+                <option value="regulatory_compliance" {{ old('case_type') == 'regulatory_compliance' ? 'selected' : '' }}>Regulatory Compliance</option>
+                <option value="litigation" {{ old('case_type') == 'litigation' ? 'selected' : '' }}>Litigation</option>
+                <option value="other" {{ old('case_type') == 'other' ? 'selected' : '' }}>Other</option>
+              </select>
+              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                Select the type of legal case
+              </p>
+            </div>
+
+            <!-- Priority -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                Priority*
+              </label>
+              <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required
+                      style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                <option value="">Select priority</option>
+                <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                <option value="normal" {{ old('priority') == 'normal' ? 'selected' : '' }}>Normal</option>
+                <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
+                <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+              </select>
+              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                Set the priority level for this case
+              </p>
+            </div>
+
+            <!-- Assigned To -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                Assigned To
+              </label>
+              <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                <option value="">Select assignee</option>
+                <option value="legal_team" {{ old('assigned_to') == 'legal_team' ? 'selected' : '' }}>Legal Team</option>
+                <option value="senior_counsel" {{ old('assigned_to') == 'senior_counsel' ? 'selected' : '' }}>Senior Counsel</option>
+                <option value="external_counsel" {{ old('assigned_to') == 'external_counsel' ? 'selected' : '' }}>External Counsel</option>
+              </select>
+              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                Assign the case to a team member
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Column: Document Upload & AI Analysis -->
+          <div class="space-y-6">
+            <!-- Document File Section -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                Document File
+              </label>
+              <p class="text-sm text-gray-500 mb-3" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                PDF, Word, Excel, PPT, Text files (Max: 10MB)
+              </p>
+              
+              <!-- File Upload Zone -->
+              <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center transition-colors cursor-pointer bg-blue-50 hover:bg-blue-100"
+                   onclick="document.getElementById('legal_document').click()" 
+                   ondrop="handleDrop(event)" 
+                   ondragover="handleDragOver(event)" 
+                   ondragleave="handleDragLeave(event)"
+                   id="uploadZone">
+                
+                <input type="file" name="legal_document" id="legal_document" class="hidden" 
+                       accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" required>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-center">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100">
+                      <i data-lucide="cloud-arrow-up" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Click to select or drag file</p>
+                    <p class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">Max file size: 10MB</p>
+                  </div>
+                  <p class="text-sm text-blue-600 font-medium">AI will automatically analyze and classify your document</p>
+                </div>
+              </div>
+              
+              <!-- File Preview -->
+              <div id="filePreview" class="mt-4 hidden">
+                <div class="rounded-lg p-4 border border-green-300 bg-green-50">
+                  <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                    <div class="flex-1">
+                      <p class="font-medium text-green-800" id="fileName"></p>
+                      <p class="text-sm text-green-600" id="fileSize"></p>
+                    </div>
+                    <button type="button" onclick="removeFile()" class="text-green-600 hover:text-green-800">
+                      <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Analysis Complete Section -->
+            <div id="aiAnalysis" class="hidden"></div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="upload" class="w-5 h-5"></i>
+            ADD CASE
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   @include('partials.soliera_js')
   
@@ -383,9 +530,8 @@
     
     // Search and filter functionality
     function filterCases() {
-      const searchTerm = document.getElementById('caseSearch').value.toLowerCase();
-      const statusFilter = document.getElementById('statusFilter').value;
-      const priorityFilter = document.getElementById('priorityFilter').value;
+      const searchTerm = document.getElementById('caseSearch')?.value?.toLowerCase() || '';
+      const priorityFilter = document.getElementById('priorityFilter')?.value || '';
       
       const rows = document.querySelectorAll('tbody tr');
       
@@ -401,17 +547,9 @@
           }
         }
         
-        // Status filter
-        if (statusFilter && showRow) {
-          const status = row.querySelector('td:nth-child(3) .badge')?.textContent?.toLowerCase() || '';
-          if (!status.includes(statusFilter)) {
-            showRow = false;
-          }
-        }
-        
         // Priority filter
         if (priorityFilter && showRow) {
-          const priority = row.querySelector('td:nth-child(4) .badge')?.textContent?.toLowerCase() || '';
+          const priority = row.querySelector('td:nth-child(2) .badge')?.textContent?.toLowerCase() || '';
           if (!priority.includes(priorityFilter)) {
             showRow = false;
           }
@@ -423,9 +561,11 @@
     }
     
     function clearFilters() {
-      document.getElementById('caseSearch').value = '';
-      document.getElementById('statusFilter').value = '';
-      document.getElementById('priorityFilter').value = '';
+      const caseSearch = document.getElementById('caseSearch');
+      const priorityFilter = document.getElementById('priorityFilter');
+      
+      if (caseSearch) caseSearch.value = '';
+      if (priorityFilter) priorityFilter.value = '';
       
       // Show all rows
       const rows = document.querySelectorAll('tbody tr');
@@ -435,34 +575,133 @@
     }
     
     // Case actions
-    function viewCase(caseId) {
-      window.location.href = `/legal/cases/${caseId}`;
-    }
-    
-    function editCase(caseId) {
-      window.location.href = `/legal/cases/${caseId}/edit`;
-    }
-    
     function deleteCase(caseId) {
-      if (confirm('Are you sure you want to delete this legal case? This action cannot be undone.')) {
+      showDeleteModal(caseId);
+    }
+
+    // Show beautiful delete confirmation modal
+    function showDeleteModal(caseId) {
+      const modal = document.createElement('div');
+      modal.className = 'modal modal-open';
+      modal.innerHTML = `
+        <div class="modal-box w-11/12 max-w-md bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <i data-lucide="trash-2" class="w-6 h-6 text-red-600"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-800">Delete Legal Case</h3>
+                <p class="text-sm text-gray-500">This action will permanently remove the case</p>
+              </div>
+            </div>
+            <button onclick="closeDeleteModal()" class="btn btn-sm btn-circle btn-ghost">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="mb-6">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                  <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">Permanent Deletion</h4>
+                  <p class="text-sm text-gray-600">Are you sure you want to delete this legal case? This action cannot be undone.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
+                <p class="text-sm text-yellow-700 font-medium">All case data will be permanently lost</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button onclick="closeDeleteModal()" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-sm hover:shadow-md">
+              <i data-lucide="x" class="w-4 h-4 mr-2"></i>
+              Cancel
+            </button>
+            <button onclick="confirmDelete(${caseId})" class="btn btn-error btn-sm hover:btn-error-focus transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105" id="confirmDeleteBtn">
+              <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
+              <span id="deleteBtnText">Delete Case</span>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      lucide.createIcons();
+      
+      // Close modal when clicking outside
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeDeleteModal();
+        }
+      });
+    }
+
+    // Close delete modal
+    function closeDeleteModal() {
+      const modal = document.querySelector('.modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    // Confirm delete action
+    function confirmDelete(caseId) {
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+      const btnText = document.getElementById('deleteBtnText');
+      
+      // Show loading state
+      confirmBtn.disabled = true;
+      btnText.textContent = 'Deleting...';
+      confirmBtn.innerHTML = `
+        <i class="loading loading-spinner loading-sm mr-2"></i>
+        <span>Deleting...</span>
+      `;
+      
         fetch(`/legal/cases/${caseId}`, {
           method: 'DELETE',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-          }
-        })
-        .then(response => {
-          if (response.ok) {
-              window.location.reload();
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Close modal
+          closeDeleteModal();
+          
+          // Show enhanced success notification
+          showEnhancedToast('Legal case deleted successfully!', 'success', 'trash-2', 'Case has been permanently removed from the system.');
+          
+          // Reload page to update statistics and table
+          setTimeout(() => window.location.reload(), 1500);
           } else {
-            alert('Error deleting case');
+          throw new Error(data.message || 'Failed to delete case');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('An error occurred while deleting the case');
-        });
-      }
+        
+        // Reset button state
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = `
+          <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
+          <span>Delete Case</span>
+        `;
+        lucide.createIcons();
+        
+        // Show enhanced error notification
+        showEnhancedToast('Error deleting case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+      });
     }
 
     // Approve a legal case
@@ -728,9 +967,11 @@
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
       // Search and filter event listeners
-      document.getElementById('caseSearch').addEventListener('input', filterCases);
-      document.getElementById('statusFilter').addEventListener('change', filterCases);
-      document.getElementById('priorityFilter').addEventListener('change', filterCases);
+      const caseSearch = document.getElementById('caseSearch');
+      const priorityFilter = document.getElementById('priorityFilter');
+      
+      if (caseSearch) caseSearch.addEventListener('input', filterCases);
+      if (priorityFilter) priorityFilter.addEventListener('change', filterCases);
       
       // File input change event listener
       const fileInput = document.getElementById('legal_document');
@@ -865,6 +1106,211 @@
     function showToast(message, type = 'info') {
       showEnhancedToast(message, type);
     }
+
+    // Modal functions for Add New Case
+    function openAddCaseModal() {
+      const modal = document.getElementById('addCaseModal');
+      modal.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+      
+      // Initialize Lucide icons in modal
+      lucide.createIcons();
+    }
+
+    function closeAddCaseModal() {
+      const modal = document.getElementById('addCaseModal');
+      modal.classList.remove('modal-open');
+      document.body.style.overflow = 'auto';
+      
+      // Reset form
+      const form = document.getElementById('addCaseForm');
+      form.reset();
+      
+      // Hide file preview and AI analysis
+      document.getElementById('filePreview').classList.add('hidden');
+      document.getElementById('aiAnalysis').classList.add('hidden');
+    }
+
+    // File upload handling functions
+    function handleDrop(e) {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        document.getElementById('legal_document').files = files;
+        updateFilePreview(files[0]);
+        analyzeDocument(files[0]);
+      }
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+    }
+
+    function updateFilePreview(file) {
+      const preview = document.getElementById('filePreview');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      preview.classList.remove('hidden');
+    }
+
+    function removeFile() {
+      document.getElementById('legal_document').value = '';
+      document.getElementById('filePreview').classList.add('hidden');
+      document.getElementById('aiAnalysis').classList.add('hidden');
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // AI Document Analysis
+    function analyzeDocument(file) {
+      const formData = new FormData();
+      formData.append('document_file', file);
+      formData.append('_token', '{{ csrf_token() }}');
+
+      // Show loading state
+      const aiAnalysisPanel = document.getElementById('aiAnalysis');
+      aiAnalysisPanel.classList.remove('hidden');
+      aiAnalysisPanel.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-blue-500"></i>
+            <h3 class="font-medium text-blue-800">Analyzing Document...</h3>
+          </div>
+          <p class="text-sm text-blue-600">AI is processing your document</p>
+        </div>
+      `;
+
+      fetch('{{ route("document.analyzeUpload") }}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok) {
+          const fallback = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Server error' };
+          return fallback;
+        }
+        if (!contentType.includes('application/json')) {
+          return { success: false, message: 'Unexpected response from server' };
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          // Update AI analysis results
+          const categoryDisplayNames = {
+            'memorandum': 'Memorandum',
+            'contract': 'Contract',
+            'subpoena': 'Subpoena',
+            'affidavit': 'Affidavit',
+            'cease_desist': 'Cease & Desist',
+            'legal_notice': 'Legal Notice',
+            'policy': 'Policy',
+            'legal_brief': 'Legal Brief',
+            'financial': 'Financial Document',
+            'compliance': 'Compliance Document',
+            'report': 'Report',
+            'general': 'Legal General'
+          };
+
+          const displayCategory = categoryDisplayNames[data.analysis.category] || 'Legal General';
+          
+          const summary = data.analysis.summary || '—';
+          const compliance = data.analysis.compliance_status || 'review_required';
+          const tags = data.analysis.tags ? (Array.isArray(data.analysis.tags) ? data.analysis.tags.join(', ') : data.analysis.tags) : '—';
+          const risk = data.analysis.legal_risk_score || 'Low';
+          const needsReview = (data.analysis.requires_legal_review ? 'Yes' : 'No');
+
+          aiAnalysisPanel.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                <h3 class="font-medium text-green-800">AI Analysis Complete</h3>
+              </div>
+              <div class="space-y-2 text-sm">
+                <div><strong>Category:</strong> <span class="font-semibold text-green-700">${displayCategory}</span></div>
+                <div><strong>Summary:</strong> <span class="text-green-700">${summary}</span></div>
+                <div><strong>Compliance:</strong> <span class="text-green-700">${compliance}</span></div>
+                <div><strong>Tags:</strong> <span class="text-green-700">${tags}</span></div>
+                <div><strong>Legal Risk:</strong> <span class="text-green-700">${risk}</span></div>
+                <div><strong>Legal Review Required:</strong> <span class="text-green-700">${needsReview}</span></div>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        } else {
+          // Show error state
+          aiAnalysisPanel.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+                <h3 class="font-medium text-red-800">Analysis Failed</h3>
+              </div>
+              <p class="text-sm text-red-600">${data.message || 'Unable to analyze document'}</p>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        // Show error state
+        aiAnalysisPanel.innerHTML = `
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+              <h3 class="font-medium text-red-800">Analysis Failed</h3>
+            </div>
+            <p class="text-sm text-red-600">Network or server error</p>
+          </div>
+        `;
+      });
+    }
+
+    // Event listeners for modal
+    document.addEventListener('DOMContentLoaded', function() {
+      // File input change event listener
+      const fileInput = document.getElementById('legal_document');
+      if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+          if (e.target.files.length > 0) {
+            updateFilePreview(e.target.files[0]);
+            analyzeDocument(e.target.files[0]);
+          }
+        });
+      }
+      
+      // Form submission handler
+      const addCaseForm = document.getElementById('addCaseForm');
+      if (addCaseForm) {
+        addCaseForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          handleFormSubmission();
+        });
+      }
+
+      // Close modal when clicking outside
+      const modal = document.getElementById('addCaseModal');
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            closeAddCaseModal();
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>

@@ -17,5 +17,7 @@ export default defineConfig({
         hmr: {
             host: 'localhost',
         },
+        cors: true,
+        origin: 'http://project.test'
     }
 });

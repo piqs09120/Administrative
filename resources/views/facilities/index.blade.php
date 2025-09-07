@@ -224,6 +224,23 @@
     .facility-btn-reserve:hover i {
       transform: scale(1.1);
     }
+
+    .facility-btn-free {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      border: 1px solid #d97706;
+      transition: all 0.3s ease;
+    }
+
+    .facility-btn-free:hover {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .facility-btn-free:hover i {
+      transform: scale(1.1);
+    }
     
     /* Delete Button - Soft Red */
     .facility-btn-delete {
@@ -474,114 +491,6 @@
           </div>
         </div>
 
-        <!-- Advanced Search and Filters -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <i data-lucide="search" class="w-5 h-5 text-blue-600"></i>
-              Search & Filter Facilities
-            </h3>
-            <button onclick="clearAllFilters()" class="btn btn-ghost btn-sm text-gray-500 hover:text-gray-700">
-              <i data-lucide="x" class="w-4 h-4 mr-1"></i>
-              Clear All
-            </button>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Search Bar -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium">Search Facilities</span>
-              </label>
-              <div class="relative">
-                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                <input type="text" 
-                       id="facilitySearch" 
-                       placeholder="Search by name or location..." 
-                       class="input input-bordered w-full pl-10 pr-4">
-              </div>
-            </div>
-
-            <!-- Date Range Filter -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium">Available Date</span>
-              </label>
-              <input type="date" 
-                     id="availabilityDate" 
-                     class="input input-bordered w-full"
-                     min="{{ date('Y-m-d') }}">
-            </div>
-
-            <!-- Facility Type Filter -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium">Facility Type</span>
-              </label>
-              <select id="facilityTypeFilter" class="select select-bordered w-full">
-                <option value="">All Types</option>
-                <option value="conference">Conference Room</option>
-                <option value="meeting">Meeting Room</option>
-                <option value="banquet">Banquet Hall</option>
-                <option value="auditorium">Auditorium</option>
-                <option value="training">Training Room</option>
-                <option value="office">Office Space</option>
-              </select>
-            </div>
-
-            <!-- Status Filter -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium">Status</span>
-              </label>
-              <select id="statusFilter" class="select select-bordered w-full">
-                <option value="">All Status</option>
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-                <option value="unavailable">Unavailable</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Advanced Filters Toggle -->
-          <div class="mt-4">
-            <button onclick="toggleAdvancedFilters()" class="btn btn-ghost btn-sm text-blue-600 hover:text-blue-700">
-              <i data-lucide="chevron-down" class="w-4 h-4 mr-1" id="advancedToggleIcon"></i>
-              <span id="advancedToggleText">Show Advanced Filters</span>
-            </button>
-          </div>
-
-          <!-- Advanced Filters Panel -->
-          <div id="advancedFiltersPanel" class="hidden mt-4 pt-4 border-t border-gray-200">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Capacity Filter -->
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Minimum Capacity</span>
-                </label>
-                <input type="number" 
-                       id="capacityFilter" 
-                       placeholder="e.g., 10" 
-                       min="1"
-                       class="input input-bordered w-full">
-              </div>
-
-              <!-- Location Filter -->
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Location</span>
-                </label>
-                <select id="locationFilter" class="select select-bordered w-full">
-                  <option value="">All Locations</option>
-                  @foreach($facilities->pluck('location')->unique()->filter() as $location)
-                    <option value="{{ $location }}">{{ $location }}</option>
-                  @endforeach
-                </select>
-              </div>
-
-            </div>
-          </div>
-        </div>
 
         <!-- Action Buttons -->
         <div class="flex flex-wrap gap-3 mb-8">
@@ -633,8 +542,20 @@
           </div>
         </div>
 
-        <!-- Facilities Grid -->
-        <div id="facilitiesGridView" class="bg-white rounded-xl shadow-lg p-6">
+        <!-- Tab Navigation -->
+        <div class="bg-gray-100 px-6 py-2 border-b border-gray-200 mb-6" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
+          <div class="flex space-x-1">
+            <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="showFacilityTab('directory')" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);">
+              <i data-lucide="building" class="w-4 h-4 mr-1"></i>Facility Directory
+            </button>
+            <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showFacilityTab('monitoring')" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
+              <i data-lucide="activity" class="w-4 h-4 mr-1"></i>Monitoring
+            </button>
+          </div>
+        </div>
+
+        <!-- Facility Directory Tab -->
+        <div id="facility-directory-tab" class="bg-white rounded-xl shadow-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-800 flex items-center">
               <i data-lucide="building" class="w-6 h-6 text-blue-500 mr-3"></i>
@@ -652,7 +573,7 @@
               >
                 <i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i>
                 <span class="fallback-icon" style="display: none;">☰</span>
-              </button>
+                </button>
             </div>
           </div>
 
@@ -773,8 +694,8 @@
                         </button>
                       </div>
                     @else
-                      <!-- 3 buttons layout for occupied facilities -->
-                      <div class="grid grid-cols-3 gap-3 text-sm">
+                      <!-- 4 buttons layout for occupied facilities -->
+                      <div class="grid grid-cols-2 gap-3 text-sm">
                         <button type="button"
                            class="openViewFacilityBtn facility-action-btn facility-btn-view h-9"
                            data-id="{{ $facility->id }}">
@@ -791,6 +712,14 @@
                            data-status="{{ $facility->status }}">
                           <i data-lucide="edit" class="w-3 h-3"></i>
                           <span>Edit</span>
+                        </button>
+
+                        <button type="button" 
+                                class="freeFacilityBtn facility-action-btn facility-btn-free h-9" 
+                                data-id="{{ $facility->id }}"
+                                data-name="{{ $facility->name }}">
+                          <i data-lucide="unlock" class="w-3 h-3"></i>
+                          <span>Free</span>
                         </button>
 
                         <button type="button" 
@@ -822,6 +751,250 @@
               </a>
             </div>
           @endif
+        </div>
+
+        <!-- Monitoring Tab -->
+        <div id="facility-monitoring-tab" class="bg-white rounded-xl shadow-lg p-6 hidden">
+          <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">Facility Monitoring</h1>
+            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Real-time monitoring of facility status, usage analytics, and performance metrics</p>
+          </div>
+
+          <!-- Real-Time Dashboard Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Live Status Overview -->
+            <div class="stats-card bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 text-white transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl rounded-2xl overflow-hidden relative">
+              <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <i data-lucide="activity" class="w-7 h-7 text-white animate-pulse"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold text-white/90 uppercase tracking-wide">Live Status</h3>
+                      <p class="text-xs text-white/70">Active Facilities</p>
+                    </div>
+                  </div>
+                  <div class="w-3 h-3 bg-green-300 rounded-full animate-ping"></div>
+                </div>
+                <div class="flex items-end justify-between">
+                  <p class="text-4xl font-bold text-white" id="liveStatusCount">-</p>
+                  <div class="text-right">
+                    <p class="text-xs text-white/70">Real-time</p>
+                    <div class="w-16 h-1 bg-white/30 rounded-full mt-1">
+                      <div class="w-full h-full bg-white rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Current Reservations -->
+            <div class="stats-card bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-600 text-white transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl rounded-2xl overflow-hidden relative">
+              <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <i data-lucide="calendar" class="w-7 h-7 text-white animate-bounce"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold text-white/90 uppercase tracking-wide">Active Reservations</h3>
+                      <p class="text-xs text-white/70">In Progress</p>
+                    </div>
+                  </div>
+                  <div class="w-3 h-3 bg-blue-300 rounded-full animate-ping"></div>
+                </div>
+                <div class="flex items-end justify-between">
+                  <p class="text-4xl font-bold text-white" id="activeReservationsCount">-</p>
+                  <div class="text-right">
+                    <p class="text-xs text-white/70">Today</p>
+                    <div class="w-16 h-1 bg-white/30 rounded-full mt-1">
+                      <div class="w-3/4 h-full bg-white rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Utilization Rate -->
+            <div class="stats-card bg-gradient-to-br from-purple-400 via-purple-500 to-violet-600 text-white transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl rounded-2xl overflow-hidden relative">
+              <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <i data-lucide="trending-up" class="w-7 h-7 text-white animate-pulse"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold text-white/90 uppercase tracking-wide">Utilization</h3>
+                      <p class="text-xs text-white/70">Average Usage</p>
+                    </div>
+                  </div>
+                  <div class="w-3 h-3 bg-purple-300 rounded-full animate-ping"></div>
+                </div>
+                <div class="flex items-end justify-between">
+                  <p class="text-4xl font-bold text-white" id="utilizationRate">-</p>
+                  <div class="text-right">
+                    <p class="text-xs text-white/70">Efficiency</p>
+                    <div class="w-16 h-1 bg-white/30 rounded-full mt-1">
+                      <div class="w-4/5 h-full bg-white rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Revenue Today -->
+            <div class="stats-card bg-gradient-to-br from-orange-400 via-orange-500 to-amber-600 text-white transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl rounded-2xl overflow-hidden relative">
+              <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <i data-lucide="dollar-sign" class="w-7 h-7 text-white animate-bounce"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold text-white/90 uppercase tracking-wide">Revenue Today</h3>
+                      <p class="text-xs text-white/70">Total Earnings</p>
+                    </div>
+                  </div>
+                  <div class="w-3 h-3 bg-orange-300 rounded-full animate-ping"></div>
+                </div>
+                <div class="flex items-end justify-between">
+                  <p class="text-4xl font-bold text-white" id="revenueToday">-</p>
+                  <div class="text-right">
+                    <p class="text-xs text-white/70">Profit</p>
+                    <div class="w-16 h-1 bg-white/30 rounded-full mt-1">
+                      <div class="w-full h-full bg-white rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Monitoring Content -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Facility Status & Alerts -->
+            <div class="lg:col-span-2 space-y-6">
+              <!-- Facility Status Grid -->
+              <div class="card bg-white border border-gray-200">
+                <div class="card-header p-4 border-b border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i data-lucide="building" class="w-5 h-5 text-blue-500 mr-2"></i>
+                    Facility Status Overview
+                  </h3>
+                </div>
+                <div class="card-body p-4">
+                  <div id="facility-status-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Facility status cards will be loaded here -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Usage Analytics Chart -->
+              <div class="card bg-white border border-gray-200">
+                <div class="card-header p-4 border-b border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i data-lucide="bar-chart" class="w-5 h-5 text-green-500 mr-2"></i>
+                    Usage Analytics
+                  </h3>
+                </div>
+                <div class="card-body p-4">
+                  <div id="usage-chart" class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                    <div class="text-center">
+                      <i data-lucide="bar-chart" class="w-12 h-12 text-gray-400 mx-auto mb-2"></i>
+                      <p class="text-gray-500">Usage analytics chart will be displayed here</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Activity Timeline & Quick Actions -->
+            <div class="space-y-6">
+              <!-- Activity Timeline -->
+              <div class="card bg-white border border-gray-200">
+                <div class="card-header p-4 border-b border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i data-lucide="clock" class="w-5 h-5 text-purple-500 mr-2"></i>
+                    Activity Timeline
+                  </h3>
+                </div>
+                <div class="card-body p-4">
+                  <div id="activity-timeline" class="space-y-3 max-h-64 overflow-y-auto">
+                    <!-- Activity items will be loaded here -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="card bg-white border border-gray-200">
+                <div class="card-header p-4 border-b border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i data-lucide="zap" class="w-5 h-5 text-yellow-500 mr-2"></i>
+                    Quick Actions
+                  </h3>
+                </div>
+                <div class="card-body p-4">
+                  <div class="space-y-2">
+                    <button onclick="refreshMonitoringData()" class="btn btn-outline btn-sm w-full justify-start">
+                      <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                      Refresh Data
+                    </button>
+                    <button onclick="exportMonitoringReport()" class="btn btn-outline btn-sm w-full justify-start">
+                      <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                      Export Report
+                    </button>
+                    <button onclick="openFacilityMap()" class="btn btn-outline btn-sm w-full justify-start">
+                      <i data-lucide="map" class="w-4 h-4 mr-2"></i>
+                      View Map
+                    </button>
+                    <button onclick="openMaintenanceSchedule()" class="btn btn-outline btn-sm w-full justify-start">
+                      <i data-lucide="wrench" class="w-4 h-4 mr-2"></i>
+                      Maintenance
+                    </button>
+                  </div>
+                  
+                  <!-- Demo Functions -->
+                  <div class="border-t border-gray-200 pt-3 mt-4">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Demo Functions</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button onclick="addTestActivity()" class="btn btn-sm bg-indigo-500 hover:bg-indigo-600 text-white border-0">
+                        <i data-lucide="plus" class="w-3 h-3 mr-1"></i>Add Activity
+                      </button>
+                      <button onclick="addTestAlert()" class="btn btn-sm bg-red-500 hover:bg-red-600 text-white border-0">
+                        <i data-lucide="bell" class="w-3 h-3 mr-1"></i>Add Alert
+                      </button>
+                      <button onclick="markAllAlertsRead()" class="btn btn-sm bg-green-500 hover:bg-green-600 text-white border-0">
+                        <i data-lucide="check" class="w-3 h-3 mr-1"></i>Mark Read
+                      </button>
+                      <button onclick="clearAllAlerts()" class="btn btn-sm bg-gray-500 hover:bg-gray-600 text-white border-0">
+                        <i data-lucide="trash" class="w-3 h-3 mr-1"></i>Clear All
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alerts & Notifications -->
+              <div class="card bg-white border border-gray-200">
+                <div class="card-header p-4 border-b border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i data-lucide="bell" class="w-5 h-5 text-red-500 mr-2"></i>
+                    Alerts & Notifications
+                  </h3>
+                </div>
+                <div class="card-body p-4">
+                  <div id="alerts-container" class="space-y-2">
+                    <!-- Alerts will be loaded here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -1191,6 +1364,1041 @@
     </div>
   </div>
   <script>
+    // Global variables
+    let currentFacilityTab = 'directory';
+
+    // Tab functionality
+    function showFacilityTab(tabName) {
+      currentFacilityTab = tabName;
+      
+      // Hide all tabs
+      document.getElementById('facility-directory-tab').classList.add('hidden');
+      document.getElementById('facility-monitoring-tab').classList.add('hidden');
+      
+      // Show selected tab
+      document.getElementById('facility-' + tabName + '-tab').classList.remove('hidden');
+      
+      // Update tab buttons
+      const tabs = document.querySelectorAll('[onclick^="showFacilityTab"]');
+      tabs.forEach(tab => {
+        tab.classList.remove('bg-blue-100', 'text-gray-700', 'border-blue-500');
+        tab.classList.add('text-gray-500');
+        tab.style.backgroundColor = 'inherit';
+        tab.style.color = 'var(--color-charcoal-ink)';
+        tab.style.borderColor = 'transparent';
+      });
+      
+      event.target.classList.remove('text-gray-500');
+      event.target.classList.add('bg-blue-100', 'text-gray-700', 'border-blue-500');
+      event.target.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
+      event.target.style.color = 'var(--color-charcoal-ink)';
+      event.target.style.borderColor = 'var(--color-regal-navy)';
+
+      // Load data for the selected tab
+      if (tabName === 'monitoring') {
+        loadFacilityMonitoringData();
+      }
+    }
+
+    // Load facility monitoring data
+    function loadFacilityMonitoringData() {
+      // Get facilities data from the page
+      const facilities = @json($facilities);
+      
+      // Update dashboard stats
+      updateDashboardStats(facilities);
+      
+      // Load facility status grid
+      loadFacilityStatusGrid(facilities);
+      
+      // Load activity timeline
+      loadActivityTimeline(facilities);
+      
+      // Load alerts
+      loadAlerts(facilities);
+      
+      // Load usage analytics
+      loadUsageAnalytics(facilities);
+    }
+
+    // Update dashboard statistics
+    function updateDashboardStats(facilities) {
+      const availableCount = facilities.filter(f => f.status === 'available').length;
+      const occupiedCount = facilities.filter(f => f.status === 'occupied').length;
+      const totalReservations = facilities.reduce((sum, f) => sum + (f.reservations_count || 0), 0);
+      const utilizationRate = facilities.length > 0 ? Math.round((occupiedCount / facilities.length) * 100) : 0;
+      const revenueToday = totalReservations * 150; // Mock revenue calculation
+
+      document.getElementById('liveStatusCount').textContent = availableCount;
+      document.getElementById('activeReservationsCount').textContent = totalReservations;
+      document.getElementById('utilizationRate').textContent = utilizationRate + '%';
+      document.getElementById('revenueToday').textContent = '₱' + revenueToday.toLocaleString();
+    }
+
+    // Load facility status grid
+    function loadFacilityStatusGrid(facilities) {
+      const container = document.getElementById('facility-status-grid');
+      if (!container) return;
+
+      container.innerHTML = facilities.map((facility, index) => {
+        const statusConfig = getFacilityStatusConfig(facility.status);
+        const lastActivity = getLastActivity(facility);
+        const utilization = Math.random() * 100; // Mock utilization data
+        const isOccupied = facility.status === 'occupied';
+        const isAvailable = facility.status === 'available';
+        
+        return `
+          <div class="facility-status-card group p-6 border-2 border-gray-200 rounded-2xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 bg-white relative overflow-hidden" 
+               style="animation-delay: ${index * 100}ms; animation: slideInUp 0.6s ease-out forwards;">
+            <!-- Animated Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <!-- Status Indicator with Animation -->
+            <div class="flex items-center justify-between mb-4 relative z-10">
+              <div class="flex items-center space-x-4">
+                <div class="relative">
+                  <div class="w-4 h-4 rounded-full ${isOccupied ? 'bg-red-500' : isAvailable ? 'bg-green-500' : 'bg-yellow-500'} ${isOccupied ? 'animate-pulse' : ''}"></div>
+                  ${isOccupied ? '<div class="absolute inset-0 w-4 h-4 rounded-full bg-red-500 animate-ping opacity-75"></div>' : ''}
+                </div>
+                <div>
+                  <h4 class="font-bold text-xl text-gray-800 group-hover:text-blue-600 transition-colors duration-300">${facility.name}</h4>
+                  <p class="text-sm text-gray-500 flex items-center">
+                    <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i>
+                    ${facility.location || 'No Location'}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="badge ${statusConfig.badgeClass} text-xs px-3 py-1 rounded-full font-semibold shadow-lg" style="background-color: ${statusConfig.color}; color: white;">
+                  ${statusConfig.label}
+                </span>
+                ${isOccupied ? '<i data-lucide="lock" class="w-4 h-4 text-red-500 animate-bounce"></i>' : ''}
+              </div>
+            </div>
+            
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-4 relative z-10">
+              <div class="bg-gray-50 rounded-xl p-3 group-hover:bg-blue-50 transition-colors duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Capacity</span>
+                  <i data-lucide="users" class="w-4 h-4 text-gray-400"></i>
+                </div>
+                <p class="text-lg font-bold text-gray-800 mt-1">${facility.capacity || 'N/A'}</p>
+              </div>
+              
+              <div class="bg-gray-50 rounded-xl p-3 group-hover:bg-green-50 transition-colors duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Reservations</span>
+                  <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
+                </div>
+                <p class="text-lg font-bold text-gray-800 mt-1">${facility.reservations_count || 0}</p>
+              </div>
+            </div>
+            
+            <!-- Utilization Bar with Animation -->
+            <div class="relative z-10">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-600">Utilization</span>
+                <span class="text-sm font-bold text-gray-800">${utilization.toFixed(1)}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-1000 ease-out relative" 
+                     style="width: ${utilization}%">
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex space-x-2 mt-4 relative z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <button onclick="viewFacilityDetails(${facility.id})" 
+                      class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-all duration-200 transform hover:scale-105">
+                <i data-lucide="eye" class="w-3 h-3 mr-1"></i>View
+              </button>
+              <button onclick="editFacility(${facility.id})" 
+                      class="flex-1 bg-gray-500 hover:bg-gray-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-all duration-200 transform hover:scale-105">
+                <i data-lucide="edit" class="w-3 h-3 mr-1"></i>Edit
+              </button>
+              ${isOccupied ? `
+              <button onclick="freeFacility(${facility.id})" 
+                      class="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-all duration-200 transform hover:scale-105">
+                <i data-lucide="unlock" class="w-3 h-3 mr-1"></i>Free
+              </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Re-initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // Global activity timeline data
+    let activityTimeline = [];
+    let alertsData = [];
+
+    // Load activity timeline
+    function loadActivityTimeline(facilities) {
+      const container = document.getElementById('activity-timeline');
+      if (!container) return;
+
+      // Initialize with mock data if empty
+      if (activityTimeline.length === 0) {
+        activityTimeline = [
+          {
+            id: 1,
+            time: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+            action: 'Facility "gigi" status changed to Occupied',
+            icon: 'building',
+            color: 'text-red-500',
+            bgColor: 'bg-red-50',
+            borderColor: 'border-red-200',
+            isNew: true,
+            type: 'status_change',
+            facilityId: 1
+          },
+          {
+            id: 2,
+            time: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+            action: 'New reservation created for "fef"',
+            icon: 'calendar',
+            color: 'text-blue-500',
+            bgColor: 'bg-blue-50',
+            borderColor: 'border-blue-200',
+            isNew: false,
+            type: 'reservation_created',
+            facilityId: 2
+          },
+          {
+            id: 3,
+            time: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
+            action: 'Facility "ocada" maintenance completed',
+            icon: 'wrench',
+            color: 'text-green-500',
+            bgColor: 'bg-green-50',
+            borderColor: 'border-green-200',
+            isNew: false,
+            type: 'maintenance_completed',
+            facilityId: 3
+          },
+          {
+            id: 4,
+            time: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+            action: 'Reservation cancelled for "laire"',
+            icon: 'x-circle',
+            color: 'text-orange-500',
+            bgColor: 'bg-orange-50',
+            borderColor: 'border-orange-200',
+            isNew: false,
+            type: 'reservation_cancelled',
+            facilityId: 4
+          },
+          {
+            id: 5,
+            time: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+            action: 'Facility "sogo" status changed to Available',
+            icon: 'check-circle',
+            color: 'text-green-500',
+            bgColor: 'bg-green-50',
+            borderColor: 'border-green-200',
+            isNew: false,
+            type: 'status_change',
+            facilityId: 5
+          }
+        ];
+      }
+
+      renderActivityTimeline();
+    }
+
+    // Render activity timeline
+    function renderActivityTimeline() {
+      const container = document.getElementById('activity-timeline');
+      if (!container) return;
+
+      // Sort by time (newest first)
+      const sortedActivities = [...activityTimeline].sort((a, b) => b.time - a.time);
+
+      container.innerHTML = sortedActivities.map((activity, index) => {
+        const timeAgo = getTimeAgo(activity.time);
+        
+        return `
+          <div class="activity-item flex items-start space-x-4 p-4 hover:shadow-lg rounded-xl transition-all duration-300 transform hover:scale-105 ${activity.bgColor} ${activity.borderColor} border-l-4 cursor-pointer" 
+               style="animation-delay: ${index * 150}ms; animation: slideInRight 0.6s ease-out forwards;"
+               onclick="handleActivityClick(${activity.id}, '${activity.type}')">
+            <div class="relative flex-shrink-0">
+              <div class="w-10 h-10 ${activity.bgColor} rounded-full flex items-center justify-center shadow-lg">
+                <i data-lucide="${activity.icon}" class="w-5 h-5 ${activity.color}"></i>
+              </div>
+              ${activity.isNew ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>' : ''}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-800 leading-relaxed">${activity.action}</p>
+              <p class="text-xs text-gray-500 mt-1 flex items-center">
+                <i data-lucide="clock" class="w-3 h-3 mr-1"></i>
+                ${timeAgo}
+              </p>
+            </div>
+            ${activity.isNew ? '<div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>' : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Re-initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // Handle activity click
+    function handleActivityClick(activityId, type) {
+      const activity = activityTimeline.find(a => a.id === activityId);
+      if (!activity) return;
+
+      // Mark as read
+      activity.isNew = false;
+      
+      // Show detailed modal or perform action based on type
+      switch(type) {
+        case 'status_change':
+          showActivityDetails(activity, 'Status Change Details');
+          break;
+        case 'reservation_created':
+          showActivityDetails(activity, 'Reservation Details');
+          break;
+        case 'maintenance_completed':
+          showActivityDetails(activity, 'Maintenance Report');
+          break;
+        case 'reservation_cancelled':
+          showActivityDetails(activity, 'Cancellation Details');
+          break;
+        default:
+          showActivityDetails(activity, 'Activity Details');
+      }
+      
+      // Re-render to update isNew status
+      renderActivityTimeline();
+    }
+
+    // Show activity details modal
+    function showActivityDetails(activity, title) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="activity-modal">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+            <button onclick="closeActivityModal()" class="text-gray-400 hover:text-gray-600">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 ${activity.bgColor} rounded-full flex items-center justify-center">
+                <i data-lucide="${activity.icon}" class="w-5 h-5 ${activity.color}"></i>
+              </div>
+              <div>
+                <p class="font-medium text-gray-800">${activity.action}</p>
+                <p class="text-sm text-gray-500">${getTimeAgo(activity.time)}</p>
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h4 class="font-medium text-gray-700 mb-2">Additional Information</h4>
+              <p class="text-sm text-gray-600">This activity was automatically logged by the system. Click "View Facility" to see more details about the related facility.</p>
+            </div>
+            <div class="flex space-x-3">
+              <button onclick="viewFacilityFromActivity(${activity.facilityId})" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors">
+                <i data-lucide="building" class="w-4 h-4 mr-2 inline"></i>View Facility
+              </button>
+              <button onclick="closeActivityModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Animate in
+      setTimeout(() => {
+        const modalContent = modal.querySelector('#activity-modal');
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+      
+      // Re-initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // Close activity modal
+    function closeActivityModal() {
+      const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    // View facility from activity
+    function viewFacilityFromActivity(facilityId) {
+      closeActivityModal();
+      // This would open the facility details or scroll to the facility in the grid
+      showNotification(`Opening facility details for ID: ${facilityId}`, 'info');
+    }
+
+    // Get time ago string
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    }
+
+    // Add new activity
+    function addActivity(action, type, facilityId) {
+      const newActivity = {
+        id: Date.now(),
+        time: new Date(),
+        action: action,
+        icon: getActivityIcon(type),
+        color: getActivityColor(type),
+        bgColor: getActivityBgColor(type),
+        borderColor: getActivityBorderColor(type),
+        isNew: true,
+        type: type,
+        facilityId: facilityId
+      };
+      
+      activityTimeline.unshift(newActivity);
+      
+      // Keep only last 50 activities
+      if (activityTimeline.length > 50) {
+        activityTimeline = activityTimeline.slice(0, 50);
+      }
+      
+      renderActivityTimeline();
+      showNotification('New activity added to timeline', 'info');
+    }
+
+    // Get activity icon based on type
+    function getActivityIcon(type) {
+      const icons = {
+        'status_change': 'building',
+        'reservation_created': 'calendar',
+        'reservation_cancelled': 'x-circle',
+        'maintenance_completed': 'wrench',
+        'maintenance_scheduled': 'clock',
+        'facility_freed': 'unlock',
+        'alert_triggered': 'alert-triangle'
+      };
+      return icons[type] || 'activity';
+    }
+
+    // Get activity color based on type
+    function getActivityColor(type) {
+      const colors = {
+        'status_change': 'text-red-500',
+        'reservation_created': 'text-blue-500',
+        'reservation_cancelled': 'text-orange-500',
+        'maintenance_completed': 'text-green-500',
+        'maintenance_scheduled': 'text-yellow-500',
+        'facility_freed': 'text-green-500',
+        'alert_triggered': 'text-red-500'
+      };
+      return colors[type] || 'text-gray-500';
+    }
+
+    // Get activity background color
+    function getActivityBgColor(type) {
+      const colors = {
+        'status_change': 'bg-red-50',
+        'reservation_created': 'bg-blue-50',
+        'reservation_cancelled': 'bg-orange-50',
+        'maintenance_completed': 'bg-green-50',
+        'maintenance_scheduled': 'bg-yellow-50',
+        'facility_freed': 'bg-green-50',
+        'alert_triggered': 'bg-red-50'
+      };
+      return colors[type] || 'bg-gray-50';
+    }
+
+    // Get activity border color
+    function getActivityBorderColor(type) {
+      const colors = {
+        'status_change': 'border-red-200',
+        'reservation_created': 'border-blue-200',
+        'reservation_cancelled': 'border-orange-200',
+        'maintenance_completed': 'border-green-200',
+        'maintenance_scheduled': 'border-yellow-200',
+        'facility_freed': 'border-green-200',
+        'alert_triggered': 'border-red-200'
+      };
+      return colors[type] || 'border-gray-200';
+    }
+
+    // Load alerts and notifications
+    function loadAlerts(facilities) {
+      const container = document.getElementById('alerts-container');
+      if (!container) return;
+
+      // Initialize with mock data if empty
+      if (alertsData.length === 0) {
+        alertsData = [
+          {
+            id: 1,
+            type: 'warning',
+            message: 'Facility "gigi" has been occupied for 3+ hours',
+            time: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+            icon: 'clock',
+            bgColor: 'bg-yellow-50',
+            borderColor: 'border-yellow-200',
+            iconColor: 'text-yellow-600',
+            isUrgent: true,
+            isRead: false,
+            facilityId: 1,
+            priority: 'high'
+          },
+          {
+            id: 2,
+            type: 'info',
+            message: 'Maintenance scheduled for "ocada" tomorrow',
+            time: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
+            icon: 'wrench',
+            bgColor: 'bg-blue-50',
+            borderColor: 'border-blue-200',
+            iconColor: 'text-blue-600',
+            isUrgent: false,
+            isRead: false,
+            facilityId: 3,
+            priority: 'medium'
+          },
+          {
+            id: 3,
+            type: 'success',
+            message: 'All facilities are operational',
+            time: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+            icon: 'check-circle',
+            bgColor: 'bg-green-50',
+            borderColor: 'border-green-200',
+            iconColor: 'text-green-600',
+            isUrgent: false,
+            isRead: true,
+            facilityId: null,
+            priority: 'low'
+          }
+        ];
+      }
+
+      renderAlerts();
+    }
+
+    // Render alerts
+    function renderAlerts() {
+      const container = document.getElementById('alerts-container');
+      if (!container) return;
+
+      // Sort by priority and time (urgent first, then by time)
+      const sortedAlerts = [...alertsData].sort((a, b) => {
+        if (a.isUrgent && !b.isUrgent) return -1;
+        if (!a.isUrgent && b.isUrgent) return 1;
+        return b.time - a.time;
+      });
+
+      container.innerHTML = sortedAlerts.map((alert, index) => {
+        const timeAgo = getTimeAgo(alert.time);
+        
+        return `
+          <div class="alert-item ${alert.bgColor} ${alert.borderColor} border-l-4 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 cursor-pointer ${alert.isRead ? 'opacity-75' : ''}" 
+               style="animation-delay: ${index * 200}ms; animation: slideInLeft 0.6s ease-out forwards;"
+               onclick="handleAlertClick(${alert.id})">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0 relative">
+                <div class="w-8 h-8 ${alert.bgColor} rounded-full flex items-center justify-center shadow-sm">
+                  <i data-lucide="${alert.icon}" class="w-4 h-4 ${alert.iconColor} ${alert.isUrgent ? 'animate-pulse' : ''}"></i>
+                </div>
+                ${alert.isUrgent ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>' : ''}
+                ${!alert.isRead ? '<div class="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>' : ''}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-800 leading-relaxed">${alert.message}</p>
+                    <p class="text-xs text-gray-500 mt-1 flex items-center">
+                      <i data-lucide="clock" class="w-3 h-3 mr-1"></i>
+                      ${timeAgo}
+                    </p>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-2">
+                    ${alert.isUrgent ? '<div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>' : ''}
+                    <button onclick="dismissAlert(${alert.id})" class="text-gray-400 hover:text-gray-600 transition-colors">
+                      <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Re-initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // Handle alert click
+    function handleAlertClick(alertId) {
+      const alert = alertsData.find(a => a.id === alertId);
+      if (!alert) return;
+
+      // Mark as read
+      alert.isRead = true;
+      
+      // Show alert details modal
+      showAlertDetails(alert);
+      
+      // Re-render to update read status
+      renderAlerts();
+    }
+
+    // Show alert details modal
+    function showAlertDetails(alert) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="alert-modal">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Alert Details</h3>
+            <button onclick="closeAlertModal()" class="text-gray-400 hover:text-gray-600">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 ${alert.bgColor} rounded-full flex items-center justify-center">
+                <i data-lucide="${alert.icon}" class="w-5 h-5 ${alert.iconColor}"></i>
+              </div>
+              <div>
+                <p class="font-medium text-gray-800">${alert.message}</p>
+                <p class="text-sm text-gray-500">${getTimeAgo(alert.time)}</p>
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h4 class="font-medium text-gray-700 mb-2">Alert Information</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Priority:</span>
+                  <span class="font-medium ${alert.priority === 'high' ? 'text-red-600' : alert.priority === 'medium' ? 'text-yellow-600' : 'text-green-600'}">${alert.priority.toUpperCase()}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Status:</span>
+                  <span class="font-medium ${alert.isUrgent ? 'text-red-600' : 'text-green-600'}">${alert.isUrgent ? 'URGENT' : 'NORMAL'}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Read:</span>
+                  <span class="font-medium ${alert.isRead ? 'text-green-600' : 'text-red-600'}">${alert.isRead ? 'YES' : 'NO'}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex space-x-3">
+              ${alert.facilityId ? `
+              <button onclick="viewFacilityFromAlert(${alert.facilityId})" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors">
+                <i data-lucide="building" class="w-4 h-4 mr-2 inline"></i>View Facility
+              </button>
+              ` : ''}
+              <button onclick="dismissAlert(${alert.id})" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors">
+                <i data-lucide="x" class="w-4 h-4 mr-2 inline"></i>Dismiss
+              </button>
+              <button onclick="closeAlertModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Animate in
+      setTimeout(() => {
+        const modalContent = modal.querySelector('#alert-modal');
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+      
+      // Re-initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // Close alert modal
+    function closeAlertModal() {
+      const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    // Dismiss alert
+    function dismissAlert(alertId) {
+      const alertIndex = alertsData.findIndex(a => a.id === alertId);
+      if (alertIndex !== -1) {
+        alertsData.splice(alertIndex, 1);
+        renderAlerts();
+        showNotification('Alert dismissed', 'success');
+      }
+      closeAlertModal();
+    }
+
+    // View facility from alert
+    function viewFacilityFromAlert(facilityId) {
+      closeAlertModal();
+      showNotification(`Opening facility details for ID: ${facilityId}`, 'info');
+    }
+
+    // Add new alert
+    function addAlert(message, type, priority = 'medium', facilityId = null) {
+      const newAlert = {
+        id: Date.now(),
+        type: type,
+        message: message,
+        time: new Date(),
+        icon: getAlertIcon(type),
+        bgColor: getAlertBgColor(type),
+        borderColor: getAlertBorderColor(type),
+        iconColor: getAlertIconColor(type),
+        isUrgent: priority === 'high',
+        isRead: false,
+        facilityId: facilityId,
+        priority: priority
+      };
+      
+      alertsData.unshift(newAlert);
+      
+      // Keep only last 20 alerts
+      if (alertsData.length > 20) {
+        alertsData = alertsData.slice(0, 20);
+      }
+      
+      renderAlerts();
+      showNotification('New alert received', 'warning');
+    }
+
+    // Get alert icon based on type
+    function getAlertIcon(type) {
+      const icons = {
+        'warning': 'alert-triangle',
+        'info': 'info',
+        'success': 'check-circle',
+        'error': 'x-circle',
+        'maintenance': 'wrench',
+        'security': 'shield',
+        'system': 'settings'
+      };
+      return icons[type] || 'bell';
+    }
+
+    // Get alert background color
+    function getAlertBgColor(type) {
+      const colors = {
+        'warning': 'bg-yellow-50',
+        'info': 'bg-blue-50',
+        'success': 'bg-green-50',
+        'error': 'bg-red-50',
+        'maintenance': 'bg-purple-50',
+        'security': 'bg-red-50',
+        'system': 'bg-gray-50'
+      };
+      return colors[type] || 'bg-gray-50';
+    }
+
+    // Get alert border color
+    function getAlertBorderColor(type) {
+      const colors = {
+        'warning': 'border-yellow-200',
+        'info': 'border-blue-200',
+        'success': 'border-green-200',
+        'error': 'border-red-200',
+        'maintenance': 'border-purple-200',
+        'security': 'border-red-200',
+        'system': 'border-gray-200'
+      };
+      return colors[type] || 'border-gray-200';
+    }
+
+    // Get alert icon color
+    function getAlertIconColor(type) {
+      const colors = {
+        'warning': 'text-yellow-600',
+        'info': 'text-blue-600',
+        'success': 'text-green-600',
+        'error': 'text-red-600',
+        'maintenance': 'text-purple-600',
+        'security': 'text-red-600',
+        'system': 'text-gray-600'
+      };
+      return colors[type] || 'text-gray-600';
+    }
+
+    // Load usage analytics (enhanced chart)
+    function loadUsageAnalytics(facilities) {
+      const container = document.getElementById('usage-chart');
+      if (!container) return;
+
+      // Mock chart data
+      const chartData = {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        data: [65, 78, 82, 75, 90, 85, 70],
+        colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16']
+      };
+
+      container.innerHTML = `
+        <div class="w-full h-full p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h4 class="text-lg font-semibold text-gray-800">Weekly Usage Trend</h4>
+            <div class="flex items-center space-x-2">
+              <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+              <span class="text-sm text-gray-600">Live Data</span>
+            </div>
+          </div>
+          
+          <div class="relative">
+            <!-- Chart Container -->
+            <div class="flex items-end justify-between space-x-3 h-48 mb-4">
+              ${chartData.data.map((value, index) => `
+                <div class="flex flex-col items-center group cursor-pointer" style="animation-delay: ${index * 100}ms; animation: slideInUp 0.8s ease-out forwards;">
+                  <div class="relative">
+                    <div class="bg-gradient-to-t from-blue-400 to-blue-600 w-8 rounded-t-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 group-hover:from-blue-500 group-hover:to-blue-700" 
+                         style="height: ${value}%; animation: growUp 1.2s ease-out forwards;">
+                      <div class="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent rounded-t-lg"></div>
+                    </div>
+                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      ${value}%
+                    </div>
+                  </div>
+                  <span class="text-xs text-gray-600 mt-2 font-medium">${chartData.labels[index]}</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <!-- Chart Legend -->
+            <div class="flex items-center justify-center space-x-6 mt-4">
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span class="text-xs text-gray-600">Utilization %</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-xs text-gray-600">Peak Hours</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Get facility status configuration
+    function getFacilityStatusConfig(status) {
+      switch (status) {
+        case 'available':
+          return {
+            label: 'Available',
+            color: '#22c55e',
+            badgeClass: 'badge-success'
+          };
+        case 'occupied':
+          return {
+            label: 'Occupied',
+            color: '#ef4444',
+            badgeClass: 'badge-error'
+          };
+        case 'maintenance':
+          return {
+            label: 'Maintenance',
+            color: '#f59e0b',
+            badgeClass: 'badge-warning'
+          };
+        default:
+          return {
+            label: 'Unknown',
+            color: '#6b7280',
+            badgeClass: 'badge-neutral'
+          };
+      }
+    }
+
+    // Get last activity for facility
+    function getLastActivity(facility) {
+      if (facility.updated_at) {
+        const date = new Date(facility.updated_at);
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+      }
+      return 'N/A';
+    }
+
+    // View facility details
+    function viewFacilityDetails(facilityId) {
+      // This would open a modal or redirect to facility details
+      console.log('View facility details:', facilityId);
+      // You can implement this based on your existing facility view functionality
+    }
+
+    // Edit facility
+    function editFacility(facilityId) {
+      // This would open edit modal or redirect to edit page
+      console.log('Edit facility:', facilityId);
+      // You can implement this based on your existing facility edit functionality
+    }
+
+    // Quick action functions
+    function refreshMonitoringData() {
+      console.log('Refreshing monitoring data...');
+      loadFacilityMonitoringData();
+      showNotification('Monitoring data refreshed successfully!', 'success');
+    }
+
+    function exportMonitoringReport() {
+      console.log('Exporting monitoring report...');
+      showNotification('Exporting monitoring report...', 'info');
+      // Implement export functionality
+    }
+
+    function openFacilityMap() {
+      console.log('Opening facility map...');
+      showNotification('Facility map feature coming soon!', 'info');
+      // Implement map functionality
+    }
+
+    function openMaintenanceSchedule() {
+      console.log('Opening maintenance schedule...');
+      showNotification('Maintenance schedule feature coming soon!', 'info');
+      // Implement maintenance functionality
+    }
+
+    // Real-time updates (simulate)
+    function startRealTimeUpdates() {
+      setInterval(() => {
+        if (currentFacilityTab === 'monitoring') {
+          // Simulate real-time data updates
+          const facilities = @json($facilities);
+          updateDashboardStats(facilities);
+        }
+      }, 30000); // Update every 30 seconds
+
+      // Simulate real-time activities every 2 minutes
+      setInterval(() => {
+        if (currentFacilityTab === 'monitoring') {
+          simulateRandomActivity();
+        }
+      }, 120000);
+
+      // Simulate random alerts every 3 minutes
+      setInterval(() => {
+        if (currentFacilityTab === 'monitoring') {
+          simulateRandomAlert();
+        }
+      }, 180000);
+    }
+
+    // Simulate random activity
+    function simulateRandomActivity() {
+      const activities = [
+        'Facility "gigi" status changed to Available',
+        'New reservation created for "fef"',
+        'Facility "ocada" maintenance completed',
+        'Reservation cancelled for "laire"',
+        'Facility "sogo" status changed to Occupied',
+        'Maintenance scheduled for "rara"',
+        'Facility "laire" freed up',
+        'Emergency maintenance required for "gigi"'
+      ];
+
+      const types = [
+        'status_change',
+        'reservation_created',
+        'maintenance_completed',
+        'reservation_cancelled',
+        'status_change',
+        'maintenance_scheduled',
+        'facility_freed',
+        'alert_triggered'
+      ];
+
+      const facilityIds = [1, 2, 3, 4, 5, 6];
+
+      const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      const randomFacilityId = facilityIds[Math.floor(Math.random() * facilityIds.length)];
+
+      addActivity(randomActivity, randomType, randomFacilityId);
+    }
+
+    // Simulate random alert
+    function simulateRandomAlert() {
+      const alerts = [
+        'Facility "gigi" has been occupied for 4+ hours',
+        'Maintenance required for "ocada"',
+        'High utilization detected on "fef"',
+        'Security alert on "rara"',
+        'System maintenance scheduled',
+        'Facility "sogo" temperature alert',
+        'Power outage detected',
+        'Network connectivity issues'
+      ];
+
+      const types = ['warning', 'info', 'error', 'maintenance', 'system', 'security'];
+      const priorities = ['high', 'medium', 'low'];
+      const facilityIds = [1, 2, 3, 4, 5, 6, null];
+
+      const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      const randomPriority = priorities[Math.floor(Math.random() * priorities.length)];
+      const randomFacilityId = facilityIds[Math.floor(Math.random() * facilityIds.length)];
+
+      addAlert(randomAlert, randomType, randomPriority, randomFacilityId);
+    }
+
+    // Demo functions for testing
+    function addTestActivity() {
+      addActivity('Test activity added manually', 'info', 1);
+    }
+
+    function addTestAlert() {
+      addAlert('Test alert - This is a demo notification', 'warning', 'high', 1);
+    }
+
+    function clearAllAlerts() {
+      alertsData = [];
+      renderAlerts();
+      showNotification('All alerts cleared', 'success');
+    }
+
+    function markAllAlertsRead() {
+      alertsData.forEach(alert => {
+        alert.isRead = true;
+      });
+      renderAlerts();
+      showNotification('All alerts marked as read', 'success');
+    }
+
     // Real-time date and time
     function updateDateTime() {
       const now = new Date();
@@ -1209,174 +2417,10 @@
     let isCalendarView = false;
     let filteredFacilities = [];
 
-    // Advanced search and filter functionality
-    function setupAdvancedSearch() {
-      const searchInput = document.getElementById('facilitySearch');
-      const dateFilter = document.getElementById('availabilityDate');
-      const typeFilter = document.getElementById('facilityTypeFilter');
-      const statusFilter = document.getElementById('statusFilter');
-      const capacityFilter = document.getElementById('capacityFilter');
-      const locationFilter = document.getElementById('locationFilter');
-
-      // Add event listeners
-      if (searchInput) searchInput.addEventListener('input', applyFilters);
-      if (dateFilter) dateFilter.addEventListener('change', applyFilters);
-      if (typeFilter) typeFilter.addEventListener('change', applyFilters);
-      if (statusFilter) statusFilter.addEventListener('change', applyFilters);
-      if (capacityFilter) capacityFilter.addEventListener('input', applyFilters);
-      if (locationFilter) locationFilter.addEventListener('change', applyFilters);
-    }
-
-    // Apply all filters
-    function applyFilters() {
-      const searchTerm = document.getElementById('facilitySearch')?.value.toLowerCase() || '';
-      const selectedDate = document.getElementById('availabilityDate')?.value || '';
-      const selectedType = document.getElementById('facilityTypeFilter')?.value || '';
-      const selectedStatus = document.getElementById('statusFilter')?.value || '';
-      const minCapacity = document.getElementById('capacityFilter')?.value || '';
-      const selectedLocation = document.getElementById('locationFilter')?.value || '';
-      
-
-      const facilityCards = document.querySelectorAll('[id^="facility-card-"]');
-      let visibleCount = 0;
-          
-          facilityCards.forEach(card => {
-        const facilityId = card.id.replace('facility-card-', '');
-        const facilityData = getFacilityData(card);
-        
-        let showCard = true;
-
-        // Search filter
-        if (searchTerm && showCard) {
-          const searchableText = (facilityData.name + ' ' + facilityData.location + ' ' + facilityData.description).toLowerCase();
-          if (!searchableText.includes(searchTerm)) {
-            showCard = false;
-          }
-        }
-
-        // Status filter
-        if (selectedStatus && showCard) {
-          if (facilityData.status !== selectedStatus) {
-            showCard = false;
-          }
-        }
-
-        // Location filter
-        if (selectedLocation && showCard) {
-          if (facilityData.location !== selectedLocation) {
-            showCard = false;
-          }
-        }
-
-        // Capacity filter
-        if (minCapacity && showCard) {
-          const capacity = parseInt(facilityData.capacity) || 0;
-          if (capacity < parseInt(minCapacity)) {
-            showCard = false;
-          }
-        }
 
 
-        // Show/hide card
-        card.style.display = showCard ? '' : 'none';
-        if (showCard) visibleCount++;
-        
-        // Apply list-view class if in list mode (only for visible cards)
-        if (showCard && currentViewMode === 'list') {
-          card.classList.add('list-view');
-        } else if (showCard && currentViewMode === 'grid') {
-          card.classList.remove('list-view');
-        }
-      });
 
-      // Update facility count
-      const countElement = document.getElementById('facilityCount');
-      if (countElement) {
-        countElement.textContent = visibleCount;
-      }
 
-      // Show no results message if needed
-      showNoResultsMessage(visibleCount === 0);
-    }
-
-    // Get facility data from card element
-    function getFacilityData(card) {
-      const name = card.querySelector('.facility-card-title')?.textContent || '';
-      const location = card.querySelector('.meta-item span')?.textContent || '';
-      const description = card.querySelector('.line-clamp-2')?.textContent || '';
-      const statusText = card.querySelector('.badge')?.textContent?.trim() || '';
-      const status = statusText.toLowerCase();
-      const capacityText = card.querySelector('.meta-item span')?.textContent || '';
-      const capacity = capacityText.includes('Capacity:') ? capacityText.split('Capacity: ')[1] : '';
-
-      return {
-        name,
-        location,
-        description,
-        status,
-        capacity
-      };
-    }
-
-    // Show no results message
-    function showNoResultsMessage(show) {
-      let noResultsDiv = document.getElementById('noResultsMessage');
-      
-      if (show && !noResultsDiv) {
-        noResultsDiv = document.createElement('div');
-        noResultsDiv.id = 'noResultsMessage';
-        noResultsDiv.className = 'col-span-full text-center py-12';
-        noResultsDiv.innerHTML = `
-          <div class="flex flex-col items-center">
-            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <i data-lucide="search-x" class="w-10 h-10 text-gray-400"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-600 mb-2">No Facilities Found</h3>
-            <p class="text-gray-500 text-sm mb-4">Try adjusting your search criteria or filters</p>
-            <button onclick="clearAllFilters()" class="btn btn-primary btn-sm">
-              <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-              Clear Filters
-            </button>
-          </div>
-        `;
-        
-        const grid = document.querySelector('#facilitiesGridView .grid');
-        if (grid) {
-          grid.appendChild(noResultsDiv);
-        }
-      } else if (!show && noResultsDiv) {
-        noResultsDiv.remove();
-      }
-    }
-
-    // Clear all filters
-    function clearAllFilters() {
-      document.getElementById('facilitySearch').value = '';
-      document.getElementById('availabilityDate').value = '';
-      document.getElementById('facilityTypeFilter').value = '';
-      document.getElementById('statusFilter').value = '';
-      document.getElementById('capacityFilter').value = '';
-      document.getElementById('locationFilter').value = '';
-      
-      applyFilters();
-    }
-
-    // Toggle advanced filters
-    function toggleAdvancedFilters() {
-      const panel = document.getElementById('advancedFiltersPanel');
-      const icon = document.getElementById('advancedToggleIcon');
-      const text = document.getElementById('advancedToggleText');
-      
-      if (panel.classList.contains('hidden')) {
-        panel.classList.remove('hidden');
-        icon.style.transform = 'rotate(180deg)';
-        text.textContent = 'Hide Advanced Filters';
-      } else {
-        panel.classList.add('hidden');
-        icon.style.transform = 'rotate(0deg)';
-        text.textContent = 'Show Advanced Filters';
-      }
-    }
 
     // Toggle calendar view
     function toggleCalendarView() {
@@ -1520,7 +2564,6 @@
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
       updateDateTime();
-      setupAdvancedSearch();
       
       // Initialize view mode from localStorage or default to grid
       const savedView = localStorage.getItem('facilityView') || 'grid';
@@ -1591,8 +2634,6 @@
         }
       }
       
-      // Apply initial filters
-      applyFilters();
       
       // Update time every second
       setInterval(updateDateTime, 1000);
@@ -1823,6 +2864,44 @@
         });
       });
 
+      // Free facility functionality
+      document.querySelectorAll('.freeFacilityBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name') || 'this facility';
+          
+          if (confirm(`Are you sure you want to free up ${name}? This will make it available for new reservations.`)) {
+            try {
+              const response = await fetch(`/facilities/${id}/free`, {
+                method: 'POST',
+                headers: {
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                }
+              });
+              
+              const data = await response.json();
+              
+              if (data.success) {
+                // Show success message
+                showNotification(data.message, 'success');
+                
+                // Reload the page to update the facility status
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1000);
+              } else {
+                showNotification(data.message || 'Failed to free facility', 'error');
+              }
+            } catch (error) {
+              console.error('Error freeing facility:', error);
+              showNotification('Error freeing facility', 'error');
+            }
+          }
+        });
+      });
+
       // Delete facility functionality
       const deleteModal = document.getElementById('deleteConfirmModal');
       const closeDeleteBtn = document.getElementById('closeDeleteModal');
@@ -1965,8 +3044,6 @@
                 // Update stats cards
                 updateFacilityStats();
                 
-                // Reapply filters to ensure remaining cards are properly displayed
-                applyFilters();
                 
                 // Check if no facilities left
                 const remainingCards = document.querySelectorAll('.facility-card');
@@ -2022,18 +3099,18 @@
           // Double-check that there are really no facilities
           const remainingCards = document.querySelectorAll('.facility-card');
           if (remainingCards.length === 0) {
-            grid.innerHTML = `
-              <div class="col-span-full text-center py-12">
-                <i data-lucide="building" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
-                <h3 class="text-lg font-semibold text-gray-600 mb-2">No Facilities Found</h3>
-                <p class="text-gray-500 mb-6">Add your first facility to get started.</p>
-                <button type="button" id="openCreateFacilityModal" class="btn btn-primary btn-md hover:btn-primary-focus transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
-                  <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                  Add Facility
-                </button>
-              </div>
-            `;
-            lucide.createIcons();
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+              <i data-lucide="building" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+              <h3 class="text-lg font-semibold text-gray-600 mb-2">No Facilities Found</h3>
+              <p class="text-gray-500 mb-6">Add your first facility to get started.</p>
+              <button type="button" id="openCreateFacilityModal" class="btn btn-primary btn-md hover:btn-primary-focus transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                Add Facility
+              </button>
+            </div>
+          `;
+          lucide.createIcons();
           }
         }
       }
@@ -2088,7 +3165,272 @@
         document.body.appendChild(container);
         return container;
       }
+
+      // Setup monitoring search functionality
+      const monitoringSearchInput = document.getElementById('facilityMonitoringSearch');
+      if (monitoringSearchInput) {
+        monitoringSearchInput.addEventListener('input', function() {
+          const searchTerm = this.value.toLowerCase();
+          const monitoringCards = document.querySelectorAll('.facility-status-card');
+          
+          monitoringCards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+              card.style.display = '';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      }
+
+      // Start real-time updates
+      startRealTimeUpdates();
     });
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `alert alert-${type === 'error' ? 'error' : type === 'success' ? 'success' : 'info'} fixed bottom-4 right-4 z-50 max-w-sm`;
+      notification.innerHTML = `
+        <i data-lucide="${type === 'error' ? 'alert-circle' : type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5"></i>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Recreate icons
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
   </script>
+
+  <style>
+    /* Custom Animations */
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes growUp {
+      from {
+        height: 0;
+      }
+      to {
+        height: var(--target-height);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200px 0;
+      }
+      100% {
+        background-position: calc(200px + 100%) 0;
+      }
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+      }
+    }
+
+    /* Enhanced Stats Cards */
+    .stats-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .stats-card:hover::before {
+      left: 100%;
+    }
+
+    /* Facility Status Cards */
+    .facility-status-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .facility-status-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #3B82F6, #10B981, #F59E0B, #EF4444);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .facility-status-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    /* Activity Items */
+    .activity-item {
+      position: relative;
+    }
+
+    .activity-item::after {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      bottom: -20px;
+      width: 2px;
+      background: linear-gradient(to bottom, #E5E7EB, transparent);
+    }
+
+    .activity-item:last-child::after {
+      display: none;
+    }
+
+    /* Alert Items */
+    .alert-item {
+      position: relative;
+    }
+
+    .alert-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: currentColor;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* Chart Bars */
+    .chart-bar {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+      transform: translateX(-100%);
+      animation: shimmer 2s infinite;
+    }
+
+    /* Loading States */
+    .loading-shimmer {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200px 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* Hover Effects */
+    .hover-lift:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Pulse Animation for Urgent Items */
+    .urgent-pulse {
+      animation: pulse-glow 2s infinite;
+    }
+
+    /* Floating Animation */
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* Responsive Animations */
+    @media (max-width: 768px) {
+      .stats-card {
+        transform: none !important;
+      }
+      
+      .facility-status-card {
+        transform: none !important;
+      }
+    }
+  </style>
 </body>
 </html> 

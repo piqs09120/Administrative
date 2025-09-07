@@ -25,8 +25,15 @@ use Illuminate\Http\Request;
 |
 */
 
-// Landing page route
+// Landing page routes
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+Route::get('/visitor-management', [App\Http\Controllers\LandingController::class, 'visitorManagement'])->name('visitor.management.landing');
+Route::get('/facilities-reservation', [App\Http\Controllers\LandingController::class, 'facilitiesReservation'])->name('facilities.reservation.landing');
+// Public endpoint to accept registration from landing page (AJAX)
+Route::post('/visitor/public-store', [App\Http\Controllers\VisitorController::class, 'publicStore'])->name('visitor.public_store');
+
+// Temporary: New Request route without auth for testing
+Route::get('/facility_reservations/new-request', [App\Http\Controllers\FacilityReservationController::class, 'newRequest'])->name('facility_reservations.new_request');
 
 // Redirect authenticated users to dashboard
 Route::get('/home', function () {
@@ -417,6 +424,71 @@ Route::middleware(['auth'])->group(function () {
     // Visitor Management - Receptionist, Administrator, Super Admin only
     Route::middleware(['auth', 'role:Receptionist,Administrator,Super Admin'])->group(function () {
         Route::resource('visitor', VisitorController::class);
+        
+        // Visitor Logs Routes
+        Route::prefix('visitor-logs')->name('visitor.logs.')->group(function () {
+            Route::get('/', [App\Http\Controllers\VisitorLogController::class, 'index'])->name('index');
+            Route::get('/analytics', [App\Http\Controllers\VisitorLogController::class, 'getAnalytics'])->name('analytics');
+            Route::get('/logs', [App\Http\Controllers\VisitorLogController::class, 'getLogs'])->name('logs');
+            Route::post('/search', [App\Http\Controllers\VisitorLogController::class, 'search'])->name('search');
+            Route::post('/generate-report', [App\Http\Controllers\VisitorLogController::class, 'generateReport'])->name('generate-report');
+            Route::get('/export', [App\Http\Controllers\VisitorLogController::class, 'exportLogs'])->name('export');
+        });
+
+    });
+
+
+    // Visitor AJAX Routes for Real-time Functionality - Moved outside middleware for now
+    Route::prefix('visitor')->name('visitor.')->group(function () {
+        // New route for managing visitors from facility reservations
+        Route::get('/manage-reservation-visitors/{reservation}', [App\Http\Controllers\VisitorController::class, 'manageReservationVisitors'])->name('manage_reservation_visitors');
+        Route::post('/perform-extraction/{reservation}', [App\Http\Controllers\VisitorController::class, 'performExtractionFromReservation'])->name('perform_extraction_from_reservation');
+        Route::post('/perform-approval/{reservation}', [App\Http\Controllers\VisitorController::class, 'performApprovalFromReservation'])->name('perform_approval_from_reservation');
+
+        Route::post('/search', [App\Http\Controllers\VisitorController::class, 'searchVisitors'])->name('search');
+        Route::get('/details/{id}', [App\Http\Controllers\VisitorController::class, 'getVisitorDetails'])->name('details');
+        Route::post('/checkin', [App\Http\Controllers\VisitorController::class, 'checkIn'])->name('checkin');
+        Route::post('/checkin-existing/{id}', [App\Http\Controllers\VisitorController::class, 'checkInExisting'])->name('checkin_existing');
+        Route::post('/checkout/{id}', [App\Http\Controllers\VisitorController::class, 'checkOut'])->name('checkout');
+        Route::get('/current', [App\Http\Controllers\VisitorController::class, 'getCurrentVisitors'])->name('current');
+        Route::get('/scheduled', [App\Http\Controllers\VisitorController::class, 'getScheduledVisits'])->name('scheduled');
+        Route::get('/stats', [App\Http\Controllers\VisitorController::class, 'getVisitorStats'])->name('stats');
+        
+        // Monitoring Routes
+        Route::get('/monitoring', [App\Http\Controllers\VisitorController::class, 'getCheckinMonitoring'])->name('monitoring');
+        Route::get('/monitoring/stats', [App\Http\Controllers\VisitorController::class, 'getCheckinStats'])->name('monitoring.stats');
+        Route::get('/monitoring/visitors', [App\Http\Controllers\VisitorController::class, 'getMonitoringVisitors'])->name('monitoring.visitors');
+        
+        // Visitor Pass Routes
+        Route::get('/{id}/pass', [App\Http\Controllers\VisitorController::class, 'getVisitorPass'])->name('pass');
+        Route::get('/{id}/pass/download', [App\Http\Controllers\VisitorController::class, 'downloadVisitorPass'])->name('pass.download');
+
+        // Approve/Decline newly registered visitors
+        Route::post('/{id}/approve', [App\Http\Controllers\VisitorController::class, 'approveVisitor'])->name('approve');
+        Route::post('/{id}/decline', [App\Http\Controllers\VisitorController::class, 'declineVisitor'])->name('decline');
+        
+        // Debug route
+        Route::get('/debug/visitors', function() {
+            $visitors = \App\Models\Visitor::whereNotNull('pass_id')->take(5)->get();
+            return response()->json([
+                'total_visitors' => \App\Models\Visitor::count(),
+                'visitors_with_passes' => \App\Models\Visitor::whereNotNull('pass_id')->count(),
+                'sample_visitors' => $visitors->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'name' => $v->name,
+                        'pass_id' => $v->pass_id,
+                        'status' => $v->status
+                    ];
+                })
+            ]);
+        });
+        
+        // Quick Actions
+        Route::get('/quick/view-all', [App\Http\Controllers\VisitorController::class, 'viewAllVisitors'])->name('quick.viewAll');
+        Route::post('/quick/schedule', [App\Http\Controllers\VisitorController::class, 'scheduleVisit'])->name('quick.schedule');
+        Route::post('/quick/emergency', [App\Http\Controllers\VisitorController::class, 'emergencyEvacuation'])->name('quick.emergency');
+        Route::get('/quick/directory', [App\Http\Controllers\VisitorController::class, 'buildingDirectory'])->name('quick.directory');
     });
     
     // Document Management Routes
@@ -477,24 +549,6 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
    // Legal Document Download Route
    Route::get('/legal/documents/{id}/download', [DocumentController::class, 'downloadLegalDocument'])->name('legal.documents.download');
 
-    // Facility Reservation Approval Workflow
-    Route::resource('facility_reservations', App\Http\Controllers\FacilityReservationController::class);
-    Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
-    Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
-    
-    // Monthly Reports Routes
-    Route::get('/facility_reservations/monthly-reports', [App\Http\Controllers\FacilityReservationController::class, 'monthlyReports'])->name('facility_reservations.monthly_reports');
-    Route::get('/facility_reservations/generate-monthly-report', [App\Http\Controllers\FacilityReservationController::class, 'generateMonthlyReport'])->name('facility_reservations.generate_monthly_report');
-    Route::post('/facility_reservations/monthly-report-summary', [App\Http\Controllers\FacilityReservationController::class, 'getMonthlyReportSummary'])->name('facility_reservations.monthly_report_summary');
-    
-    // Legal Review Routes
-    Route::get('/facility_reservations/{id}/legal-review', [App\Http\Controllers\FacilityReservationController::class, 'legalReview'])->name('facility_reservations.legal_review');
-    Route::post('/facility_reservations/{id}/legal-approve', [App\Http\Controllers\FacilityReservationController::class, 'legalApprove'])->name('facility_reservations.legal_approve');
-    Route::post('/facility_reservations/{id}/legal-flag', [App\Http\Controllers\FacilityReservationController::class, 'legalFlag'])->name('facility_reservations.legal_flag');
-    
-    // Workflow Action Routes
-    Route::post('/facility_reservations/{id}/availability-check', [App\Http\Controllers\FacilityReservationController::class, 'performAvailabilityCheck'])->name('facility_reservations.availability_check');
-    Route::post('/facility_reservations/{id}/conflict-resolution', [App\Http\Controllers\FacilityReservationController::class, 'performConflictResolution'])->name('facility_reservations.conflict_resolution');
     
     // Visitor Coordination Routes
     // Route::post('/facility_reservations/{id}/extract-visitors', [App\Http\Controllers\FacilityReservationController::class, 'extractVisitorData'])->name('facility_reservations.extract_visitors');
@@ -503,38 +557,9 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
     // Visitor Export Routes
     Route::get('/visitor/export/excel', [App\Http\Controllers\VisitorController::class, 'exportExcel'])->name('visitor.export.excel');
     Route::get('/visitor/export/pdf', [App\Http\Controllers\VisitorController::class, 'exportPdf'])->name('visitor.export.pdf');
+    Route::post('/visitor/export/report', [App\Http\Controllers\VisitorController::class, 'exportReport'])->name('visitor.export.report');
 
-    // Visitor AJAX Routes for Real-time Functionality
-    Route::prefix('visitor')->name('visitor.')->group(function () {
-        // New route for managing visitors from facility reservations
-        Route::get('/manage-reservation-visitors/{reservation}', [App\Http\Controllers\VisitorController::class, 'manageReservationVisitors'])->name('manage_reservation_visitors');
-        Route::post('/perform-extraction/{reservation}', [App\Http\Controllers\VisitorController::class, 'performExtractionFromReservation'])->name('perform_extraction_from_reservation');
-        Route::post('/perform-approval/{reservation}', [App\Http\Controllers\VisitorController::class, 'performApprovalFromReservation'])->name('perform_approval_from_reservation');
 
-        Route::post('/search', [App\Http\Controllers\VisitorController::class, 'searchVisitors'])->name('search');
-        Route::get('/details/{id}', [App\Http\Controllers\VisitorController::class, 'getVisitorDetails'])->name('details');
-        Route::post('/checkin', [App\Http\Controllers\VisitorController::class, 'checkIn'])->name('checkin');
-        Route::post('/checkout/{id}', [App\Http\Controllers\VisitorController::class, 'checkOut'])->name('checkout');
-        Route::get('/current', [App\Http\Controllers\VisitorController::class, 'getCurrentVisitors'])->name('current');
-        Route::get('/scheduled', [App\Http\Controllers\VisitorController::class, 'getScheduledVisits'])->name('scheduled');
-        Route::get('/stats', [App\Http\Controllers\VisitorController::class, 'getVisitorStats'])->name('stats');
-        
-        // Quick Actions
-        Route::get('/quick/view-all', [App\Http\Controllers\VisitorController::class, 'viewAllVisitors'])->name('quick.viewAll');
-        Route::post('/quick/schedule', [App\Http\Controllers\VisitorController::class, 'scheduleVisit'])->name('quick.schedule');
-        Route::post('/quick/emergency', [App\Http\Controllers\VisitorController::class, 'emergencyEvacuation'])->name('quick.emergency');
-        Route::get('/quick/directory', [App\Http\Controllers\VisitorController::class, 'buildingDirectory'])->name('quick.directory');
-    });
-
-    // Visitor Logs Routes
-    Route::prefix('visitor-logs')->name('visitor.logs.')->group(function () {
-        Route::get('/', [App\Http\Controllers\VisitorLogController::class, 'index'])->name('index');
-        Route::get('/analytics', [App\Http\Controllers\VisitorLogController::class, 'getAnalytics'])->name('analytics');
-        Route::get('/logs', [App\Http\Controllers\VisitorLogController::class, 'getLogs'])->name('logs');
-        Route::post('/search', [App\Http\Controllers\VisitorLogController::class, 'search'])->name('search');
-        Route::post('/generate-report', [App\Http\Controllers\VisitorLogController::class, 'generateReport'])->name('generate-report');
-        Route::get('/export', [App\Http\Controllers\VisitorLogController::class, 'exportLogs'])->name('export');
-    });
 
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
@@ -546,6 +571,29 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
         Route::get('/access/users/{user}/edit-role', [App\Http\Controllers\AccessController::class, 'editRole'])->name('access.users.editRole');
         Route::post('/access/users/{user}/update-role', [App\Http\Controllers\AccessController::class, 'updateRole'])->name('access.users.updateRole');
     });
+
+    // Facility Reservation Approval Workflow
+    Route::resource('facility_reservations', App\Http\Controllers\FacilityReservationController::class);
+    Route::post('/facility_reservations/store-request', [App\Http\Controllers\FacilityReservationController::class, 'storeRequest'])->name('facility_reservations.store_request');
+    Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
+    Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
+        Route::post('/facility_reservations/{id}/approve-request', [App\Http\Controllers\FacilityReservationController::class, 'approveRequest'])->name('facility_reservations.approve_request');
+        Route::get('/facility_reservations/{id}/show-request', [App\Http\Controllers\FacilityReservationController::class, 'showRequest'])->name('facility_reservations.show_request');
+        Route::post('/facilities/{id}/free', [App\Http\Controllers\FacilityReservationController::class, 'freeFacility'])->name('facilities.free');
+    
+    // Monthly Reports Routes
+    Route::get('/facility_reservations/monthly-reports', [App\Http\Controllers\FacilityReservationController::class, 'monthlyReports'])->name('facility_reservations.monthly_reports');
+    Route::get('/facility_reservations/generate-monthly-report', [App\Http\Controllers\FacilityReservationController::class, 'generateMonthlyReport'])->name('facility_reservations.generate_monthly_report');
+    Route::post('/facility_reservations/monthly-report-summary', [App\Http\Controllers\FacilityReservationController::class, 'getMonthlyReportSummary'])->name('facility_reservations.monthly_report_summary');
+
+    // Legal Review Routes
+    Route::get('/facility_reservations/{id}/legal-review', [App\Http\Controllers\FacilityReservationController::class, 'legalReview'])->name('facility_reservations.legal_review');
+    Route::post('/facility_reservations/{id}/legal-approve', [App\Http\Controllers\FacilityReservationController::class, 'legalApprove'])->name('facility_reservations.legal_approve');
+    Route::post('/facility_reservations/{id}/legal-flag', [App\Http\Controllers\FacilityReservationController::class, 'legalFlag'])->name('facility_reservations.legal_flag');
+    
+    // Workflow Action Routes
+    Route::post('/facility_reservations/{id}/availability-check', [App\Http\Controllers\FacilityReservationController::class, 'performAvailabilityCheck'])->name('facility_reservations.availability_check');
+    Route::post('/facility_reservations/{id}/conflict-resolution', [App\Http\Controllers\FacilityReservationController::class, 'performConflictResolution'])->name('facility_reservations.conflict_resolution');
 });
 
 require __DIR__.'/auth.php';

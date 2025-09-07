@@ -366,17 +366,6 @@
               </div>
             </div>
 
-            <!-- Author Field -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Author</span>
-              </label>
-              <input type="text" name="author" id="uploadAuthor" class="input input-bordered w-full" 
-                     placeholder="e.g. Legal Department, Attorney Name">
-              <div class="label">
-                <span class="label-text-alt">Who authored or prepared this document</span>
-              </div>
-            </div>
 
             <!-- Description Field -->
             <div class="form-control">

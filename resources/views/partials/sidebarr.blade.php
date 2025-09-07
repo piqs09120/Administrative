@@ -236,6 +236,12 @@
                 View Visitors
               </span>
             </a>
+            <a href="{{ route('visitor.create') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.create') ? 'bg-blue-700 text-white' : '' }}">
+              <span class="flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4 text-[#F7B32B]"></i>
+                New Visitor
+              </span>
+            </a>
             <a href="{{ route('visitor.logs.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.logs.*') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
                 <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#F7B32B]"></i>
@@ -262,6 +268,12 @@
               <span class="flex items-center gap-2">
                 <i data-lucide="map-pin" class="w-4 h-4 text-[#F7B32B]"></i>
                 View Facilities
+              </span>
+            </a>
+            <a href="{{ route('facility_reservations.new_request') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('facility_reservations.new_request') ? 'bg-blue-700 text-white' : '' }}">
+              <span class="flex items-center gap-2">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-[#F7B32B]"></i>
+                New Request
               </span>
             </a>
           </div>
@@ -302,12 +314,6 @@
               <span class="flex items-center gap-2">
                 <i data-lucide="building" class="w-4 h-4 text-[#F7B32B]"></i>
                 Department Accounts
-              </span>
-            </a>
-            <a href="{{ route('access.department_logs') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.department_logs') ? 'bg-blue-700 text-white' : '' }}">
-              <span class="flex items-center gap-2">
-                <i data-lucide="clipboard-list" class="w-4 h-4 text-[#F7B32B]"></i>
-                Department Logs
               </span>
             </a>
           </div>
@@ -380,7 +386,13 @@
                   View Visitors
                 </span>
               </a>
-              <a href="{{ route('visitor.stats') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.stats') ? 'bg-blue-700 text-white' : '' }}">
+              <a href="{{ route('visitor.create') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.create') ? 'bg-blue-700 text-white' : '' }}">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="user-plus" class="w-4 h-4 text-[#F7B32B]"></i>
+                  New Visitor
+                </span>
+              </a>
+              <a href="{{ route('visitor.logs.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.logs.*') ? 'bg-blue-700 text-white' : '' }}">
                 <span class="flex items-center gap-2">
                   <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#F7B32B]"></i>
                   Visitor Logs

@@ -103,62 +103,12 @@
 
         <!-- Department Accounts Management Section -->
         <div class="bg-white rounded-xl shadow-lg p-6">
-          <!-- Header with Search and Actions -->
+          <!-- Header -->
           <div class="mb-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <i data-lucide="building" class="w-5 h-5 text-blue-600"></i>
-                  Department Accounts List
-                </h3>
-                <!-- Search Bar -->
-                <div class="relative">
-                  <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                  <input type="text" 
-                         id="searchInput"
-                         placeholder="Search accounts..." 
-                         class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
-                </div>
-              </div>
-              
-              <!-- Add New Account Button - Only for Administrator -->
-              @if(auth()->user()->role === 'Administrator')
-                <button onclick="openAddAccountModal()" class="btn btn-primary btn-sm">
-                  <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
-                  Add Account
-                </button>
-              @endif
-            </div>
-
-            <!-- Filters Row -->
-            <div class="flex items-center gap-4">
-              <!-- Department Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Department:</label>
-                <select id="departmentFilter" class="select select-bordered select-sm w-40">
-                  <option value="">All Departments</option>
-                  @foreach($departments->keys() as $deptName)
-                    <option value="{{ $deptName }}">{{ $deptName }}</option>
-                  @endforeach
-                </select>
-              </div>
-
-              <!-- Status Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Status:</label>
-                <select id="statusFilter" class="select select-bordered select-sm w-32">
-                  <option value="">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-
-              <!-- Clear Filters Button -->
-              <button onclick="clearFilters()" class="btn btn-ghost btn-xs text-gray-500 hover:text-gray-700">
-                <i data-lucide="x" class="w-3 h-3 mr-1"></i>
-                Clear
-              </button>
-            </div>
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <i data-lucide="building" class="w-5 h-5 text-blue-600"></i>
+              Department Accounts List
+            </h3>
           </div>
 
           <!-- Department Accounts Table -->
@@ -368,93 +318,6 @@
     </div>
   </div>
 
-  <!-- Add Account Modal -->
-  <div id="addAccountModal" class="modal">
-    <div class="modal-box w-11/12 max-w-2xl">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <i data-lucide="user-plus" class="w-8 h-8 text-blue-500"></i>
-          Add New Department Account
-        </h3>
-        <button onclick="closeAddAccountModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="addAccountForm" method="POST" action="{{ route('access.department_accounts.store') }}">
-        @csrf
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Employee Name *</span>
-            </label>
-            <input type="text" name="employee_name" class="input input-bordered w-full" required>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Email</span>
-            </label>
-            <input type="email" name="email" class="input input-bordered w-full">
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Department *</span>
-            </label>
-            <select name="dept_name" class="select select-bordered w-full" required>
-              <option value="">Select Department</option>
-              <option value="Management">Management</option>
-              <option value="Reception">Reception</option>
-              <option value="Housekeeping">Housekeeping</option>
-              <option value="Restaurant">Restaurant</option>
-              <option value="Legal">Legal</option>
-              <option value="IT">IT</option>
-              <option value="Finance">Finance</option>
-            </select>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Role</span>
-            </label>
-            <select name="role" class="select select-bordered w-full">
-              <option value="">Select Role</option>
-              <option value="Manager">Manager</option>
-              <option value="Supervisor">Supervisor</option>
-              <option value="Staff">Staff</option>
-              <option value="Officer">Officer</option>
-            </select>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Status</span>
-            </label>
-            <select name="status" class="select select-bordered w-full">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Phone</span>
-            </label>
-            <input type="tel" name="phone" class="input input-bordered w-full">
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="closeAddAccountModal()" class="btn btn-outline">Cancel</button>
-          <button type="submit" class="btn btn-primary">
-            <i data-lucide="save" class="w-4 h-4 mr-2"></i>
-            Add Account
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Toggle Status Confirmation Modal -->
   <div id="toggleStatusModal" class="modal">
@@ -486,15 +349,6 @@
     // Initialize Lucide icons
     lucide.createIcons();
     
-    // Modal functions
-    function openAddAccountModal() {
-      document.getElementById('addAccountModal').classList.add('modal-open');
-    }
-
-    function closeAddAccountModal() {
-      document.getElementById('addAccountModal').classList.remove('modal-open');
-      document.getElementById('addAccountForm').reset();
-    }
 
     // Account action functions
     let pendingToggleAccountId = null;
@@ -703,75 +557,9 @@
       setTimeout(()=>{ if (toast.parentNode) toast.remove(); }, duration);
     }
 
-    // Filtering functionality
-    function filterAccounts() {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const departmentFilter = document.getElementById('departmentFilter').value;
-      const statusFilter = document.getElementById('statusFilter').value;
-      
-      const rows = document.querySelectorAll('tbody tr[data-account-id]');
-      
-      rows.forEach(row => {
-        let showRow = true;
-        
-        // Search filter
-        if (searchTerm) {
-          const employeeName = row.querySelector('td:first-child .font-medium')?.textContent?.toLowerCase() || '';
-          const email = row.querySelector('td:first-child .text-sm')?.textContent?.toLowerCase() || '';
-          if (!employeeName.includes(searchTerm) && !email.includes(searchTerm)) {
-            showRow = false;
-          }
-        }
-        
-        // Department filter
-        if (departmentFilter && showRow) {
-          const department = row.querySelector('td:nth-child(2) .badge')?.textContent?.toLowerCase() || '';
-          if (department !== departmentFilter.toLowerCase()) {
-            showRow = false;
-          }
-        }
-        
-        // Status filter
-        if (statusFilter && showRow) {
-          const status = row.querySelector('td:nth-child(4) .badge')?.textContent?.toLowerCase() || '';
-          if (status !== statusFilter.toLowerCase()) {
-            showRow = false;
-          }
-        }
-        
-        // Show/hide row
-        row.style.display = showRow ? '' : 'none';
-      });
-    }
-    
-    function clearFilters() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('departmentFilter').value = '';
-      document.getElementById('statusFilter').value = '';
-      
-      // Show all rows
-      const rows = document.querySelectorAll('tbody tr[data-account-id]');
-      rows.forEach(row => {
-        row.style.display = '';
-      });
-    }
 
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
-      const searchInput = document.getElementById('searchInput');
-      const departmentFilter = document.getElementById('departmentFilter');
-      const statusFilter = document.getElementById('statusFilter');
-      
-      if (searchInput) {
-        searchInput.addEventListener('input', filterAccounts);
-      }
-      if (departmentFilter) {
-        departmentFilter.addEventListener('change', filterAccounts);
-      }
-      if (statusFilter) {
-        statusFilter.addEventListener('change', filterAccounts);
-      }
-
       // Auto-update card counts based on table rows
       function updateCountsFromTable() {
         const rows = Array.from(document.querySelectorAll('tbody tr[data-account-id]'));
@@ -790,29 +578,10 @@
       // Initial update after DOM is ready
       updateCountsFromTable();
 
-      // Recalculate on filters
-      if (searchInput) searchInput.addEventListener('input', updateCountsFromTable);
-      if (departmentFilter) departmentFilter.addEventListener('change', updateCountsFromTable);
-      if (statusFilter) statusFilter.addEventListener('change', updateCountsFromTable);
-
       // Also recalc after async operations we control
       window.__updateDeptCards = updateCountsFromTable;
     });
 
-    // Close modals when clicking outside
-    document.addEventListener('click', function(event) {
-      const addAccountModal = document.getElementById('addAccountModal');
-      if (event.target === addAccountModal) {
-        closeAddAccountModal();
-      }
-    });
-
-    // Close modals with Escape key
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        closeAddAccountModal();
-      }
-    });
   </script>
 </body>
 </html>

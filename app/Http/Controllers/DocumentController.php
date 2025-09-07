@@ -196,7 +196,6 @@ class DocumentController extends Controller
             'description' => 'nullable|string',
             'department' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
-            'author' => 'nullable|string|max:255',
             'source' => 'nullable|string|in:document_management,legal_management,visitor_management,facility_management',
             'document_file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png|max:10240'
         ]);
@@ -239,7 +238,6 @@ class DocumentController extends Controller
                 'description' => $request->description,
                 'department' => $request->department,
                 'category' => $request->category ?? 'general', // Use AI-determined category if available
-                'author' => $request->author,
                 'file_path' => $filePath,
                 'uploaded_by' => $uploadedBy, // Use the validated user ID
                 'status' => 'active',
