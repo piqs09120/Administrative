@@ -437,6 +437,18 @@
                                     </div>
                                 </div>
 
+                                <!-- Expected Date Out -->
+                                <div class="space-y-2">
+                                    <label for="expected_date_out" class="block text-sm font-semibold text-gray-700">
+                                        Expected Date Out
+                                    </label>
+                                    <div class="relative">
+                                        <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        <input type="date" id="expected_date_out" name="expected_date_out"
+                                               class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50">
+                                    </div>
+                                </div>
+
                                 <!-- Expected Time Out -->
                                 <div class="space-y-2">
                                     <label for="expected_time_out" class="block text-sm font-semibold text-gray-700">

@@ -41,6 +41,7 @@ class VisitorLogController extends Controller
         $analytics = [
             'daily_trends' => $this->getDailyTrends($dates['start'], $dates['end']),
             'visitor_types' => $this->getVisitorTypes($dates['start'], $dates['end']),
+            'hosts_departments' => $this->getHostsDepartments($dates['start'], $dates['end']),
             'peak_hours' => $this->getPeakHours($dates['start'], $dates['end']),
             'most_visited_facility' => $this->getMostVisitedFacility($dates['start'], $dates['end']),
             'return_visitors' => $this->getReturnVisitors($dates['start'], $dates['end']),
@@ -140,21 +141,91 @@ class VisitorLogController extends Controller
         
         $dates = $this->getDateRange($request->report_type, $request->start_date, $request->end_date);
         
-        // Get data for the report
+        // Core datasets used in Reports & Analytics
         $visitors = Visitor::with('facility')
-            ->whereBetween('time_in', [$dates['start'], $dates['end']])
+            ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->get();
-            
+
         $statistics = $this->getDetailedStats($dates['start'], $dates['end']);
-        
+        $visitorTypes = $this->getVisitorTypes($dates['start'], $dates['end']);
+        $peakHours = $this->getPeakHours($dates['start'], $dates['end']);
+        $departments = $this->getHostsDepartments($dates['start'], $dates['end']);
+
+        // Overstays: expected_time_out in range and still not checked out beyond expected
+        $overstays = Visitor::whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->whereNotNull('expected_time_out')
+            ->whereNull('time_out')
+            ->where('expected_time_out', '<', now())
+            ->with('facility')
+            ->get();
+
+        // Security incidents placeholder (no incidents table yet)
+        $securityIncidents = collect();
+
+        // Build a normalized export payload for multi-sheet Excel
+        $exportPayload = [
+            'Overview' => [
+                ['Metric', 'Value'],
+                ['Total Visitors', $statistics['total_visitors']],
+                ['Currently In', $statistics['currently_in']],
+                ['Completed Visits', $statistics['completed_visits']],
+                ['Average Duration', $statistics['average_duration']],
+            ],
+            'Visitors' => array_merge([
+                ['Name', 'Company', 'Purpose', 'Department', 'Facility', 'Check In', 'Check Out']
+            ], $visitors->map(function ($v) {
+                return [
+                    $v->name,
+                    $v->company ?? 'N/A',
+                    $v->purpose ?? 'N/A',
+                    $v->department ?? 'N/A',
+                    optional($v->facility)->name ?? 'N/A',
+                    $v->time_in ? \Carbon\Carbon::parse($v->time_in)->format('Y-m-d H:i') : 'N/A',
+                    $v->time_out ? \Carbon\Carbon::parse($v->time_out)->format('Y-m-d H:i') : '—',
+                ];
+            })->toArray()),
+            'Visitors by Purpose' => array_merge([
+                ['Purpose', 'Count']
+            ], collect($visitorTypes)->map(function ($count, $purpose) {
+                return [$purpose ?? 'N/A', (int) $count];
+            })->values()->toArray()),
+            'Peak Visiting Hours' => array_merge([
+                ['Hour', 'Count']
+            ], collect($peakHours)->map(function ($h) {
+                return [sprintf('%02d:00', $h['hour']), (int) $h['count']];
+            })->toArray()),
+            'Departments' => array_merge([
+                ['Department', 'Count']
+            ], collect($departments)->map(function ($d) {
+                return [$d['name'], (int) $d['count']];
+            })->toArray()),
+            'Overstays' => array_merge([
+                ['Name', 'Department', 'Facility', 'Expected Time Out']
+            ], $overstays->map(function ($v) {
+                return [
+                    $v->name,
+                    $v->department ?? 'N/A',
+                    optional($v->facility)->name ?? 'N/A',
+                    $v->expected_time_out ? \Carbon\Carbon::parse($v->expected_time_out)->format('Y-m-d H:i') : 'N/A',
+                ];
+            })->toArray()),
+            'Security Incidents' => [
+                ['Incident ID', 'Type', 'Date', 'Notes'],
+                // Empty until incidents are implemented in DB
+            ],
+        ];
+
         $reportData = [
+            'export_sheets' => $exportPayload,
             'visitors' => $visitors,
             'statistics' => $statistics,
+            'visitor_types' => $visitorTypes,
+            'peak_hours' => $peakHours,
+            'departments' => $departments,
+            'overstays' => $overstays,
+            'security_incidents' => $securityIncidents,
             'date_range' => $dates,
             'generated_at' => now(),
-            'include_details' => $request->has('include_details'),
-            'include_statistics' => $request->has('include_statistics'),
-            'include_charts' => $request->has('include_charts')
         ];
         
         $filename = 'visitor_report_' . $request->report_type . '_' . now()->format('Y-m-d_H-i-s');
@@ -163,7 +234,8 @@ class VisitorLogController extends Controller
             case 'pdf':
                 return $this->generatePdfReport($reportData, $filename);
             case 'excel':
-                return $this->generateExcelReport($reportData, $filename);
+                // Export as multi-sheet workbook containing all sections
+                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\VisitorReportExport($exportPayload), $filename . '.xlsx');
             case 'csv':
                 return $this->generateCsvReport($reportData, $filename);
         }
@@ -256,6 +328,42 @@ class VisitorLogController extends Controller
             ->toArray();
             
         return $types;
+    }
+
+    private function getHostsDepartments(Carbon $start, Carbon $end): array
+    {
+        // Departments should mirror the Host Department dropdown on the visitor landing page
+        $dropdownDepartments = [
+            'Human Resources',
+            'Information Technology',
+            'Finance',
+            'Operations',
+            'Marketing',
+            'Legal',
+            'Other',
+        ];
+
+        // Get counts per department within range
+        $counts = Visitor::whereBetween('created_at', [$start, $end])
+            ->whereIn('department', $dropdownDepartments)
+            ->select('department', DB::raw('count(*) as count'))
+            ->groupBy('department')
+            ->pluck('count', 'department');
+
+        // Build full list including zeros and sort desc
+        $result = collect($dropdownDepartments)
+            ->map(function ($dept) use ($counts) {
+                return [
+                    'name' => $dept,
+                    'type' => 'department',
+                    'count' => (int) ($counts[$dept] ?? 0),
+                ];
+            })
+            ->sortByDesc('count')
+            ->values()
+            ->toArray();
+
+        return $result;
     }
 
     private function getPeakHours(Carbon $start, Carbon $end): array

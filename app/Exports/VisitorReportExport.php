@@ -2,24 +2,19 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class VisitorReportExport implements FromArray, WithMultipleSheets, WithStyles, WithColumnWidths
+class VisitorReportExport implements WithMultipleSheets, WithStyles, WithColumnWidths
 {
     protected $data;
 
     public function __construct(array $data)
     {
         $this->data = $data;
-    }
-
-    public function array(): array
-    {
-        return [];
     }
 
     public function sheets(): array
@@ -50,7 +45,7 @@ class VisitorReportExport implements FromArray, WithMultipleSheets, WithStyles, 
     }
 }
 
-class VisitorReportSheet implements FromArray, WithStyles, WithColumnWidths
+class VisitorReportSheet implements \Maatwebsite\Excel\Concerns\FromArray, WithStyles, WithColumnWidths, WithTitle
 {
     protected $sheetName;
     protected $data;
@@ -80,5 +75,11 @@ class VisitorReportSheet implements FromArray, WithStyles, WithColumnWidths
             'B' => 20,
             'C' => 15,
         ];
+    }
+
+    public function title(): string
+    {
+        // Sheet names are derived from the provided key
+        return (string) $this->sheetName;
     }
 }

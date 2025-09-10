@@ -73,6 +73,18 @@ class VisitorController extends Controller
         // Generate pass ID
         $passId = $this->generatePassId();
         
+        // Combine expected date and time into a proper datetime
+        $expectedDateTimeOut = null;
+        if ($request->expected_date_out && $request->expected_time_out) {
+            $expectedDateTimeOut = \Carbon\Carbon::parse($request->expected_date_out . ' ' . $request->expected_time_out);
+        } elseif ($request->expected_time_out) {
+            // If only time is provided, assume today's date
+            $expectedDateTimeOut = \Carbon\Carbon::parse($request->expected_time_out);
+        }
+
+        // Calculate pass validity based on expected time out
+        $validity = $this->calculatePassValidity($request);
+        
         $visitorData = [
             'name' => $request->name,
             'email' => $request->email,
@@ -85,12 +97,16 @@ class VisitorController extends Controller
             'id_type' => $request->id_type,
             'id_number' => $request->id_number,
             'vehicle_plate' => $request->vehicle_plate,
+            'arrival_date' => $request->arrival_date,
+            'arrival_time' => $request->arrival_time,
+            'expected_date_out' => $request->expected_date_out,
+            'expected_time_out' => $expectedDateTimeOut,
             'time_in' => null, // Not checked in yet - will be set when they actually check in
             'pass_id' => $passId,
             'pass_type' => 'visitor',
-            'pass_validity' => '8_hours',
-            'pass_valid_from' => now(),
-            'pass_valid_until' => now()->addHours(8),
+            'pass_validity' => '24_hours',
+            'pass_valid_from' => $validity['valid_from'],
+            'pass_valid_until' => $validity['valid_until'],
             'access_level' => null,
             'escort_required' => 'no',
             'status' => 'registered', // Changed from 'active' to 'registered'
@@ -132,10 +148,26 @@ class VisitorController extends Controller
             'id_type' => 'nullable|string|max:255',
             'id_number' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
+            'expected_date_out' => 'nullable|date',
+            'expected_time_out' => 'nullable|date_format:H:i',
+            'arrival_date' => 'nullable|date',
+            'arrival_time' => 'nullable|date_format:H:i',
         ]);
 
         // Generate pass ID
         $passId = $this->generatePassId();
+
+        // Combine expected date and time into a proper datetime
+        $expectedDateTimeOut = null;
+        if ($request->expected_date_out && $request->expected_time_out) {
+            $expectedDateTimeOut = \Carbon\Carbon::parse($request->expected_date_out . ' ' . $request->expected_time_out);
+        } elseif ($request->expected_time_out) {
+            // If only time is provided, assume today's date
+            $expectedDateTimeOut = \Carbon\Carbon::parse($request->expected_time_out);
+        }
+
+        // Calculate pass validity based on expected time out
+        $validity = $this->calculatePassValidity($request);
 
         $visitor = Visitor::create([
             'name' => $validated['name'],
@@ -149,12 +181,16 @@ class VisitorController extends Controller
             'id_type' => $request->id_type,
             'id_number' => $request->id_number,
             'vehicle_plate' => $request->vehicle_plate,
+            'arrival_date' => $request->arrival_date,
+            'arrival_time' => $request->arrival_time,
+            'expected_date_out' => $request->expected_date_out,
+            'expected_time_out' => $expectedDateTimeOut,
             'time_in' => null,
             'pass_id' => $passId,
             'pass_type' => 'visitor',
-            'pass_validity' => '8_hours',
-            'pass_valid_from' => now(),
-            'pass_valid_until' => now()->addHours(8),
+            'pass_validity' => '24_hours',
+            'pass_valid_from' => $validity['valid_from'],
+            'pass_valid_until' => $validity['valid_until'],
             'access_level' => null,
             'escort_required' => 'no',
             'status' => 'registered',
@@ -584,9 +620,19 @@ class VisitorController extends Controller
         $validFrom = $now;
         $validUntil = $now;
 
-        if ($request->pass_validity === 'custom') {
+        // If expected date and time are provided, combine them for pass validity
+        if ($request->expected_date_out && $request->expected_time_out) {
+            $expectedTimeOut = \Carbon\Carbon::parse($request->expected_date_out . ' ' . $request->expected_time_out);
+            $validFrom = $now;
+            $validUntil = $expectedTimeOut;
+        } elseif ($request->expected_time_out) {
+            // If only time is provided, assume today's date
+            $expectedTimeOut = \Carbon\Carbon::parse($request->expected_time_out);
+            $validFrom = $now;
+            $validUntil = $expectedTimeOut;
+        } elseif ($request->pass_validity === 'custom') {
             $validFrom = $request->pass_valid_from ? \Carbon\Carbon::parse($request->pass_valid_from) : $now;
-            $validUntil = $request->pass_valid_until ? \Carbon\Carbon::parse($request->pass_valid_until) : $now->addHours(8);
+            $validUntil = $request->pass_valid_until ? \Carbon\Carbon::parse($request->pass_valid_until) : $now->addHours(24);
         } else {
             switch ($request->pass_validity) {
                 case '1_hour':
@@ -595,8 +641,8 @@ class VisitorController extends Controller
                 case '4_hours':
                     $validUntil = $now->copy()->addHours(4);
                     break;
-                case '8_hours':
-                    $validUntil = $now->copy()->addHours(8);
+                case '24_hours':
+                    $validUntil = $now->copy()->addHours(24);
                     break;
                 case '1_day':
                     $validUntil = $now->copy()->addDay();
@@ -608,7 +654,7 @@ class VisitorController extends Controller
                     $validUntil = $now->copy()->addWeek();
                     break;
                 default:
-                    $validUntil = $now->copy()->addHours(8);
+                    $validUntil = $now->copy()->addHours(24);
             }
         }
 
@@ -809,9 +855,12 @@ class VisitorController extends Controller
                         'purpose' => $visitor->purpose ?? 'N/A',
                         'host_employee' => $visitor->host_employee ?? 'N/A',
                         'department' => $visitor->department ?? 'N/A',
-                        'check_in_time' => $visitor->time_in ? \Carbon\Carbon::parse($visitor->time_in)->format('M j, Y g:i A') : 'N/A',
-                        // Expected time out: prefer explicit expected value if available, else use pass validity until
-                        'expected_time_out' => $visitor->pass_valid_until ? \Carbon\Carbon::parse($visitor->pass_valid_until)->format('M j, Y g:i A') : ($visitor->time_out ? \Carbon\Carbon::parse($visitor->time_out)->format('M j, Y g:i A') : 'N/A'),
+                        'check_in_time' => $visitor->arrival_date && $visitor->arrival_time ? \Carbon\Carbon::parse(\Carbon\Carbon::parse($visitor->arrival_date)->format('Y-m-d') . ' ' . \Carbon\Carbon::parse($visitor->arrival_time)->format('H:i:s'))->format('M j, Y g:i A') : 'N/A',
+                        'actual_check_in_time' => $visitor->time_in ? \Carbon\Carbon::parse($visitor->time_in)->format('M j, Y g:i A') : 'N/A',
+                        // Expected date out: separate date field
+                        'expected_date_out' => $visitor->expected_date_out ? \Carbon\Carbon::parse($visitor->expected_date_out)->format('M j, Y') : 'N/A',
+                        // Expected time out: use the actual expected_time_out field
+                        'expected_time_out' => $visitor->expected_time_out ? \Carbon\Carbon::parse($visitor->expected_time_out)->format('g:i A') : 'N/A',
                         'vehicle_plate' => $visitor->vehicle_plate ?? 'N/A',
                         'status' => $status,
                         'pass_id' => $visitor->pass_id,
@@ -825,9 +874,11 @@ class VisitorController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Monitoring visitors error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to load monitoring data'
+                'message' => 'Unable to load monitoring data: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -853,7 +904,7 @@ class VisitorController extends Controller
             }
 
             // Calculate pass validity
-            $validForHours = $visitor->pass_validity ?? 8;
+            $validForHours = $visitor->pass_validity ?? 24;
             $checkInTime = $visitor->time_in ? \Carbon\Carbon::parse($visitor->time_in) : null;
             $issuedAt = $visitor->pass_valid_from ? \Carbon\Carbon::parse($visitor->pass_valid_from) : $visitor->created_at;
             
@@ -890,6 +941,10 @@ class VisitorController extends Controller
                     'special_instructions' => $visitor->special_instructions ?? null,
                     'valid_from' => $visitor->pass_valid_from ? \Carbon\Carbon::parse($visitor->pass_valid_from)->toISOString() : null,
                     'valid_until' => $visitor->pass_valid_until ? \Carbon\Carbon::parse($visitor->pass_valid_until)->toISOString() : null,
+                    'arrival_date' => $visitor->arrival_date ? \Carbon\Carbon::parse($visitor->arrival_date)->format('M j, Y') : null,
+                    'arrival_time' => $visitor->arrival_time ? \Carbon\Carbon::parse($visitor->arrival_time)->format('g:i A') : null,
+                    'expected_date_out' => $visitor->expected_date_out ? \Carbon\Carbon::parse($visitor->expected_date_out)->format('M j, Y') : null,
+                    'expected_time_out' => $visitor->expected_time_out ? \Carbon\Carbon::parse($visitor->expected_time_out)->format('g:i A') : null,
                     'facility' => $visitor->facility ? $visitor->facility->name : 'N/A',
                     'qr_code' => $visitor->pass_data['qr_code'] ?? $this->generateQRCode($visitor->pass_id)
                 ]
@@ -962,9 +1017,9 @@ class VisitorController extends Controller
         if (!$visitor->pass_valid_from) {
             $visitor->update([
                 'pass_type' => $visitor->pass_type ?? 'visitor',
-                'pass_validity' => $visitor->pass_validity ?? '8_hours',
+                'pass_validity' => $visitor->pass_validity ?? '24_hours',
                 'pass_valid_from' => now(),
-                'pass_valid_until' => now()->addHours(8),
+                'pass_valid_until' => now()->addHours(24),
                 'access_level' => $visitor->access_level ?? null,
                 'escort_required' => $visitor->escort_required ?? 'no',
             ]);

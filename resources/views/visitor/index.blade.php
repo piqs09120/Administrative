@@ -117,9 +117,6 @@
             <a href="{{ route('visitor.export.excel') }}" class="btn btn-success btn-sm hover:scale-105 transition-all" style="background-color: var(--color-modern-teal); color: var(--color-white); border-color: var(--color-modern-teal);">
               <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1"></i>Export Excel
             </a>
-            <a href="{{ route('visitor.export.pdf') }}" class="btn btn-error btn-sm hover:scale-105 transition-all" style="background-color: var(--color-danger-red); color: var(--color-white); border-color: var(--color-danger-red);">
-              <i data-lucide="file-text" class="w-4 h-4 mr-1"></i>Export PDF
-            </a>
           </div>
         </div>
         
@@ -1246,9 +1243,24 @@
         // Debug logging
         console.log('Visitor:', visitor.name, 'Status:', status, 'Original status:', visitor.status);
         console.log('Check in time:', visitor.check_in_time, 'Expected time out:', visitor.expected_time_out);
+        console.log('Actual check in time:', visitor.actual_check_in_time);
+        console.log('Current time:', new Date().toLocaleString());
         
         const statusConfig = getStatusConfig(status);
-        const duration = calculateDuration(visitor.check_in_time, visitor.expected_time_out);
+        // Calculate duration from actual check-in to now (since expected_time_out is just time, not datetime)
+        const duration = calculateDuration(visitor.actual_check_in_time, null);
+        console.log('Calculated duration:', duration);
+        
+        // Additional debug for duration calculation
+        if (visitor.actual_check_in_time && visitor.actual_check_in_time !== 'N/A') {
+          const start = new Date(visitor.actual_check_in_time);
+          const end = new Date();
+          const diffMs = end - start;
+          console.log('Start time:', start.toLocaleString());
+          console.log('End time:', end.toLocaleString());
+          console.log('Difference in ms:', diffMs);
+          console.log('Difference in minutes:', Math.floor(diffMs / (1000 * 60)));
+        }
         
         return `
           <div class="monitoring-visitor-card bg-white rounded-lg border-2 border-gray-100 p-4 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 shadow-lg" 
@@ -1317,19 +1329,31 @@
             <div class="mb-3 p-2 bg-gray-50 rounded-md border border-gray-200" style="background-color: #f9fafb; border-color: #e5e7eb;">
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-xs">
-                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Expected:</span>
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Expected In:</span>
                   <span class="font-semibold text-blue-600" style="color: #2563eb;">${visitor.check_in_time || 'N/A'}</span>
                 </div>
-                ${visitor.check_in_time && visitor.check_in_time !== 'N/A' ? `
+                ${visitor.expected_date_out ? `
                 <div class="flex justify-between items-center text-xs">
-                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Actual:</span>
-                  <span class="font-semibold text-green-600" style="color: #16a34a;">${visitor.check_in_time}</span>
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Expected Date Out:</span>
+                  <span class="font-semibold text-orange-600" style="color: #ea580c;">${visitor.expected_date_out}</span>
+                </div>
+                ` : ''}
+                ${visitor.expected_time_out ? `
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Expected Time Out:</span>
+                  <span class="font-semibold text-orange-600" style="color: #ea580c;" data-field="expected-time-out">${visitor.expected_time_out}</span>
+                </div>
+                ` : ''}
+                ${visitor.actual_check_in_time && visitor.actual_check_in_time !== 'N/A' ? `
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Actual In:</span>
+                  <span class="font-semibold text-green-600" style="color: #16a34a;" data-field="actual-check-in">${visitor.actual_check_in_time}</span>
                 </div>
                 ` : ''}
                 ${duration ? `
                 <div class="flex justify-between items-center text-xs">
                   <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Duration:</span>
-                  <span class="font-bold text-purple-600" style="color: #9333ea;">${duration}</span>
+                  <span class="font-bold text-purple-600" style="color: #9333ea;" data-field="duration">${duration}</span>
                 </div>
                 ` : ''}
               </div>
@@ -1399,6 +1423,38 @@
 
       // Add event listeners for View Pass buttons
       addViewPassEventListeners();
+      
+      // Start real-time duration updates
+      startDurationUpdates();
+    }
+
+    // Start real-time duration updates
+    function startDurationUpdates() {
+      // Update durations every minute
+      setInterval(() => {
+        updateAllDurations();
+      }, 60000); // 60 seconds
+    }
+
+    // Update all duration displays
+    function updateAllDurations() {
+      const cards = document.querySelectorAll('.monitoring-visitor-card');
+      cards.forEach(card => {
+        const actualCheckInEl = card.querySelector('[data-field="actual-check-in"]');
+        const durationEl = card.querySelector('[data-field="duration"]');
+        
+        if (actualCheckInEl && durationEl) {
+          const actualCheckIn = actualCheckInEl.textContent;
+          
+          if (actualCheckIn && actualCheckIn !== 'N/A') {
+            // Calculate duration from actual check-in to now
+            const duration = calculateDuration(actualCheckIn, null);
+            if (duration) {
+              durationEl.textContent = duration;
+            }
+          }
+        }
+      });
     }
 
     // Add event listeners for View Pass buttons
@@ -1538,6 +1594,10 @@
         pass_id: passData.pass_number,
         time_in: passData.check_in_time,
         status: passData.status,
+        arrival_date: passData.arrival_date,
+        arrival_time: passData.arrival_time,
+        expected_date_out: passData.expected_date_out,
+        expected_time_out: passData.expected_time_out,
         pass_data: { qr_code: passData.qr_code }
       };
 
@@ -2051,19 +2111,32 @@
 
     // Calculate duration between check-in and check-out times
     function calculateDuration(checkInTime, checkOutTime) {
-      if (!checkInTime) return null;
+      if (!checkInTime || checkInTime === 'N/A') return null;
       
-      const start = new Date(checkInTime);
-      const end = checkOutTime ? new Date(checkOutTime) : new Date();
-      
-      const diffMs = end - start;
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (diffHours > 0) {
-        return `${diffHours}h ${diffMinutes}m`;
-      } else {
-        return `${diffMinutes}m`;
+      try {
+        const start = new Date(checkInTime);
+        const end = checkOutTime ? new Date(checkOutTime) : new Date();
+        
+        // Check if dates are valid
+        if (isNaN(start.getTime())) {
+          console.error('Invalid check-in time:', checkInTime);
+          return 'Invalid time';
+        }
+        
+        const diffMs = end - start;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (diffMs < 0) return '0m'; // Handle negative durations
+        
+        if (diffHours > 0) {
+          return `${diffHours}h ${diffMinutes}m`;
+        } else {
+          return `${diffMinutes}m`;
+        }
+      } catch (error) {
+        console.error('Duration calculation error:', error);
+        return 'Error';
       }
     }
 
@@ -2300,6 +2373,9 @@
       // loadCurrentVisitors(); // Disabled - data already loaded server-side
       // updateStats(); // Disabled - stats already loaded server-side
       
+      // Load monitoring data on page load
+      loadMonitoringData();
+      
       
       // Initialize all Lucide icons
       if (window.lucide && window.lucide.createIcons) {
@@ -2531,6 +2607,14 @@
         const checkinTimeEl = document.getElementById('success-checkin-time');
         const purposeEl = document.getElementById('success-purpose');
         const statusEl = document.getElementById('success-status');
+        const arrivalDateEl = document.getElementById('success-arrival-date');
+        const arrivalDateValueEl = document.getElementById('success-arrival-date-value');
+        const arrivalTimeEl = document.getElementById('success-arrival-time');
+        const arrivalTimeValueEl = document.getElementById('success-arrival-time-value');
+        const expectedDateOutEl = document.getElementById('success-expected-date-out');
+        const expectedDateOutValueEl = document.getElementById('success-expected-date-out-value');
+        const expectedTimeOutEl = document.getElementById('success-expected-time-out');
+        const expectedTimeOutValueEl = document.getElementById('success-expected-time-out-value');
         
         if (passNumberEl) passNumberEl.textContent = passId;
         if (visitorNameEl) visitorNameEl.textContent = visitor.name || 'N/A';
@@ -2538,6 +2622,36 @@
         if (checkinTimeEl) checkinTimeEl.textContent = visitor.time_in ? formatDateTime(visitor.time_in) : 'Not checked in yet';
         if (purposeEl) purposeEl.textContent = visitor.purpose || 'N/A';
         if (statusEl) statusEl.textContent = visitor.time_in ? 'Active' : 'Registered';
+        
+        // Show/hide arrival date and time fields
+        if (visitor.arrival_date) {
+          if (arrivalDateEl) arrivalDateEl.style.display = 'flex';
+          if (arrivalDateValueEl) arrivalDateValueEl.textContent = visitor.arrival_date;
+        } else {
+          if (arrivalDateEl) arrivalDateEl.style.display = 'none';
+        }
+        
+        if (visitor.arrival_time) {
+          if (arrivalTimeEl) arrivalTimeEl.style.display = 'flex';
+          if (arrivalTimeValueEl) arrivalTimeValueEl.textContent = visitor.arrival_time;
+        } else {
+          if (arrivalTimeEl) arrivalTimeEl.style.display = 'none';
+        }
+        
+        // Show/hide expected date and time out fields
+        if (visitor.expected_date_out) {
+          if (expectedDateOutEl) expectedDateOutEl.style.display = 'flex';
+          if (expectedDateOutValueEl) expectedDateOutValueEl.textContent = visitor.expected_date_out;
+        } else {
+          if (expectedDateOutEl) expectedDateOutEl.style.display = 'none';
+        }
+        
+        if (visitor.expected_time_out) {
+          if (expectedTimeOutEl) expectedTimeOutEl.style.display = 'flex';
+          if (expectedTimeOutValueEl) expectedTimeOutValueEl.textContent = visitor.expected_time_out;
+        } else {
+          if (expectedTimeOutEl) expectedTimeOutEl.style.display = 'none';
+        }
 
         // Render QR image using same URL stored in pass_data
         const qrContainer = document.getElementById('qr-code-placeholder');
@@ -2650,9 +2764,9 @@ Check-in Time: ${checkinTime}
 Purpose: ${purpose}
 Status: Active
 
-Valid until: ${new Date(Date.now() + 8 * 60 * 60 * 1000).toLocaleString()}
+Valid until: ${new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()}
 
-This pass is valid for 8 hours from check-in time.
+This pass is valid for 24 hours from check-in time.
 Please keep this pass with you at all times during your visit.
 
 Generated on: ${new Date().toLocaleString()}
@@ -2735,8 +2849,8 @@ Generated on: ${new Date().toLocaleString()}
               case '4_hours':
                 validUntil.setHours(validUntil.getHours() + 4);
                 break;
-              case '8_hours':
-                validUntil.setHours(validUntil.getHours() + 8);
+              case '24_hours':
+                validUntil.setHours(validUntil.getHours() + 24);
                 break;
               case '1_day':
                 validUntil.setDate(validUntil.getDate() + 1);
@@ -2979,6 +3093,24 @@ Generated on: ${new Date().toLocaleString()}
                   @endforeach
                 </select>
               </div>
+
+              <div class="form-control">
+                <label class="form-label">
+                  <i data-lucide="calendar" class="form-icon"></i>
+                  Expected Date Out
+                </label>
+                <input type="date" name="expected_date_out" class="form-input" 
+                       placeholder="What date will the visitor leave?">
+              </div>
+
+              <div class="form-control">
+                <label class="form-label">
+                  <i data-lucide="clock" class="form-icon"></i>
+                  Expected Time Out
+                </label>
+                <input type="time" name="expected_time_out" class="form-input" 
+                       placeholder="What time will the visitor leave?">
+              </div>
             </div>
 
             <!-- Identification Section -->
@@ -3087,6 +3219,22 @@ Generated on: ${new Date().toLocaleString()}
                   <span class="pass-detail-label">Purpose:</span>
                     <span class="pass-detail-value" id="success-purpose">Loading...</span>
                 </div>
+                <div class="pass-detail-item" id="success-arrival-date" style="display: none;">
+                  <span class="pass-detail-label">Arrival Date:</span>
+                    <span class="pass-detail-value" id="success-arrival-date-value">Loading...</span>
+                </div>
+                <div class="pass-detail-item" id="success-arrival-time" style="display: none;">
+                  <span class="pass-detail-label">Arrival Time:</span>
+                    <span class="pass-detail-value" id="success-arrival-time-value">Loading...</span>
+                </div>
+                <div class="pass-detail-item" id="success-expected-date-out" style="display: none;">
+                  <span class="pass-detail-label">Expected Date Out:</span>
+                    <span class="pass-detail-value" id="success-expected-date-out-value">Loading...</span>
+                </div>
+                <div class="pass-detail-item" id="success-expected-time-out" style="display: none;">
+                  <span class="pass-detail-label">Expected Time Out:</span>
+                    <span class="pass-detail-value" id="success-expected-time-out-value">Loading...</span>
+                </div>
                 <div class="pass-detail-item">
                   <span class="pass-detail-label">Status:</span>
                   <span class="pass-detail-value status-active" id="success-status">Active</span>
@@ -3109,7 +3257,7 @@ Generated on: ${new Date().toLocaleString()}
                   <i data-lucide="clock" class="w-6 h-6 text-green-500"></i>
                   <div>
                     <p class="pass-info-label">Valid For</p>
-                    <p class="pass-info-value">8 Hours</p>
+                    <p class="pass-info-value">24 Hours</p>
                   </div>
                 </div>
                 <div class="mt-4 flex items-center justify-center">

@@ -669,12 +669,17 @@
                 <div class="flex items-center gap-3">
                   <div class="flex items-center gap-2">
                     <i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i>
-                    <select class="select select-bordered select-sm">
-                      <option>This Week</option>
-                      <option>This Month</option>
-                      <option>This Year</option>
+                    <select class="select select-bordered select-sm" id="analytics-time-range" onchange="refreshAnalytics()">
+                      <option value="today">Today</option>
+                      <option value="week">This Week</option>
+                      <option value="month">This Month</option>
+                      <option value="year">This Year</option>
                     </select>
                   </div>
+                  <button onclick="refreshAnalytics()" class="btn btn-outline btn-sm">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i>
+                    Refresh
+                  </button>
                   <button onclick="exportReport()" class="btn btn-primary btn-sm">
                     <i data-lucide="download" class="w-4 h-4 mr-1"></i>
                     Export Report
@@ -742,129 +747,27 @@
                     <h3 class="text-lg font-semibold text-gray-800">Peak Visiting Hours</h3>
                   </div>
                   <p class="text-sm text-gray-600 mb-4">Visitor traffic throughout the day</p>
-                  <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">08:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 20%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">15</span>
+                  <div id="peak-hours-content" class="space-y-3">
+                    <!-- Dynamic content will be loaded here -->
+                    <div class="text-center py-8 text-gray-500">
+                      <i data-lucide="clock" class="w-8 h-8 mx-auto mb-2"></i>
+                      <p>Loading peak hours data...</p>
                     </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">09:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 35%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">25</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">10:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 28%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">20</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">11:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 25%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">18</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">12:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 17%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">12</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">13:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 11%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">8</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">14:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 31%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">22</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-700">15:00</span>
-                      <div class="flex-1 mx-3">
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                          <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 39%"></div>
-                        </div>
-                      </div>
-                      <span class="text-sm font-medium text-gray-700">28</span>
-                </div>
-              </div>
+                  </div>
             </div>
 
-                <!-- Visitors by Department -->
+                <!-- Departments by visitor count -->
                 <div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
                   <div class="flex items-center gap-2 mb-4">
                     <i data-lucide="building" class="w-5 h-5 text-blue-600"></i>
-                    <h3 class="text-lg font-semibold text-gray-800">Visitors by Department</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Departments with most visitors</h3>
                   </div>
-                  <p class="text-sm text-gray-600 mb-4">Distribution across host departments</p>
-                  <div class="space-y-3">
-                    <div class="flex items-center justify-between department-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Sales</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visitors</span>
-                        <span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between department-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">HR</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visitors</span>
-                        <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between department-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Procurement</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visitors</span>
-                        <span class="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between department-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Business Development</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visitors</span>
-                        <span class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
+                  <p class="text-sm text-gray-600 mb-4">All departments ranked by visitor count</p>
+                  <div id="hosts-departments-content" class="space-y-3">
+                    <!-- Dynamic content will be loaded here -->
+                    <div class="text-center py-8 text-gray-500">
+                      <i data-lucide="building" class="w-8 h-8 mx-auto mb-2"></i>
+                      <p>Loading departments data...</p>
                     </div>
                   </div>
                 </div>
@@ -879,46 +782,11 @@
                     <h3 class="text-lg font-semibold text-gray-800">Visit Purposes</h3>
                   </div>
                   <p class="text-sm text-gray-600 mb-4">Breakdown of visit reasons</p>
-                  <div class="space-y-3">
-                    <div class="flex items-center justify-between purpose-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Business Meeting</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visits</span>
-                        <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between purpose-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Job Interview</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visits</span>
-                        <span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between purpose-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Vendor Meeting</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visits</span>
-                        <span class="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between purpose-item">
-                      <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span class="text-sm font-medium text-gray-700">Client Meeting</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">1 visits</span>
-                        <span class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">25%</span>
-                      </div>
+                  <div id="visitor-types-content" class="space-y-3">
+                    <!-- Dynamic content will be loaded here -->
+                    <div class="text-center py-8 text-gray-500">
+                      <i data-lucide="target" class="w-8 h-8 mx-auto mb-2"></i>
+                      <p>Loading visit purposes data...</p>
                     </div>
                   </div>
                 </div>
@@ -1080,6 +948,7 @@
       // Initialize Reports & Analytics if switching to reports tab
       if (tabName === 'reports') {
         setTimeout(() => {
+          loadAnalyticsData(); // Load data first
           initializeReportsAnalytics();
         }, 200);
       }
@@ -1099,18 +968,12 @@
 
     // Analytics functions
     function loadAnalyticsData() {
-      // Check if analytics tab is visible
-      const analyticsTab = document.getElementById('analytics-tab');
-      if (!analyticsTab || analyticsTab.classList.contains('hidden')) {
-        console.log('Analytics tab not visible, skipping chart creation');
-        return;
-      }
+      // Always load analytics data - don't check if tab is visible
+      console.log('Loading analytics data...');
+      console.log('Route URL:', '{{ route("visitor.logs.analytics") }}');
       
       // Show loading state
       showAnalyticsLoading();
-      
-      console.log('Loading analytics data...');
-      console.log('Route URL:', '{{ route("visitor.logs.analytics") }}');
       
       // Load analytics data from backend
       fetch('{{ route("visitor.logs.analytics") }}?time_range=today', {
@@ -1131,20 +994,19 @@
         })
         .then(data => {
           console.log('Analytics data loaded:', data);
-          // Create charts with proper data handling
+          console.log('Total visitors from API:', data.statistics?.total_visitors);
+          // Create charts with real data only
           createDailyTrendsChart(data.daily_trends || []);
           createVisitorTypesChart(data.visitor_types || {});
+          createHostsDepartmentsChart(data.hosts_departments || []);
           createPeakHoursChart(data.peak_hours || []);
           updateAnalyticsStats(data);
         })
         .catch(error => {
           console.error('Error loading analytics data:', error);
           showNotification('Error loading analytics data: ' + error.message, 'error');
-          // Fallback to static data
-          createDailyTrendsChart();
-          createVisitorTypesChart();
-          createPeakHoursChart();
-          updateAnalyticsStats();
+          // Show empty state instead of static data
+          showEmptyAnalyticsState();
         });
     }
 
@@ -1154,6 +1016,33 @@
       chartContainers.forEach(container => {
         container.innerHTML = '<div class="flex items-center justify-center h-full"><div class="loading loading-spinner loading-md"></div></div>';
       });
+    }
+
+    function showEmptyAnalyticsState() {
+      // Show empty state for analytics when data fails to load
+      const statNumbers = document.querySelectorAll('#reports-content .stat-number');
+      statNumbers.forEach((stat, index) => {
+        stat.textContent = '0';
+      });
+      
+      // Clear charts
+      const chartContainers = document.querySelectorAll('.chart-container');
+      chartContainers.forEach(container => {
+        container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+      });
+    }
+
+    function refreshAnalytics() {
+      // Get selected time range
+      const timeRange = document.getElementById('analytics-time-range').value || 'today';
+      
+      // Show loading state
+      showAnalyticsLoading();
+      
+      // Load fresh analytics data
+      loadAnalyticsDataForRange(timeRange);
+      
+      showNotification('Analytics data refreshed!', 'success');
     }
 
     function createDailyTrendsChart(data = null) {
@@ -1169,20 +1058,8 @@
         dailyTrendsChart.destroy();
       }
       
-      // Use real data if available, otherwise fallback to static data
-      let chartData = data;
-      if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
-        chartData = [
-          { label: '6 AM', count: 2 },
-          { label: '8 AM', count: 8 },
-          { label: '10 AM', count: 15 },
-          { label: '12 PM', count: 12 },
-          { label: '2 PM', count: 18 },
-          { label: '4 PM', count: 10 },
-          { label: '6 PM', count: 6 },
-          { label: '8 PM', count: 2 }
-        ];
-      }
+      // Use real data only - no fallback to static data
+      let chartData = data || [];
       
       dailyTrendsChart = new Chart(ctx, {
         type: 'line',
@@ -1222,7 +1099,177 @@
       });
     }
 
+    // Update Visitor Types HTML content with real data
+    function updateVisitorTypesHTML(data = null) {
+      const container = document.getElementById('visitor-types-content');
+      if (!container) return;
+      
+      if (!data || Object.keys(data).length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i data-lucide="building" class="w-8 h-8 mx-auto mb-2"></i>
+            <p>No visitor types data available</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Calculate total visitors for percentage calculation
+      const totalVisitors = Object.values(data).reduce((sum, count) => sum + count, 0);
+      
+      // Generate HTML for each visitor type
+      const colors = ['bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-purple-500', 'bg-red-500', 'bg-yellow-500', 'bg-indigo-500', 'bg-pink-500'];
+      const textColors = ['text-blue-600', 'text-green-600', 'text-orange-600', 'text-purple-600', 'text-red-600', 'text-yellow-600', 'text-indigo-600', 'text-pink-600'];
+      const bgColors = ['bg-blue-100', 'bg-green-100', 'bg-orange-100', 'bg-purple-100', 'bg-red-100', 'bg-yellow-100', 'bg-indigo-100', 'bg-pink-100'];
+      
+      const html = Object.entries(data).map(([purpose, count], index) => {
+        const percentage = totalVisitors > 0 ? Math.round((count / totalVisitors) * 100) : 0;
+        const colorClass = colors[index % colors.length];
+        const textColorClass = textColors[index % textColors.length];
+        const bgColorClass = bgColors[index % bgColors.length];
+        
+        return `
+          <div class="flex items-center justify-between department-item">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 ${colorClass} rounded-full"></div>
+              <span class="text-sm font-medium text-gray-700">${purpose}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-600">${count} visitor${count !== 1 ? 's' : ''}</span>
+              <span class="text-xs font-medium ${textColorClass} ${bgColorClass} px-2 py-1 rounded-full">${percentage}%</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+      
+      // Re-initialize Lucide icons
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
+    // Update Hosts/Departments HTML content with real data
+    function updateHostsDepartmentsHTML(data = null) {
+      const container = document.getElementById('hosts-departments-content');
+      if (!container) return;
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i data-lucide="users" class="w-8 h-8 mx-auto mb-2"></i>
+            <p>No hosts/departments data available</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Calculate total visitors for percentage calculation
+      const totalVisitors = data.reduce((sum, item) => sum + item.count, 0);
+      
+      // Generate HTML for each host/department
+      const colors = ['bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-purple-500', 'bg-red-500', 'bg-yellow-500', 'bg-indigo-500', 'bg-pink-500'];
+      const textColors = ['text-blue-600', 'text-green-600', 'text-orange-600', 'text-purple-600', 'text-red-600', 'text-yellow-600', 'text-indigo-600', 'text-pink-600'];
+      const bgColors = ['bg-blue-100', 'bg-green-100', 'bg-orange-100', 'bg-purple-100', 'bg-red-100', 'bg-yellow-100', 'bg-indigo-100', 'bg-pink-100'];
+      
+      const html = data.map((item, index) => {
+        const percentage = totalVisitors > 0 ? Math.round((item.count / totalVisitors) * 100) : 0;
+        const colorClass = colors[index % colors.length];
+        const textColorClass = textColors[index % textColors.length];
+        const bgColorClass = bgColors[index % bgColors.length];
+        const typeIcon = 'building';
+        const typeLabel = 'Department';
+        
+        return `
+          <div class="flex items-center justify-between department-item">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 ${colorClass} rounded-full"></div>
+              <div class="flex items-center gap-1">
+                <i data-lucide="${typeIcon}" class="w-3 h-3 text-gray-500"></i>
+                <span class="text-sm font-medium text-gray-700">${item.name}</span>
+                <span class="text-xs text-gray-500">(${typeLabel})</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-600">${item.count} visitor${item.count !== 1 ? 's' : ''}</span>
+              <span class="text-xs font-medium ${textColorClass} ${bgColorClass} px-2 py-1 rounded-full">${percentage}%</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+      
+      // Re-initialize Lucide icons
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function createHostsDepartmentsChart(data = null) {
+      // Update the HTML content with real data
+      updateHostsDepartmentsHTML(data);
+      
+      const canvas = document.getElementById('visitorTypesChart');
+      if (!canvas) {
+        console.error('Hosts/Departments chart canvas not found');
+        return;
+      }
+      
+      const ctx = canvas.getContext('2d');
+      
+      if (visitorTypesChart) {
+        visitorTypesChart.destroy();
+      }
+      
+      // Use real data only - no fallback to static data
+      let chartData = data || [];
+      
+      const labels = chartData.map(item => `${item.name}`);
+      const values = chartData.map(item => item.count);
+      const colors = [
+        'rgb(59, 130, 246)',
+        'rgb(16, 185, 129)',
+        'rgb(245, 158, 11)',
+        'rgb(239, 68, 68)',
+        'rgb(139, 92, 246)',
+        'rgb(236, 72, 153)',
+        'rgb(34, 197, 94)',
+        'rgb(251, 146, 60)'
+      ];
+      
+      visitorTypesChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true
+              }
+            }
+          }
+        }
+      });
+    }
+
     function createVisitorTypesChart(data = null) {
+      // Update the HTML content with real data
+      updateVisitorTypesHTML(data);
+      
       const canvas = document.getElementById('visitorTypesChart');
       if (!canvas) {
         console.error('Visitor types chart canvas not found');
@@ -1235,17 +1282,8 @@
         visitorTypesChart.destroy();
       }
       
-      // Use real data if available, otherwise fallback to static data
-      let chartData = data;
-      if (!chartData || typeof chartData !== 'object' || Object.keys(chartData).length === 0) {
-        chartData = {
-          'Meeting': 35,
-          'Interview': 20,
-          'Delivery': 15,
-          'Maintenance': 10,
-          'Other': 20
-        };
-      }
+      // Use real data only - no fallback to static data
+      let chartData = data || {};
       
       const labels = Object.keys(chartData);
       const values = Object.values(chartData);
@@ -1293,7 +1331,53 @@
       });
     }
 
+    // Update Peak Hours HTML content with real data
+    function updatePeakHoursHTML(data = null) {
+      const container = document.getElementById('peak-hours-content');
+      if (!container) return;
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i data-lucide="clock" class="w-8 h-8 mx-auto mb-2"></i>
+            <p>No peak hours data available</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Find the maximum count for percentage calculation
+      const maxCount = Math.max(...data.map(item => item.count || 0));
+      
+      // Generate HTML for each hour
+      const html = data.map(item => {
+        const percentage = maxCount > 0 ? Math.round((item.count / maxCount) * 100) : 0;
+        const hour = String(item.hour).padStart(2, '0');
+        return `
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-gray-700">${hour}:00</span>
+            <div class="flex-1 mx-3">
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+            <span class="text-sm font-medium text-gray-700">${item.count || 0}</span>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+      
+      // Re-initialize Lucide icons
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
     function createPeakHoursChart(data = null) {
+      // Update the HTML content with real data
+      updatePeakHoursHTML(data);
+      
       const canvas = document.getElementById('peakHoursChart');
       if (!canvas) {
         console.error('Peak hours chart canvas not found');
@@ -1306,36 +1390,8 @@
         peakHoursChart.destroy();
       }
       
-      // Use real data if available, otherwise fallback to static data
-      let chartData = data;
-      if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
-        chartData = [
-        { hour: 0, count: 0 },
-        { hour: 1, count: 0 },
-        { hour: 2, count: 0 },
-        { hour: 3, count: 0 },
-        { hour: 4, count: 0 },
-        { hour: 5, count: 0 },
-        { hour: 6, count: 2 },
-        { hour: 7, count: 5 },
-        { hour: 8, count: 8 },
-        { hour: 9, count: 15 },
-        { hour: 10, count: 18 },
-        { hour: 11, count: 12 },
-        { hour: 12, count: 8 },
-        { hour: 13, count: 10 },
-        { hour: 14, count: 12 },
-        { hour: 15, count: 8 },
-        { hour: 16, count: 6 },
-        { hour: 17, count: 4 },
-        { hour: 18, count: 2 },
-        { hour: 19, count: 1 },
-        { hour: 20, count: 0 },
-        { hour: 21, count: 0 },
-        { hour: 22, count: 0 },
-        { hour: 23, count: 0 }
-        ];
-      }
+      // Use real data only - no fallback to static data
+      let chartData = data || [];
       
       peakHoursChart = new Chart(ctx, {
         type: 'bar',
@@ -1372,28 +1428,57 @@
     }
 
     function updateAnalyticsStats(data = null) {
+      console.log('updateAnalyticsStats called with data:', data);
       // Update analytics statistics with real data
-      if (data) {
-        // Handle peak hours - it might be an object or string
-        let peakHoursText = '9:00 AM - 11:00 AM';
-        if (data.peak_hours) {
-          if (typeof data.peak_hours === 'string') {
-            peakHoursText = data.peak_hours;
-          } else if (data.peak_hours.hour !== undefined) {
-            const hour = data.peak_hours.hour;
-            const nextHour = hour + 1;
-            peakHoursText = `${hour.toString().padStart(2, '0')}:00 - ${nextHour.toString().padStart(2, '0')}:00`;
+      if (data && data.statistics) {
+        const stats = data.statistics;
+        console.log('Updating stats with:', stats);
+        
+        // Update main statistics cards in Reports & Analytics section
+        const statNumbers = document.querySelectorAll('#reports-content .stat-number');
+        console.log('Found stat numbers elements:', statNumbers.length);
+        if (statNumbers.length >= 4) {
+          // Total Visitors
+          statNumbers[0].textContent = stats.total_visitors || 0;
+          console.log('Updated total visitors to:', stats.total_visitors || 0);
+          // Avg. Visit Duration
+          statNumbers[1].textContent = stats.average_duration || '0h';
+          // Peak Capacity (calculate from current vs total)
+          const peakCapacity = stats.total_visitors > 0 ? Math.round((stats.currently_in / stats.total_visitors) * 100) : 0;
+          statNumbers[2].textContent = peakCapacity + '%';
+          // Security Incidents (always 0 for now)
+          statNumbers[3].textContent = '0';
+        }
+        
+        // Update detailed analytics
+        if (data.peak_hours && Array.isArray(data.peak_hours)) {
+          // Find peak hour
+          const peakHour = data.peak_hours.reduce((max, hour) => hour.count > max.count ? hour : max, {count: 0});
+          if (peakHour.count > 0) {
+            const nextHour = peakHour.hour + 1;
+            const peakHoursText = `${peakHour.hour.toString().padStart(2, '0')}:00 - ${nextHour.toString().padStart(2, '0')}:00`;
+            const peakHoursElement = document.getElementById('peakHoursDetail');
+            if (peakHoursElement) {
+              peakHoursElement.textContent = peakHoursText;
+            }
           }
         }
-        document.getElementById('peakHoursDetail').textContent = peakHoursText;
         
-        document.getElementById('mostVisitedFacility').textContent = data.most_visited_facility || 'Conference Room A';
-        document.getElementById('returnVisitors').textContent = (data.return_visitors || 15) + '%';
+        const mostVisitedElement = document.getElementById('mostVisitedFacility');
+        if (mostVisitedElement) {
+          mostVisitedElement.textContent = data.most_visited_facility || 'N/A';
+        }
+        
+        const returnVisitorsElement = document.getElementById('returnVisitors');
+        if (returnVisitorsElement) {
+          returnVisitorsElement.textContent = (data.return_visitors || 0) + '%';
+        }
       } else {
-        // Fallback to static data
-        document.getElementById('peakHoursDetail').textContent = '9:00 AM - 11:00 AM';
-        document.getElementById('mostVisitedFacility').textContent = 'Conference Room A';
-        document.getElementById('returnVisitors').textContent = '15%';
+        // Show empty state for missing data
+        const statNumbers = document.querySelectorAll('#reports-content .stat-number');
+        statNumbers.forEach((stat, index) => {
+          stat.textContent = '0';
+        });
       }
     }
 
@@ -1421,17 +1506,11 @@
     }
 
     function loadAnalyticsDataForRange(timeRange) {
-      // Check if analytics tab is visible
-      const analyticsTab = document.getElementById('analytics-tab');
-      if (!analyticsTab || analyticsTab.classList.contains('hidden')) {
-        console.log('Analytics tab not visible, skipping chart creation for range:', timeRange);
-        return;
-      }
+      // Always load analytics data - don't check if tab is visible
+      console.log('Loading analytics data for range:', timeRange);
       
       // Show loading state
       showAnalyticsLoading();
-      
-      console.log('Loading analytics data for range:', timeRange);
       
       // Load analytics data from backend with time range
       fetch(`{{ route("visitor.logs.analytics") }}?time_range=${timeRange}`, {
@@ -1454,27 +1533,21 @@
           console.log('Analytics data loaded for range:', timeRange, data);
           createDailyTrendsChart(data.daily_trends || []);
           createVisitorTypesChart(data.visitor_types || {});
+          createHostsDepartmentsChart(data.hosts_departments || []);
           createPeakHoursChart(data.peak_hours || []);
           updateAnalyticsStats(data);
         })
         .catch(error => {
           console.error('Error loading analytics data:', error);
           showNotification('Error loading analytics data: ' + error.message, 'error');
-          // Fallback to static data
-          createDailyTrendsChart();
-          createVisitorTypesChart();
-          createPeakHoursChart();
-          updateAnalyticsStats();
+          // Show empty state instead of static data
+          showEmptyAnalyticsState();
         });
     }
 
     function applyCustomRange() {
-      // Check if analytics tab is visible
-      const analyticsTab = document.getElementById('analytics-tab');
-      if (!analyticsTab || analyticsTab.classList.contains('hidden')) {
-        console.log('Analytics tab not visible, skipping custom range chart creation');
-        return;
-      }
+      // Always load analytics data - don't check if tab is visible
+      console.log('Applying custom range...');
       
       const startDate = document.getElementById('start-date').value;
       const endDate = document.getElementById('end-date').value;
@@ -1504,17 +1577,15 @@
             console.log('Analytics data loaded for custom range:', data);
             createDailyTrendsChart(data.daily_trends || []);
             createVisitorTypesChart(data.visitor_types || {});
+            createHostsDepartmentsChart(data.hosts_departments || []);
             createPeakHoursChart(data.peak_hours || []);
             updateAnalyticsStats(data);
           })
           .catch(error => {
             console.error('Error loading analytics data:', error);
             showNotification('Error loading analytics data: ' + error.message, 'error');
-            // Fallback to static data
-            createDailyTrendsChart();
-            createVisitorTypesChart();
-            createPeakHoursChart();
-            updateAnalyticsStats();
+            // Show empty state instead of static data
+            showEmptyAnalyticsState();
           });
       } else {
         showNotification('Please select both start and end dates', 'error');
@@ -1554,6 +1625,9 @@
 
     // Initialize Reports & Analytics
     function initializeReportsAnalytics() {
+      // Load real analytics data first
+      loadAnalyticsData();
+      
       // Animate statistics cards
       animateStatisticsCards();
       
@@ -1635,10 +1709,10 @@
     // Start real-time updates
     function startRealTimeUpdates() {
       // Update statistics every 30 seconds
-      setInterval(updateStatistics, 30000);
+      // Removed auto updates; manual refresh only
       
       // Update peak hours every minute
-      setInterval(updatePeakHours, 60000);
+      // Removed auto updates; manual refresh only
       
       // Add hover effects
       addHoverEffects();
@@ -2239,11 +2313,14 @@
       setTimeout(() => {
         loadLogsData();
         
-        // Initialize Reports & Analytics if on reports tab
-        if (document.getElementById('reports-tab').classList.contains('active')) {
-          initializeReportsAnalytics();
-        }
+        // Always load analytics data on page load (regardless of active tab)
+        loadAnalyticsData();
       }, 100);
+      
+      // Also load analytics data after a longer delay to ensure it's loaded
+      setTimeout(() => {
+        loadAnalyticsData();
+      }, 1000);
       
       // Initialize all Lucide icons
       if (window.lucide && window.lucide.createIcons) {
@@ -2254,10 +2331,10 @@
       updateLiveDurations();
       
       if (!shouldRespectReducedMotion()) {
-        setInterval(updateLiveDurations, 60000); // Update every minute
+        // Removed auto updates; manual refresh only
       } else {
         // For users with reduced motion preference, update less frequently
-        setInterval(updateLiveDurations, 300000); // Update every 5 minutes
+        // Removed auto updates; manual refresh only
       }
       
       // Add accessibility attributes to duration elements

@@ -14,6 +14,12 @@ Great news! Your visit has been approved and you are now checked in.
 - Facility/Department: {{ optional($visitor->facility)->name ?? ($visitor->department ?? 'N/A') }}
 - Valid From: {{ $visitor->pass_valid_from ? $visitor->pass_valid_from->format('M d, Y h:i A') : '—' }}
 - Valid Until: {{ $visitor->pass_valid_until ? $visitor->pass_valid_until->format('M d, Y h:i A') : '—' }}
+@if($visitor->expected_date_out)
+- Expected Date Out: {{ \Carbon\Carbon::parse($visitor->expected_date_out)->format('M d, Y') }}
+@endif
+@if($visitor->expected_time_out)
+- Expected Time Out: {{ \Carbon\Carbon::parse($visitor->expected_time_out)->format('h:i A') }}
+@endif
 @endcomponent
 
 @if($qr)
