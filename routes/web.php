@@ -92,6 +92,32 @@ Route::post('/guest/login', [App\Http\Controllers\userController::class, 'guestl
 // Legal Documents - accessible to Legal Officers, Administrators, and Super Admins
 Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
     Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
+    // Internal legal document creation (draft/publish)
+    Route::get('/legal/documents/create', [LegalController::class, 'createInternalDocument'])->name('legal.documents.create');
+    Route::post('/legal/documents', [LegalController::class, 'storeInternalDocument'])->name('legal.documents.store');
+    // Drafting workspace
+    Route::get('/legal/documents/draft', [LegalController::class, 'draftingWorkspace'])->name('legal.documents.draft');
+    Route::post('/legal/documents/draft', [LegalController::class, 'saveDraft'])->name('legal.documents.save_draft');
+    Route::post('/legal/documents/submit-review', [LegalController::class, 'submitForReview'])->name('legal.documents.submit_review');
+    Route::get('/legal/documents/export/{id}', [LegalController::class, 'exportDocument'])->name('legal.documents.export');
+    // Review actions for internal/legal documents
+    Route::post('/legal/documents/{id}/approve', [LegalController::class, 'approveDocument'])->name('legal.documents.approve');
+    Route::post('/legal/documents/{id}/reject', [LegalController::class, 'rejectDocument'])->name('legal.documents.reject');
+    Route::post('/legal/documents/{id}/request-revision', [LegalController::class, 'requestRevisionDocument'])->name('legal.documents.request_revision');
+    // Archiving & retention
+    Route::post('/legal/documents/{id}/archive', [LegalController::class, 'archiveDocument'])->name('legal.documents.archive');
+    // Department submission flow
+    Route::get('/legal/documents/submit', [LegalController::class, 'submitForm'])->name('legal.documents.submit_form');
+    Route::post('/legal/documents/submit', [LegalController::class, 'storeSubmission'])->name('legal.documents.store_submission');
+    // Reports export
+    Route::get('/legal/reports/export', [LegalController::class, 'exportReports'])->name('legal.reports.export');
+    // Execution/Monitoring stubs
+    Route::post('/legal/documents/{id}/mark-signed', [LegalController::class, 'markSigned'])->name('legal.documents.mark_signed');
+    Route::post('/legal/documents/{id}/set-renewal', [LegalController::class, 'setRenewal'])->name('legal.documents.set_renewal');
+    // Signature requests
+    Route::post('/legal/documents/{id}/signatures/request', [LegalController::class, 'requestSignature'])->name('legal.documents.signatures.request');
+    Route::post('/legal/documents/{id}/signatures/remind', [LegalController::class, 'remindSignature'])->name('legal.documents.signatures.remind');
+    Route::post('/legal/documents/{id}/signatures/cancel', [LegalController::class, 'cancelSignature'])->name('legal.documents.signatures.cancel');
 });
 
 // Temporary: Test legal cases route without auth

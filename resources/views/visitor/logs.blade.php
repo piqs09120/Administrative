@@ -752,8 +752,8 @@
                     <div class="text-center py-8 text-gray-500">
                       <i data-lucide="clock" class="w-8 h-8 mx-auto mb-2"></i>
                       <p>Loading peak hours data...</p>
-                    </div>
-                  </div>
+                </div>
+              </div>
             </div>
 
                 <!-- Departments by visitor count -->

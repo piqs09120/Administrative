@@ -3,7 +3,7 @@
         'name' => 'hotel-restaurant/management-system',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '41f4b1078147060ac1480f9f2fff5cdeceee38a6',
+        'reference' => '3663020e45e696c2fbc594219d8c0e00d5a999e2',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -232,7 +232,7 @@
         'hotel-restaurant/management-system' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '41f4b1078147060ac1480f9f2fff5cdeceee38a6',
+            'reference' => '3663020e45e696c2fbc594219d8c0e00d5a999e2',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

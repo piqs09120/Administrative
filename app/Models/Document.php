@@ -11,7 +11,7 @@ class Document extends Model
 
     protected $fillable = [
         'title', 'description', 'department', 'author', 'file_path', 'status', 'uploaded_by', 
-        'ai_analysis', 'category', 'source', 'extracted_text',
+        'ai_analysis', 'category', 'source', 'extracted_text', 'metadata',
         'requires_legal_review', 'requires_visitor_coordination', 'legal_risk_score',
         'workflow_stage', 'workflow_log', 'lifecycle_log', 'legal_case_data', 'linked_reservation_id'
     ];
@@ -20,7 +20,8 @@ class Document extends Model
         'ai_analysis' => 'array',
         'workflow_log' => 'array',
         'lifecycle_log' => 'array',
-        'legal_case_data' => 'array'
+        'legal_case_data' => 'array',
+        'metadata' => 'array'
     ];
 
     public function uploader() {

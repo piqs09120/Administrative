@@ -118,37 +118,167 @@
           </div>
         </div>
 
-        <!-- Document Management Section -->
+        <!-- Tabs -->
+        @php $activeTab = request('tab') === 'create' ? 'create' : 'documents'; @endphp
         <div class="bg-white rounded-xl shadow-lg p-6">
-          <!-- Header with Search and New Button -->
-          <div class="mb-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
-                  Document List
-                </h3>
-                <!-- Search Bar -->
-                <div class="relative">
-                  <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                  <input type="text" 
-                         id="searchInput"
-                         placeholder="Search documents..." 
-                         class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
+          <div class="mb-4 bg-gray-100 px-6 py-2 border-b border-gray-200" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
+            <div class="flex space-x-1">
+              <button id="btn-documents" class="px-4 py-2 text-sm font-medium {{ $activeTab==='documents' ? 'text-gray-700 bg-blue-100 border-b-2' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200' }} rounded-t-lg {{ $activeTab==='documents' ? '' : '' }}" onclick="showLegalTab('documents')" style="{{ $activeTab==='documents' ? 'background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);' : 'color: var(--color-charcoal-ink);' }}">
+                Documents
+              </button>
+              <button id="btn-create" class="px-4 py-2 text-sm font-medium {{ $activeTab==='create' ? 'text-gray-700 bg-blue-100 border-b-2' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200' }} rounded-t-lg" onclick="showLegalTab('create')" style="{{ $activeTab==='create' ? 'background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);' : 'color: var(--color-charcoal-ink);' }}">
+                Create
+              </button>
+            </div>
+          </div>
+
+          <!-- CREATE TAB CONTENT -->
+          <div id="legal-create-tab" class="{{ $activeTab==='create' ? '' : 'hidden' }}">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                <div class="flex items-center gap-2 mb-2">
+                  <i data-lucide="plus-square" class="w-5 h-5 text-blue-600"></i>
+                  <h3 class="text-lg font-semibold">Custom Document</h3>
                 </div>
+                <p class="text-sm text-gray-600 mb-3">Create a free‑form document with custom terms and conditions</p>
+                <a href="{{ route('legal.documents.draft') }}" class="btn btn-primary btn-sm">Start</a>
               </div>
-              
-              <!-- Add Document Button - Only for Administrator -->
-              @if(auth()->user()->role === 'Administrator')
-                <button onclick="openUploadModal()" class="btn btn-primary btn-sm">
-                  <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
-                  Add Document
-                </button>
-              @endif
+              <div class="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                <div class="flex items-center gap-2 mb-2">
+                  <i data-lucide="clock" class="w-5 h-5 text-blue-600"></i>
+                  <h3 class="text-lg font-semibold">Recent Documents</h3>
+                </div>
+                <p class="text-sm text-gray-600">No recent documents</p>
+              </div>
             </div>
 
-            <!-- Filters Row -->
-            <div class="flex items-center gap-4">
+            <h3 class="text-md font-semibold mt-6 mb-3">Document Templates</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="border rounded-xl p-4">
+                <div class="text-sm text-gray-600 mb-2">Legal</div>
+                <div class="font-semibold">Service Contract</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3">Standard service agreements and contracts</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'service_contract']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              </div>
+              <div class="border rounded-xl p-4">
+                <div class="text-sm text-gray-600 mb-2">Operations</div>
+                <div class="font-semibold">Guest Agreement</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3">Visitor and guest access agreements</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'guest_agreement']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              </div>
+              <div class="border rounded-xl p-4">
+                <div class="text-sm text-gray-600 mb-2">Procurement</div>
+                <div class="font-semibold">Vendor Agreement</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3">Supplier and vendor contracts</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'vendor_agreement']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              </div>
+              <div class="border rounded-xl p-4">
+                <div class="text-sm text-gray-600 mb-2">HR</div>
+                <div class="font-semibold">HR Policy Document</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3">Human resources policies and procedures</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'hr_policy']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              </div>
+            </div>
+
+            <!-- Created Documents Table -->
+            <div class="mt-8">
+              <h3 class="text-md font-semibold mb-3">My Created Documents</h3>
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                  <thead>
+                    <tr class="bg-gray-50">
+                      <th class="text-left py-3 px-4 font-medium text-gray-700">Document Name</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Type</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Uploaded By</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Department</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Status</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Date</th>
+                      <th class="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($createdDocuments as $doc)
+                    <tr>
+                      <td class="py-3 px-4">
+                        <div>
+                          <div class="font-bold">{{ $doc->title }}</div>
+                          <div class="text-xs text-gray-500">{{ $doc->description }}</div>
+                        </div>
+                      </td>
+                      <td class="py-3 px-4 text-center">
+                        <span class="badge badge-outline badge-sm">{{ ucfirst($doc->category ?? 'general') }}</span>
+                      </td>
+                      <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $doc->uploader->employee_name ?? 'Unknown' }}</td>
+                      <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $doc->department ?? ($doc->uploader->dept_name ?? 'N/A') }}</td>
+                      <td class="py-3 px-4 text-center">
+                        @php
+                          $status = $doc->status ?? 'draft';
+                          $badge = match($status){
+                            'pending_review' => 'badge-warning',
+                            'active' => 'badge-success',
+                            'draft' => 'badge-info',
+                            default => 'badge-neutral'
+                          };
+                        @endphp
+                        <span class="badge {{ $badge }}">{{ ucfirst(str_replace('_',' ', $status)) }}</span>
+                      </td>
+                      <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $doc->created_at?->format('M d, Y') }}</td>
+                      <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                          <button onclick="aiAnalysis({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="AI Analysis">
+                            <i data-lucide="brain" class="w-4 h-4 text-purple-600"></i>
+                          </button>
+                          @if(($doc->status ?? 'draft') === 'draft')
+                          <a href="{{ route('legal.documents.create') }}?edit={{ $doc->id }}" class="btn btn-ghost btn-xs tooltip" data-tip="Continue Editing">
+                            <i data-lucide="edit-3" class="w-4 h-4 text-blue-600"></i>
+                          </a>
+                          @endif
+                          <button onclick="downloadDocument({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Download">
+                            <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="7" class="text-center text-gray-500 py-6">No created documents</td></tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- DOCUMENTS TAB CONTENT -->
+          <div id="legal-documents-tab" class="{{ $activeTab==='documents' ? '' : 'hidden' }}">
+            <!-- Header with Search and New Button -->
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                  <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
+                    Document List
+                  </h3>
+                  <!-- Search Bar -->
+                  <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" 
+                           id="searchInput"
+                           placeholder="Search documents..." 
+                           class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
+                  </div>
+                </div>
+
+                <!-- Add Document Button - Only for Administrator (Creation moved to tab) -->
+                @if(auth()->user()->role === 'Administrator')
+                  <button onclick="openUploadModal()" class="btn btn-primary btn-sm">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
+                    Add Document
+                  </button>
+                @endif
+              </div>
+
+              <!-- Filters Row -->
+              <div class="flex items-center gap-4">
               <!-- Category Filter -->
               <div class="flex items-center gap-2">
                 <label class="text-sm font-medium text-gray-700">Category:</label>
@@ -186,7 +316,7 @@
                 Clear
               </button>
             </div>
-          </div>
+            </div>
 
           <!-- Documents Table -->
           <div class="overflow-x-auto">
@@ -304,6 +434,7 @@
               {{ $documents->appends(['search' => $search ?? '', 'category' => $category ?? '', 'status' => $status ?? ''])->links() }}
             </div>
           @endif
+          </div>
         </div>
       </main>
     </div>
@@ -2024,5 +2155,68 @@
     document.getElementById('uploadForm').addEventListener('submit', validateFile);
     document.getElementById('uploadSubmitBtn').addEventListener('click', validateFile);
   </script>
+  <script>
+    function showLegalTab(name) {
+      const createTab = document.getElementById('legal-create-tab');
+      const docsTab = document.getElementById('legal-documents-tab');
+      const t1 = document.getElementById('btn-documents');
+      const t2 = document.getElementById('btn-create');
+      if (!createTab || !docsTab) return;
+      if (name === 'create') {
+        createTab.classList.remove('hidden');
+        docsTab.classList.add('hidden');
+        if (t2) {
+          t2.classList.add('bg-blue-100');
+          t2.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
+          t2.style.borderBottom = '2px solid var(--color-regal-navy)';
+        }
+        if (t1) {
+          t1.classList.remove('bg-blue-100');
+          t1.style.backgroundColor = '';
+          t1.style.borderBottom = '';
+        }
+        // Reflect in URL so we can return to Create tab after redirects
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'create');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      } else {
+        docsTab.classList.remove('hidden');
+        createTab.classList.add('hidden');
+        if (t1) {
+          t1.classList.add('bg-blue-100');
+          t1.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
+          t1.style.borderBottom = '2px solid var(--color-regal-navy)';
+        }
+        if (t2) {
+          t2.classList.remove('bg-blue-100');
+          t2.style.backgroundColor = '';
+          t2.style.borderBottom = '';
+        }
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tab');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      }
+    }
+  </script>
+  <script>
+    // On load, honor ?tab=create or #create to open Create tab
+    (function() {
+      try {
+        const url = new URL(window.location.href);
+        const tabParam = url.searchParams.get('tab');
+        const hashTab = (window.location.hash || '').replace('#', '');
+        if (tabParam === 'create' || hashTab === 'create') {
+          // Defer to ensure DOM is ready
+          setTimeout(() => showLegalTab('create'), 0);
+        }
+      } catch(e) {}
+    })();
+  </script>
 </body>
 </html>
+
