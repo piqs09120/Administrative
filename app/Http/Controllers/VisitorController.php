@@ -15,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Services\VisitorService;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\VisitorCheckedOutMail;
 
 class VisitorController extends Controller
 {
@@ -305,6 +306,15 @@ class VisitorController extends Controller
 
         // Log the check-out activity
         $this->logVisitorActivity($visitor, 'checkout', 'Visitor checked out');
+
+        // Send a graceful checkout email if address is available
+        try {
+            if (!empty($visitor->email)) {
+                Mail::to($visitor->email)->send(new VisitorCheckedOutMail($visitor));
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send checkout email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
@@ -964,29 +974,13 @@ class VisitorController extends Controller
         // Log actions
         $this->logVisitorActivity($visitor, 'checkin', 'Visitor approved and auto-checked in');
 
-        // Email digital pass to visitor if email provided
-        if ($visitor->email) {
-            $pass = $visitor->pass_data ?? [];
-            $qrUrl = $visitor->pass_data['qr_code'] ?? $this->generateQRCode($visitor->pass_id);
-            $content =
-                "Your visit has been approved and you are now checked in.\n\n" .
-                "Pass Number: " . ($visitor->pass_id ?? 'N/A') . "\n" .
-                "Visitor: " . $visitor->name . "\n" .
-                "Company: " . ($visitor->company ?? 'N/A') . "\n" .
-                "Purpose: " . ($visitor->purpose ?? 'N/A') . "\n" .
-                "Valid From: " . ($visitor->pass_valid_from ? $visitor->pass_valid_from->format('Y-m-d H:i') : 'N/A') . "\n" .
-                "Valid Until: " . ($visitor->pass_valid_until ? $visitor->pass_valid_until->format('Y-m-d H:i') : 'N/A') . "\n\n" .
-                "Scan this QR to verify your pass: " . $qrUrl . "\n\n" .
-                "Please present this pass upon entry.";
-
-            try {
-                Mail::raw($content, function ($message) use ($visitor) {
-                    $message->to($visitor->email)
-                        ->subject('Your Visitor Digital Pass');
-                });
-            } catch (\Throwable $e) {
-                \Log::error('Failed sending visitor pass email: ' . $e->getMessage());
+        // Beautiful approval email (Markdown Mailable)
+        try {
+            if (!empty($visitor->email)) {
+                Mail::to($visitor->email)->send(new \App\Mail\VisitorApprovedMail($visitor));
             }
+        } catch (\Throwable $e) {
+            \Log::error('Failed sending visitor approved email: ' . $e->getMessage());
         }
 
         return redirect()->back()->with('success', 'Visitor approved, auto-checked in, and pass emailed.');

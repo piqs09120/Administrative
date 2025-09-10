@@ -35,6 +35,12 @@ Route::post('/visitor/public-store', [App\Http\Controllers\VisitorController::cl
 // Temporary: New Request route without auth for testing
 Route::get('/facility_reservations/new-request', [App\Http\Controllers\FacilityReservationController::class, 'newRequest'])->name('facility_reservations.new_request');
 
+// Facilities Monitoring API (read-only)
+Route::get('/api/facilities/monitoring', [App\Http\Controllers\FacilityReservationController::class, 'monitoringSummary'])->name('facilities.monitoring.summary');
+
+// Equipment details API
+Route::get('/api/facilities/equipment-details', [App\Http\Controllers\FacilityReservationController::class, 'equipmentDetails'])->name('facilities.equipment.details');
+
 // Redirect authenticated users to dashboard
 Route::get('/home', function () {
     if (Auth::check()) {
@@ -578,6 +584,7 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
     Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
     Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
         Route::post('/facility_reservations/{id}/approve-request', [App\Http\Controllers\FacilityReservationController::class, 'approveRequest'])->name('facility_reservations.approve_request');
+        Route::post('/facility_reservations/{id}/complete', [App\Http\Controllers\FacilityReservationController::class, 'completeRequest'])->name('facility_reservations.complete');
         Route::get('/facility_reservations/{id}/show-request', [App\Http\Controllers\FacilityReservationController::class, 'showRequest'])->name('facility_reservations.show_request');
         Route::post('/facilities/{id}/free', [App\Http\Controllers\FacilityReservationController::class, 'freeFacility'])->name('facilities.free');
     

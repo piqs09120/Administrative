@@ -440,10 +440,35 @@
                                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white">
                                         <option value="">Choose a facility</option>
                                         @foreach($facilities as $facility)
+                                            @php
+                                                $occupiedLabel = '';
+                                                if ($facility->status === 'occupied') {
+                                                    $in = null; $until = null;
+                                                    // Prefer an active reservation window
+                                                    $activeRes = \App\Models\FacilityReservation::where('facility_id', $facility->id)
+                                                        ->where('status', 'approved')
+                                                        ->where('start_time', '<=', now())
+                                                        ->where(function($q){ $q->whereNull('end_time')->orWhere('end_time', '>=', now()); })
+                                                        ->latest('start_time')
+                                                        ->first();
+                                                    if ($activeRes) {
+                                                        $in = $activeRes->start_time; $until = $activeRes->end_time;
+                                                    } else {
+                                                        // Last approved request as last-known start
+                                                        $req = \App\Models\FacilityRequest::where('facility_id',$facility->id)
+                                                            ->where('status','approved')
+                                                            ->latest('requested_datetime')->first();
+                                                        if ($req) { $in = $req->requested_datetime; $until = $req->requested_end_datetime; }
+                                                    }
+                                                    $inFmt = $in ? \Carbon\Carbon::parse($in)->format('M d, Y h:i A') : 'Unknown';
+                                                    $untilFmt = $until ? \Carbon\Carbon::parse($until)->format('M d, Y h:i A') : 'Unknown';
+                                                    $occupiedLabel = " (In: {$inFmt} • Until: {$untilFmt})";
+                                                }
+                                            @endphp
                                             @if($facility->status === 'available')
                                                 <option value="{{ $facility->id }}">✅ {{ $facility->name }}</option>
                                             @else
-                                                <option value="" disabled class="text-gray-400 bg-gray-100">❌ {{ $facility->name }} - Occupied</option>
+                                                <option value="" disabled class="text-gray-400 bg-gray-100">❌ {{ $facility->name }} - Occupied{{ $occupiedLabel }}</option>
                                             @endif
                                         @endforeach
                                     </select>
@@ -451,6 +476,32 @@
                                         <span class="inline-flex items-center mr-3"><span class="text-green-500 mr-1">✅</span> Available</span>
                                         <span class="inline-flex items-center"><span class="text-red-500 mr-1">❌</span> Occupied</span>
                                     </p>
+                                </div>
+                                
+                                <!-- Equipment Request Section (shown for equipment_request) -->
+                                <div class="space-y-2 md:col-span-2" id="equipment_section" style="display: none;">
+                                    <label class="block text-sm font-semibold text-gray-700">
+                                        Equipment Details <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="grid md:grid-cols-3 gap-4">
+                                        <div class="space-y-2 md:col-span-2">
+                                            <label class="block text-xs font-semibold text-gray-600">Equipment Item</label>
+                                            <select id="equipment_item" name="equipment_item" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white">
+                                                <option value="Vacuum cleaners">Vacuum cleaners (upright, canister, robotic)</option>
+                                                <option value="Floor polishing/buffing machines">Floor polishing/buffing machines</option>
+                                                <option value="Laundry equipment">Laundry equipment (washing machines, dryers, steam irons)</option>
+                                                <option value="Cleaning carts / trolleys">Cleaning carts / trolleys</option>
+                                                <option value="Linen storage racks">Linen storage racks</option>
+                                                <option value="Disinfecting sprayers">Disinfecting sprayers</option>
+                                                <option value="Housekeeping radios / communication devices">Housekeeping radios / communication devices</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <label class="block text-xs font-semibold text-gray-600">Quantity</label>
+                                            <input type="number" id="equipment_quantity" name="equipment_quantity" min="1" value="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white">
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Selected items will be routed to Logistics for preparation and inventory tracking.</p>
                                 </div>
                                 
                                 <!-- Requested Date & Time -->
@@ -461,6 +512,17 @@
                                     <div class="relative">
                                         <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                         <input type="datetime-local" id="requested_datetime" name="requested_datetime" required
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white">
+                                    </div>
+                                </div>
+                                <!-- Reservation End (Reservation only) -->
+                                <div class="space-y-2" id="reservation_end_wrapper" style="display: none;">
+                                    <label for="requested_end_datetime" class="block text-sm font-semibold text-gray-700">
+                                        Until (End Date & Time)
+                                    </label>
+                                    <div class="relative">
+                                        <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        <input type="datetime-local" id="requested_end_datetime" name="requested_end_datetime"
                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white">
                                     </div>
                                 </div>
@@ -649,20 +711,47 @@
             });
         });
         
-        // Show/hide facility selection based on request type
+        // Show/hide facility or equipment fields based on request type
         document.getElementById('request_type').addEventListener('change', function() {
             const facilitySelection = document.getElementById('facility_selection');
             const facilitySelect = document.getElementById('facility_id');
+            const equipmentSection = document.getElementById('equipment_section');
+            const reservationEnd = document.getElementById('reservation_end_wrapper');
             
             if (this.value === 'reservation') {
                 facilitySelection.style.display = 'block';
                 facilitySelect.required = true;
+                equipmentSection.style.display = 'none';
+                reservationEnd.style.display = 'block';
+                // clear equipment requireds
+                document.getElementById('equipment_item').required = false;
+                document.getElementById('equipment_quantity').required = false;
             } else {
                 facilitySelection.style.display = 'none';
                 facilitySelect.required = false;
                 facilitySelect.value = '';
+                reservationEnd.style.display = 'none';
+                if (this.value === 'equipment_request') {
+                    equipmentSection.style.display = 'block';
+                    document.getElementById('equipment_item').required = true;
+                    document.getElementById('equipment_quantity').required = true;
+                } else {
+                    equipmentSection.style.display = 'none';
+                    document.getElementById('equipment_item').required = false;
+                    document.getElementById('equipment_quantity').required = false;
+                }
             }
         });
+
+        // Initialize visibility on load based on current request type
+        (function initTypeVisibility(){
+            const sel = document.getElementById('request_type');
+            if (sel && sel.value) {
+                const event = new Event('change');
+                sel.dispatchEvent(event);
+            }
+        })();
+        // (Delivery method removed)
         
         // Form validation and submission
         document.getElementById('reservationForm').addEventListener('submit', function(e) {
@@ -739,6 +828,10 @@
                     form.reset();
                     // Hide facility selection after reset
                     document.getElementById('facility_selection').style.display = 'none';
+                    // Redirect to New Request list tab based on type
+                    if (data.view_url) {
+                      setTimeout(() => { window.location.href = data.view_url; }, 600);
+                    }
                     return;
                 }
                 
@@ -788,6 +881,12 @@
                     document.body.removeChild(notification);
                 }, 300);
             }, 5000);
+        }
+
+        // Function to refresh facility dropdown (called from monitoring page)
+        function refreshFacilityDropdown() {
+            // Reload the page to get updated facility statuses
+            window.location.reload();
         }
     </script>
 </body>

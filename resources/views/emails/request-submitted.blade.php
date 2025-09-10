@@ -190,6 +190,13 @@
                     <span class="detail-label">Requested Date & Time:</span>
                     <span class="detail-value">{{ $request->requested_datetime->format('M d, Y h:i A') }}</span>
                 </div>
+
+                @if($request->request_type === 'reservation')
+                <div class="detail-row">
+                    <span class="detail-label">Until (End Date & Time):</span>
+                    <span class="detail-value">{{ optional($request->requested_end_datetime)->format('M d, Y h:i A') ?? '—' }}</span>
+                </div>
+                @endif
                 
                 <div class="detail-row">
                     <span class="detail-label">Status:</span>

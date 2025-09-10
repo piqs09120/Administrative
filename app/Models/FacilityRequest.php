@@ -16,6 +16,7 @@ class FacilityRequest extends Model
         'location',
         'facility_id',
         'requested_datetime',
+        'requested_end_datetime',
         'description',
         'contact_name',
         'contact_email',
@@ -26,6 +27,8 @@ class FacilityRequest extends Model
 
     protected $casts = [
         'requested_datetime' => 'datetime',
+        'requested_end_datetime' => 'datetime',
+        'notes' => 'array',
     ];
 
     public function facility()

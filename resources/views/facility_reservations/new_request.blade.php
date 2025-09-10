@@ -93,6 +93,15 @@
         </div>
 
 
+        <!-- Tabs (like Visitor Logs) -->
+        <div class="bg-gray-100 px-6 py-2 border-b border-gray-200 mb-0 rounded-t-xl" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
+          <div class="flex space-x-1">
+            <button id="nrTabFacility" class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="nrShowTab('reservation')" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);">Facility Request</button>
+            <button id="nrTabMaintenance" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="nrShowTab('maintenance')" style="color: var(--color-charcoal-ink);">Maintenance</button>
+            <button id="nrTabEquipment" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-200 rounded-t-lg" onclick="nrShowTab('equipment_request')" style="color: var(--color-charcoal-ink);">Equipment Request</button>
+          </div>
+        </div>
+
         <!-- Requests Table Section -->
         <div class="bg-white rounded-xl shadow-lg p-6">
           <div class="flex items-center justify-between mb-6">
@@ -101,13 +110,13 @@
               Submitted Requests
             </h3>
             <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">Total: {{ $requests->count() }} requests</span>
+              <span class="text-sm text-gray-500">Total: <span id="nrTotalCount">{{ $requests->count() }}</span> requests</span>
             </div>
           </div>
 
           @if($requests->count() > 0)
             <div class="overflow-x-auto">
-              <table class="table table-zebra w-full">
+              <table class="table table-zebra w-full" id="nrRequestsTable">
                 <thead>
                   <tr>
                     <th class="text-left">Request ID</th>
@@ -115,8 +124,9 @@
                     <th class="text-left">Department</th>
                     <th class="text-left">Priority</th>
                     <th class="text-left">Location</th>
-                    <th class="text-left">Facility</th>
+                    <th class="text-left">Facility / Equipment</th>
                     <th class="text-left">Requested Date & Time</th>
+                    <th class="text-left">Until</th>
                     <th class="text-left">Contact Name</th>
                     <th class="text-left">Contact Email</th>
                     <th class="text-left">Status</th>
@@ -125,7 +135,7 @@
                 </thead>
                 <tbody>
                   @foreach($requests as $request)
-                  <tr>
+                  <tr data-rt="{{ $request->request_type }}">
                     <td class="font-mono text-sm">#{{ str_pad($request->id, 6, '0', STR_PAD_LEFT) }}</td>
                     <td>
                       <span class="badge badge-outline">{{ ucfirst(str_replace('_', ' ', $request->request_type)) }}</span>
@@ -145,13 +155,36 @@
                     </td>
                     <td>{{ $request->location }}</td>
                     <td>
-                      @if($request->facility)
-                        <span class="text-sm">{{ $request->facility->name }}</span>
+                      @if($request->request_type === 'equipment_request')
+                        @php
+                          $equip = null;
+                          if (!empty($request->notes)) {
+                            $decoded = is_array($request->notes) ? $request->notes : json_decode($request->notes, true);
+                            $equip = $decoded;
+                          }
+                        @endphp
+                        <span class="text-sm">
+                          {{ $equip['equipment_item'] ?? '—' }}
+                          @if(!empty($equip['equipment_quantity']))
+                            <span class="text-gray-500">× {{ $equip['equipment_quantity'] }}</span>
+                          @endif
+                        </span>
                       @else
-                        <span class="text-gray-400 text-sm">N/A</span>
+                        @if($request->facility)
+                          <span class="text-sm">{{ $request->facility->name }}</span>
+                        @else
+                          <span class="text-gray-400 text-sm">N/A</span>
+                        @endif
                       @endif
                     </td>
                     <td>{{ $request->requested_datetime ? $request->requested_datetime->format('M d, Y h:i A') : 'N/A' }}</td>
+                    <td>
+                      @if($request->request_type === 'reservation')
+                        {{ $request->requested_end_datetime ? $request->requested_end_datetime->format('M d, Y h:i A') : '—' }}
+                      @else
+                        —
+                      @endif
+                    </td>
                     <td>{{ $request->contact_name }}</td>
                     <td>
                       <span class="text-sm text-blue-600">{{ $request->contact_email }}</span>
@@ -204,6 +237,49 @@
   @include('partials.soliera_js')
   
   <script>
+    // Tab filtering logic
+    function nrShowTab(type) {
+      const dirBtn = document.getElementById('nrTabFacility');
+      const mainBtn = document.getElementById('nrTabMaintenance');
+      const eqBtn = document.getElementById('nrTabEquipment');
+      const setActive = (btn, active) => {
+        if (active) {
+          btn.classList.add('bg-blue-100','border-b-2','border-blue-500');
+          btn.classList.remove('text-gray-500');
+          btn.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
+          btn.style.color = 'var(--color-charcoal-ink)';
+          btn.style.borderColor = 'var(--color-regal-navy)';
+        } else {
+          btn.classList.remove('bg-blue-100','border-b-2','border-blue-500');
+          btn.classList.add('text-gray-500');
+          btn.style.backgroundColor = 'inherit';
+          btn.style.borderColor = 'transparent';
+        }
+      };
+
+      setActive(dirBtn, type === 'reservation');
+      setActive(mainBtn, type === 'maintenance');
+      setActive(eqBtn, type === 'equipment_request');
+
+      // Filter rows
+      const rows = document.querySelectorAll('#nrRequestsTable tbody tr');
+      let count = 0;
+      rows.forEach(row => {
+        const rt = row.getAttribute('data-rt');
+        const show = rt === type;
+        row.style.display = show ? '' : 'none';
+        if (show) count++;
+      });
+      const totalEl = document.getElementById('nrTotalCount');
+      if (totalEl) totalEl.textContent = count;
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      // Default to Facility Request tab (reservation)
+      const urlParams = new URLSearchParams(window.location.search);
+      const initial = urlParams.get('tab') || 'reservation';
+      if (typeof nrShowTab === 'function') nrShowTab(initial);
+    });
     
     // View request details
     function viewRequestDetails(requestId) {
@@ -267,6 +343,11 @@
                   <span class="font-semibold text-gray-600">Requested Date:</span>
                   <span>${new Date(request.requested_datetime).toLocaleString()}</span>
                 </div>
+                ${request.request_type === 'reservation' ? `
+                <div class="flex justify-between">
+                  <span class="font-semibold text-gray-600">Until:</span>
+                  <span>${request.requested_end_datetime ? new Date(request.requested_end_datetime).toLocaleString() : '—'}</span>
+                </div>` : ''}
                 <div class="flex justify-between">
                   <span class="font-semibold text-gray-600">Contact:</span>
                   <span>${request.contact_name}</span>

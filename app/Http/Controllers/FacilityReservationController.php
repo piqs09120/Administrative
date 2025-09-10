@@ -6,6 +6,7 @@ use App\Models\Facility;
 use App\Models\FacilityReservation;
 use App\Mail\RequestSubmittedMail;
 use App\Mail\RequestApprovedMail;
+use App\Mail\RequestCompletedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use App\Services\GeminiService;
@@ -66,6 +67,91 @@ class FacilityReservationController extends Controller
         return view('facility_reservations.new_request', compact('facilities', 'requests'));
     }
 
+    // Monitoring Summary API for Facilities module
+    public function monitoringSummary(Request $request)
+    {
+        $now = now();
+        $oneWeekAgo = $now->copy()->subDays(6)->startOfDay();
+
+        $query = \App\Models\FacilityRequest::query();
+
+        $total = (clone $query)->count();
+        $inProgress = (clone $query)->where('status', 'pending')->count();
+        $completed = (clone $query)->where('status', 'completed')->count(); // Only count actually completed
+        $urgent = (clone $query)->where('priority', 'urgent')->count();
+
+        // Weekly counts (Mon..Sun based on last 7 days)
+        $weekly = (clone $query)
+            ->whereBetween('created_at', [$oneWeekAgo, $now])
+            ->get()
+            ->groupBy(function ($r) { return $r->created_at->format('D'); })
+            ->map->count();
+
+        // Ensure all days present
+        $days = collect(range(0,6))->map(function($i) use ($oneWeekAgo){ return $oneWeekAgo->copy()->addDays($i)->format('D'); });
+        $weeklySeries = $days->map(function($d) use ($weekly){ return [ 'day' => $d, 'count' => (int)($weekly[$d] ?? 0) ]; });
+
+        $recent = (clone $query)
+            ->with('facility:id,name')
+            ->latest()
+            ->limit(6)
+            ->get()
+            ->map(function($r){
+                return [
+                    'id' => $r->id,
+                    'code' => 'REQ-' . str_pad($r->id, 3, '0', STR_PAD_LEFT),
+                    'type' => $r->request_type,
+                    'priority' => $r->priority,
+                    'status' => $r->status,
+                    'title' => ucfirst($r->request_type) . ' - ' . (\Illuminate\Support\Str::limit($r->description, 40) ?: 'Request'),
+                    'department' => $r->department,
+                    'facility' => $r->facility->name ?? null,
+                    'created_ago' => $r->created_at->diffForHumans(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'summary' => [
+                'total' => $total,
+                'in_progress' => $inProgress,
+                'completed' => $completed,
+                'urgent' => $urgent,
+                'weekly' => $weeklySeries,
+            ],
+            'recent' => $recent,
+        ]);
+    }
+
+    // Equipment details list for Equipment Requests
+    public function equipmentDetails(Request $request)
+    {
+        $items = \App\Models\FacilityRequest::where('request_type', 'equipment_request')
+            ->latest()
+            ->get()
+            ->map(function($r){
+                $notes = is_array($r->notes) ? $r->notes : (json_decode($r->notes, true) ?: []);
+                return [
+                    'id' => $r->id,
+                    'code' => 'REQ-' . str_pad($r->id, 6, '0', STR_PAD_LEFT),
+                    'department' => $r->department,
+                    'priority' => $r->priority,
+                    'status' => $r->status,
+                    'equipment_item' => $notes['equipment_item'] ?? null,
+                    'equipment_quantity' => $notes['equipment_quantity'] ?? 1,
+                    'requested_datetime' => optional($r->requested_datetime)->toDateTimeString(),
+                    'location' => $r->location,
+                    'contact_name' => $r->contact_name,
+                    'contact_email' => $r->contact_email,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'items' => $items,
+        ]);
+    }
+
     public function storeRequest(Request $request)
     {
         $validated = $request->validate([
@@ -75,17 +161,32 @@ class FacilityReservationController extends Controller
             'location' => 'required|string',
             'facility_id' => 'nullable|exists:facilities,id',
             'requested_datetime' => 'required|date',
+            'requested_end_datetime' => 'nullable|date|after:requested_datetime',
             'description' => 'required|string',
             'contact_name' => 'required|string',
             'contact_email' => 'required|email',
+            // Equipment request optional fields (handled below)
+            'equipment_item' => 'nullable|string',
+            'equipment_quantity' => 'nullable|integer|min:1'
         ]);
 
         // If reservation type, facility_id is required
-        if ($validated['request_type'] === 'reservation' && !$validated['facility_id']) {
+        if ($validated['request_type'] === 'reservation' && empty($validated['facility_id'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please select a facility for reservation requests.'
             ], 422);
+        }
+
+        // If equipment request, store equipment details in notes (JSON) and clear facility_id
+        if ($validated['request_type'] === 'equipment_request') {
+            $equipmentItem = $request->input('equipment_item');
+            $equipmentQty = (int)($request->input('equipment_quantity') ?? 1);
+            $validated['notes'] = json_encode([
+                'equipment_item' => $equipmentItem,
+                'equipment_quantity' => max(1, $equipmentQty)
+            ]);
+            $validated['facility_id'] = null;
         }
 
         $request_data = \App\Models\FacilityRequest::create($validated);
@@ -100,7 +201,8 @@ class FacilityReservationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Request submitted successfully!',
-            'data' => $request_data
+            'data' => $request_data,
+            'view_url' => route('facility_reservations.new_request', ['tab' => $validated['request_type']])
         ]);
     }
 
@@ -136,6 +238,42 @@ class FacilityReservationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Request approved successfully!'
+        ]);
+    }
+
+    public function completeRequest($id)
+    {
+        $request = \App\Models\FacilityRequest::findOrFail($id);
+        
+        if ($request->status !== 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only approved requests can be marked as completed.'
+            ], 400);
+        }
+        
+        $request->update(['status' => 'completed']);
+
+        // Free up the facility if it was a reservation
+        if ($request->request_type === 'reservation' && $request->facility_id) {
+            $facility = Facility::find($request->facility_id);
+            if ($facility) {
+                $facility->update(['status' => 'available']);
+                Log::info("Facility {$facility->name} (ID: {$facility->id}) status updated to available after request completion");
+            }
+        }
+
+        // Send completion email
+        try {
+            Mail::to($request->contact_email)->send(new RequestCompletedMail($request));
+            Log::info("Request completion email sent to {$request->contact_email} for request {$request->id}");
+        } catch (\Exception $e) {
+            Log::error("Failed to send request completion email: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Request has been marked as completed successfully!'
         ]);
     }
 

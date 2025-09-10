@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('location');
             $table->unsignedBigInteger('facility_id')->nullable(); // Only for reservation type
             $table->datetime('requested_datetime');
+            $table->datetime('requested_end_datetime')->nullable();
             $table->text('description');
             $table->string('contact_name');
             $table->string('contact_email');
