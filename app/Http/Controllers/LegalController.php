@@ -73,30 +73,30 @@ class LegalController extends Controller
     /**
      * Legal Documents - Document management
      */
-    public function legalDocuments(Request $request)
+    public function legalDocuments(Request $request): \Illuminate\View\View
     {
         $search = $request->input('search');
         $category = $request->input('category');
         $status = $request->input('status');
         
         // Build the query for Documents tab
-        // Strictly exclude all internally-created (legal_management) items from this tab
-        $query = Document::where('source', '!=', 'legal_management')
+        // Show ONLY legal documents (from legal_management and legal_submission sources)
+        $query = Document::whereIn('source', ['legal_management', 'legal_submission', 'ai_builder'])
             ->with(['uploader' => function($q) {
                 $q->select('Dept_no', 'employee_name', 'dept_name');
             }]);
             
         // Apply search filter
-        if ($search) {
+        if (!empty($search)) {
             $query->where(function($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                  ->orWhere('description', 'like', '%' . $search . '%');
+                $q->where('title', 'LIKE', '%' . $search . '%')
+                  ->orWhere('description', 'LIKE', '%' . $search . '%');
             });
         }
         
         // Apply category filter
         if ($category) {
-            $query->where('category', $category);
+            $query->where('category', $category);   
         }
         
         // Apply status filter
@@ -115,8 +115,8 @@ class LegalController extends Controller
             ->get();
             
         // Build the query for statistics
-        // Stats can still include all documents handled in this module
-        $statsQuery = Document::query();
+        // Stats should only include legal documents
+        $statsQuery = Document::whereIn('source', ['legal_management', 'legal_submission', 'ai_builder']);
         
         // Apply the same filters to stats query
         if ($search) {
@@ -246,10 +246,13 @@ class LegalController extends Controller
     }
 
     /** Review: Approve */
-    public function approveDocument($id)
+    public function approveDocument(Request $request, $id)
     {
         $doc = Document::findOrFail($id);
         $doc->update(['status' => 'active']);
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Document approved.']);
+        }
         return back()->with('success', 'Document approved.');
     }
 
@@ -258,6 +261,9 @@ class LegalController extends Controller
     {
         $doc = Document::findOrFail($id);
         $doc->update(['status' => 'rejected']);
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Document rejected.']);
+        }
         return back()->with('success', 'Document rejected.');
     }
 
@@ -338,10 +344,14 @@ class LegalController extends Controller
         $from = $request->input('from') ? \Carbon\Carbon::parse($request->input('from'))->startOfDay() : now()->subMonth();
         $to = $request->input('to') ? \Carbon\Carbon::parse($request->input('to'))->endOfDay() : now();
 
-        $base = Document::whereBetween('created_at', [$from, $to]);
+        $base = Document::whereIn('source', ['legal_management', 'legal_submission', 'ai_builder'])
+            ->whereBetween('created_at', [$from, $to]);
         $createdByDept = (clone $base)->select('department', \DB::raw('count(*) as count'))->groupBy('department')->get();
         $types = (clone $base)->select('category', \DB::raw('count(*) as count'))->groupBy('category')->get();
-        $expiring = Document::where('retention_until', '>=', now())->where('retention_until', '<=', now()->addDays(90))->get();
+        $expiring = Document::whereIn('source', ['legal_management', 'legal_submission', 'ai_builder'])
+            ->where('retention_until', '>=', now())
+            ->where('retention_until', '<=', now()->addDays(90))
+            ->get();
         $aiRisks = (clone $base)->whereNotNull('legal_risk_score')->select('legal_risk_score', \DB::raw('count(*) as count'))->groupBy('legal_risk_score')->get();
 
         $sheets = [
@@ -457,9 +467,11 @@ class LegalController extends Controller
             'case_title' => 'required|string|max:255',
             'case_description' => 'nullable|string',
             'case_type' => 'required|string|max:255',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'assigned_to' => 'nullable|exists:department_accounts,Dept_no',
-            'legal_document' => 'nullable|file|mimes:pdf,doc,docx,txt|max:10240'
+            'priority' => 'required|in:low,normal,high,urgent',
+            'assigned_to' => 'nullable|string',
+            'employee_involved' => 'nullable|string|max:255',
+            'incident_date' => 'nullable|date',
+            'incident_location' => 'nullable|string|max:255'
         ]);
 
         try {
@@ -472,26 +484,11 @@ class LegalController extends Controller
                 'status' => 'pending',
                 'assigned_to' => $request->assigned_to,
                 'created_by' => Auth::user()->Dept_no,
+                'employee_involved' => $request->employee_involved,
+                'incident_date' => $request->incident_date,
+                'incident_location' => $request->incident_location,
             ]);
 
-            // Handle file upload if provided
-            if ($request->hasFile('legal_document')) {
-                $file = $request->file('legal_document');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('legal_documents', $fileName, 'public');
-
-                // Create document record
-                $document = Document::create([
-                    'title' => $request->case_title,
-                    'description' => $request->case_description,
-                    'category' => 'legal_case',
-                    'file_path' => $filePath,
-                    'uploaded_by' => Auth::user()->Dept_no,
-                    'status' => 'active',
-                    'source' => 'legal_management',
-                    'linked_case_id' => $legalCase->id,
-                ]);
-            }
 
             // Check if request is AJAX
             if ($request->ajax()) {
@@ -523,6 +520,245 @@ class LegalController extends Controller
     {
         $case = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])->findOrFail($id);
         return view('legal.show', compact('case'));
+    }
+
+    /**
+     * Comprehensive legal case review interface
+     */
+    public function reviewCase($id)
+    {
+        $case = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])->findOrFail($id);
+        
+        // Get case statistics
+        $stats = [
+            'days_open' => $case->created_at ? $case->created_at->diffInDays(now()) : 0,
+            'evidence_count' => $case->documents()->count(),
+            'witness_count' => 0, // To be implemented
+            'notes_count' => 0, // To be implemented
+        ];
+        
+        return view('legal.case_review', compact('case', 'stats'));
+    }
+
+    /**
+     * Compliance assessment for a legal case
+     */
+    public function complianceAssessment($id)
+    {
+        $case = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])->findOrFail($id);
+        
+        // Mock compliance data - in real implementation, this would come from a compliance service
+        $complianceData = [
+            'overall_score' => 85,
+            'issues_found' => 3,
+            'critical_issues' => 1,
+            'categories' => [
+                'labor_law' => ['score' => 75, 'status' => 'needs_review', 'issues' => ['Overtime calculation errors', 'Break time violations']],
+                'health_safety' => ['score' => 95, 'status' => 'compliant', 'issues' => []],
+                'data_protection' => ['score' => 60, 'status' => 'non_compliant', 'issues' => ['Missing data breach procedures', 'Inadequate consent forms']],
+                'financial' => ['score' => 90, 'status' => 'compliant', 'issues' => []],
+                'hospitality' => ['score' => 80, 'status' => 'partial', 'issues' => ['Food safety documentation incomplete']]
+            ],
+            'risks' => [
+                ['type' => 'high', 'title' => 'Data Breach Potential', 'description' => 'The incident may involve unauthorized access to customer data'],
+                ['type' => 'medium', 'title' => 'Labor Law Violation', 'description' => 'Potential violation of overtime regulations']
+            ],
+            'recommendations' => [
+                'immediate' => ['Notify data protection authority within 72 hours', 'Secure all affected systems immediately'],
+                'short_term' => ['Conduct internal investigation', 'Update data protection policies'],
+                'long_term' => ['Implement compliance monitoring', 'Regular compliance audits']
+            ]
+        ];
+        
+        return view('legal.compliance_assessment', compact('case', 'complianceData'));
+    }
+
+    /**
+     * Start investigation for a legal case
+     */
+    public function startInvestigation(Request $request, $id)
+    {
+        $request->validate([
+            'investigation_type' => 'required|string|in:internal,external,joint',
+            'investigation_scope' => 'required|string|max:1000',
+            'assigned_investigators' => 'required|array',
+            'expected_completion_date' => 'required|date|after:today'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Update case with investigation details
+            $case->update([
+                'status' => 'ongoing',
+                'metadata' => array_merge($case->metadata ?? [], [
+                    'investigation' => [
+                        'type' => $request->investigation_type,
+                        'scope' => $request->investigation_scope,
+                        'assigned_investigators' => $request->assigned_investigators,
+                        'expected_completion_date' => $request->expected_completion_date,
+                        'started_at' => now()->toISOString(),
+                        'started_by' => auth()->id()
+                    ]
+                ])
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'start_legal_investigation',
+                'description' => "Started investigation for legal case ID {$case->id}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Investigation started successfully!',
+                    'case' => $case
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Investigation started successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error starting investigation: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error starting investigation: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Add evidence to a legal case
+     */
+    public function addEvidence(Request $request, $id)
+    {
+        $request->validate([
+            'evidence_type' => 'required|string|max:255',
+            'evidence_description' => 'required|string|max:1000',
+            'evidence_file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,mp4,mp3,wav|max:10240',
+            'evidence_date' => 'required|date'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Handle file upload
+            $file = $request->file('evidence_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('legal_evidence', $fileName, 'public');
+
+            // Create evidence document
+            $document = Document::create([
+                'title' => $request->evidence_description,
+                'description' => "Evidence for case: {$case->case_title}",
+                'category' => 'legal_evidence',
+                'file_path' => $filePath,
+                'uploaded_by' => auth()->id(),
+                'status' => 'active',
+                'source' => 'legal_management',
+                'linked_case_id' => $case->id,
+                'metadata' => [
+                    'evidence_type' => $request->evidence_type,
+                    'evidence_date' => $request->evidence_date,
+                    'case_id' => $case->id
+                ]
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'add_legal_evidence',
+                'description' => "Added evidence to legal case ID {$case->id}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Evidence added successfully!',
+                    'document' => $document
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Evidence added successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error adding evidence: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error adding evidence: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Add legal notes to a case
+     */
+    public function addNotes(Request $request, $id)
+    {
+        $request->validate([
+            'note_type' => 'required|string|in:investigation,legal,compliance,general',
+            'note_content' => 'required|string|max:2000',
+            'note_priority' => 'required|string|in:low,normal,high,urgent'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Add note to case metadata
+            $metadata = $case->metadata ?? [];
+            $notes = $metadata['notes'] ?? [];
+            
+            $notes[] = [
+                'id' => uniqid(),
+                'type' => $request->note_type,
+                'content' => $request->note_content,
+                'priority' => $request->note_priority,
+                'created_at' => now()->toISOString(),
+                'created_by' => auth()->id(),
+                'created_by_name' => auth()->user()->name ?? 'Unknown'
+            ];
+            
+            $metadata['notes'] = $notes;
+            $case->update(['metadata' => $metadata]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'add_legal_note',
+                'description' => "Added note to legal case ID {$case->id}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Note added successfully!',
+                    'note' => end($notes)
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Note added successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error adding note: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error adding note: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -766,6 +1002,118 @@ class LegalController extends Controller
     }
 
     /**
+     * Escalate a legal case
+     */
+    public function escalateCase(Request $request, $id)
+    {
+        $request->validate([
+            'escalate_to' => 'required|string|max:255',
+            'escalation_reason' => 'required|string|max:255',
+            'escalation_notes' => 'required|string|max:1000'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Update case with escalation details
+            $case->update([
+                'status' => 'escalated',
+                'metadata' => array_merge($case->metadata ?? [], [
+                    'escalate_to' => $request->escalate_to,
+                    'escalation_reason' => $request->escalation_reason,
+                    'escalation_notes' => $request->escalation_notes,
+                    'escalated_at' => now()->toISOString(),
+                    'escalated_by' => auth()->id()
+                ])
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'escalate_legal_case',
+                'description' => "Escalated legal case ID {$case->id} to {$request->escalate_to}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Case escalated successfully!',
+                    'case' => $case
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Case escalated successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error escalating case: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error escalating case: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Put a legal case on hold
+     */
+    public function holdCase(Request $request, $id)
+    {
+        $request->validate([
+            'hold_reason' => 'required|string|max:255',
+            'expected_resolution_date' => 'required|date|after:today',
+            'hold_notes' => 'required|string|max:1000'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Update case with hold details
+            $case->update([
+                'status' => 'on_hold',
+                'metadata' => array_merge($case->metadata ?? [], [
+                    'hold_reason' => $request->hold_reason,
+                    'expected_resolution_date' => $request->expected_resolution_date,
+                    'hold_notes' => $request->hold_notes,
+                    'held_at' => now()->toISOString(),
+                    'held_by' => auth()->id()
+                ])
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'hold_legal_case',
+                'description' => "Put legal case ID {$case->id} on hold - Reason: {$request->hold_reason}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Case put on hold successfully!',
+                    'case' => $case
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Case put on hold successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error putting case on hold: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error putting case on hold: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Category-based document views (legacy - kept for compatibility)
      */
     public function categoryDocuments($category)
@@ -820,7 +1168,7 @@ class LegalController extends Controller
      */
     public function draftingWorkspace(Request $request)
     {
-        $documentId = $request->get('document_id');
+        $documentId = $request->get('document_id') ?? $request->get('edit');
         $templateKey = $request->get('template'); // Get the raw template parameter
         
         $document = null;
@@ -836,6 +1184,10 @@ class LegalController extends Controller
             'service_contract' => [
                 'title' => 'Service Contract Template',
                 'content' => $this->getServiceContractTemplate()
+            ],
+            'employment_contract' => [
+                'title' => 'Employment Contract Template',
+                'content' => $this->getEmploymentContractTemplate()
             ],
             'guest_agreement' => [
                 'title' => 'Guest Agreement Template',
@@ -1001,73 +1353,441 @@ class LegalController extends Controller
         return file_get_contents(resource_path('views/templates/service_contract_template.html'));
     }
 
+    private function getEmploymentContractTemplate()
+    {
+        return '<div style="font-family: \'Times New Roman\', serif; font-size: 12pt; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in; background: white;">
+            <!-- Letterhead -->
+            <div style="text-align: center; margin-bottom: 3em; border-bottom: 2px solid #000; padding-bottom: 1em;">
+                <h1 style="font-size: 20pt; font-weight: bold; margin-bottom: 0.3em; text-transform: uppercase; letter-spacing: 2px; color: #000;">SOLIERA HOTEL</h1>
+                <p style="font-size: 11pt; color: #333; margin: 0.2em 0; font-weight: 500;">[HOTEL ADDRESS]</p>
+                <p style="font-size: 11pt; color: #333; margin: 0.2em 0; font-weight: 500;">[CITY, STATE ZIP] • Phone: [PHONE] • Email: [EMAIL]</p>
+            </div>
+            
+            <!-- Document Title -->
+            <div style="text-align: center; margin-bottom: 3em;">
+                <h2 style="font-size: 18pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5em; color: #000;">EMPLOYMENT CONTRACT</h2>
+                <p style="font-size: 12pt; margin: 0; color: #333;">Date: <strong>' . date('F j, Y') . '</strong></p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <p style="text-align: justify; margin-bottom: 1em; text-indent: 0.5in;">
+                    This Employment Contract ("Contract") is entered into on <strong>' . date('F j, Y') . '</strong> between <strong>SOLIERA HOTEL</strong> ("Company"), a corporation organized under the laws of [STATE], with its principal place of business at [HOTEL ADDRESS], and <strong>[EMPLOYEE_NAME]</strong> ("Employee"), residing at [EMPLOYEE_ADDRESS].
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">1. POSITION AND DUTIES</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    Employee shall serve as <strong>[POSITION_TITLE]</strong> and shall perform such duties and responsibilities as may be assigned by the Company from time to time. Employee agrees to devote their full time, attention, and efforts to the business of the Company and to perform their duties faithfully, diligently, and to the best of their ability.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">2. COMPENSATION</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    Employee shall receive a base salary of <strong>$[SALARY_AMOUNT]</strong> per <strong>[PAY_PERIOD]</strong>, payable in accordance with the Company\'s regular payroll practices. Employee\'s salary shall be subject to review and adjustment at the Company\'s discretion.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">3. WORK SCHEDULE</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    Employee\'s regular work schedule shall be <strong>[WORK_HOURS]</strong> per week, Monday through Friday, from <strong>[START_TIME]</strong> to <strong>[END_TIME]</strong>. Employee may be required to work additional hours as necessary to fulfill their job responsibilities.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">4. BENEFITS</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    Employee shall be entitled to participate in the Company\'s benefit programs, including but not limited to:
+                </p>
+                <ul style="margin-left: 1.2in; margin-bottom: 0.8em; line-height: 1.6;">
+                    <li style="margin-bottom: 0.4em;">Health insurance coverage</li>
+                    <li style="margin-bottom: 0.4em;">Dental and vision insurance</li>
+                    <li style="margin-bottom: 0.4em;">Retirement savings plan (401k)</li>
+                    <li style="margin-bottom: 0.4em;">Paid time off and vacation days</li>
+                    <li style="margin-bottom: 0.4em;">Sick leave and personal days</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">5. TERM OF EMPLOYMENT</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    This Contract shall commence on <strong>[START_DATE]</strong> and shall continue until terminated by either party in accordance with the terms herein. Employment is at-will, meaning either party may terminate this Contract at any time, with or without cause, upon [NOTICE_PERIOD] written notice.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">6. CONFIDENTIALITY</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    Employee agrees to maintain the confidentiality of all proprietary and confidential information of the Company and shall not disclose such information to any third party without the Company\'s written consent.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2.5em;">
+                <h3 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.8em; border-bottom: 1px solid #000; padding-bottom: 0.3em; color: #000;">7. GOVERNING LAW</h3>
+                <p style="text-align: justify; margin-bottom: 0.8em; text-indent: 0.5in; line-height: 1.7;">
+                    This Contract shall be governed by and construed in accordance with the laws of [STATE], without regard to conflict of law principles.
+                </p>
+            </div>
+            
+            <div style="margin-top: 4em;">
+                <p style="text-align: justify; margin-bottom: 3em; font-size: 11pt;">
+                    IN WITNESS WHEREOF, the parties have executed this Contract as of the date first written above.
+                </p>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 3em; page-break-inside: avoid;">
+                    <div style="width: 45%; text-align: center;">
+                        <div style="border-bottom: 1px solid #000; margin-bottom: 0.8em; height: 1.5em; width: 100%;"></div>
+                        <p style="font-weight: bold; margin: 0.5em 0; font-size: 11pt; text-transform: uppercase;">SOLIERA HOTEL</p>
+                        <p style="font-size: 9pt; margin: 0.3em 0; color: #666;">Authorized Representative</p>
+                        <p style="font-size: 9pt; margin: 0.3em 0; color: #666;">Date: _______________</p>
+                    </div>
+                    <div style="width: 45%; text-align: center;">
+                        <div style="border-bottom: 1px solid #000; margin-bottom: 0.8em; height: 1.5em; width: 100%;"></div>
+                        <p style="font-weight: bold; margin: 0.5em 0; font-size: 11pt; text-transform: uppercase;">[EMPLOYEE_NAME]</p>
+                        <p style="font-size: 9pt; margin: 0.3em 0; color: #666;">Employee</p>
+                        <p style="font-size: 9pt; margin: 0.3em 0; color: #666;">Date: _______________</p>
+                    </div>
+                </div>
+            </div>
+        </div>';
+    }
+
     private function getGuestAgreementTemplate()
     {
-        return '<h1>GUEST ACCOMMODATION AGREEMENT</h1>
-        <p><strong>Guest Name:</strong> [GUEST NAME]</p>
-        <p><strong>Check-in Date:</strong> [DATE]</p>
-        <p><strong>Check-out Date:</strong> [DATE]</p>
-        
-        <h2>1. ACCOMMODATION TERMS</h2>
-        <p>[Describe accommodation details]</p>
-        
-        <h2>2. GUEST RESPONSIBILITIES</h2>
-        <p>[List guest responsibilities and rules]</p>
-        
-        <h2>3. FACILITY RULES</h2>
-        <p>[Include facility-specific rules]</p>
-        
-        <h2>4. LIABILITY</h2>
-        <p>[Include liability and insurance clauses]</p>
-        
-        <p><strong>Guest Signature:</strong> _________________ Date: _______</p>';
+        return '<div style="font-family: \'Times New Roman\', serif; font-size: 12pt; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in;">
+            <div style="text-align: center; margin-bottom: 2em;">
+                <h1 style="font-size: 18pt; font-weight: bold; margin-bottom: 0.5em; text-transform: uppercase; letter-spacing: 1px;">SOLIERA HOTEL</h1>
+                <p style="font-size: 10pt; color: #666; margin: 0;">[HOTEL ADDRESS]</p>
+                <p style="font-size: 10pt; color: #666; margin: 0;">[CITY, STATE ZIP]</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 2em;">
+                <h2 style="font-size: 16pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1em;">GUEST ACCOMMODATION AGREEMENT</h2>
+                <p style="font-size: 11pt; margin: 0;">Date: <strong>' . date('F j, Y') . '</strong></p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1em;">
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Guest Name:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[GUEST NAME]</p>
+                    </div>
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Guest ID/Passport:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[ID_NUMBER]</p>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1em;">
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Check-in Date:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[CHECK_IN_DATE]</p>
+                    </div>
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Check-out Date:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[CHECK_OUT_DATE]</p>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1em;">
+                    <p style="margin: 0; font-weight: bold;">Room Number:</p>
+                    <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em; width: 200px;">[ROOM_NUMBER]</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">1. ACCOMMODATION TERMS</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The Hotel agrees to provide accommodation services to the Guest for the duration specified above. The accommodation includes the assigned room and access to designated hotel facilities as outlined in this agreement.
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">Room type: [ROOM_TYPE]</li>
+                    <li style="margin-bottom: 0.3em;">Maximum occupancy: [MAX_OCCUPANCY] persons</li>
+                    <li style="margin-bottom: 0.3em;">Included amenities: [AMENITIES]</li>
+                    <li style="margin-bottom: 0.3em;">Special requests: [SPECIAL_REQUESTS]</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">2. GUEST RESPONSIBILITIES</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The Guest agrees to comply with the following responsibilities and rules during their stay:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">Maintain the room and hotel property in good condition</li>
+                    <li style="margin-bottom: 0.3em;">Respect quiet hours and other guests\' privacy</li>
+                    <li style="margin-bottom: 0.3em;">Report any damages or issues immediately to hotel staff</li>
+                    <li style="margin-bottom: 0.3em;">Comply with all hotel policies and procedures</li>
+                    <li style="margin-bottom: 0.3em;">Provide valid identification when requested</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">3. FACILITY RULES</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The following rules apply to all hotel facilities and common areas:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">No smoking in non-designated areas</li>
+                    <li style="margin-bottom: 0.3em;">No pets allowed without prior approval</li>
+                    <li style="margin-bottom: 0.3em;">Pool and fitness center hours: [FACILITY_HOURS]</li>
+                    <li style="margin-bottom: 0.3em;">No loud music or disruptive behavior</li>
+                    <li style="margin-bottom: 0.3em;">Proper attire required in common areas</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">4. LIABILITY AND INSURANCE</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The Hotel\'s liability for loss or damage to Guest property is limited to the extent provided by law. The Guest is responsible for their personal belongings and any damages caused by their actions. The Hotel maintains appropriate insurance coverage for its operations.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">5. PAYMENT TERMS</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    Payment for accommodation and services is due as follows: [PAYMENT_TERMS]. The Guest agrees to pay all applicable taxes and fees. Any additional charges incurred during the stay will be added to the final bill.
+                </p>
+            </div>
+            
+            <div style="margin-top: 3em;">
+                <p style="text-align: justify; margin-bottom: 2em;">
+                    By signing below, both parties acknowledge that they have read, understood, and agree to be bound by the terms and conditions of this Guest Accommodation Agreement.
+                </p>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 2em;">
+                    <div style="width: 45%;">
+                        <p style="border-bottom: 1px solid #000; margin-bottom: 0.5em; height: 2em;"></p>
+                        <p style="text-align: center; font-weight: bold; margin: 0;">SOLIERA HOTEL</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Authorized Representative</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Date: _______________</p>
+                    </div>
+                    <div style="width: 45%;">
+                        <p style="border-bottom: 1px solid #000; margin-bottom: 0.5em; height: 2em;"></p>
+                        <p style="text-align: center; font-weight: bold; margin: 0;">[GUEST_NAME]</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Guest</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Date: _______________</p>
+                    </div>
+                </div>
+            </div>
+        </div>';
     }
 
     private function getVendorAgreementTemplate()
     {
-        return '<h1>VENDOR SUPPLY AGREEMENT</h1>
-        <p><strong>Vendor:</strong> [VENDOR NAME]</p>
-        <p><strong>Effective Date:</strong> [DATE]</p>
-        <p><strong>Term:</strong> [DURATION]</p>
-        
-        <h2>1. SUPPLY TERMS</h2>
-        <p>[Describe goods/services to be supplied]</p>
-        
-        <h2>2. PRICING AND PAYMENT</h2>
-        <p>[Include pricing structure and payment terms]</p>
-        
-        <h2>3. QUALITY STANDARDS</h2>
-        <p>[Specify quality requirements]</p>
-        
-        <h2>4. DELIVERY TERMS</h2>
-        <p>[Include delivery schedules and requirements]</p>
-        
-        <p><strong>Vendor Signature:</strong> _________________ Date: _______</p>';
+        return '<div style="font-family: \'Times New Roman\', serif; font-size: 12pt; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in;">
+            <div style="text-align: center; margin-bottom: 2em;">
+                <h1 style="font-size: 18pt; font-weight: bold; margin-bottom: 0.5em; text-transform: uppercase; letter-spacing: 1px;">SOLIERA HOTEL</h1>
+                <p style="font-size: 10pt; color: #666; margin: 0;">[HOTEL ADDRESS]</p>
+                <p style="font-size: 10pt; color: #666; margin: 0;">[CITY, STATE ZIP]</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 2em;">
+                <h2 style="font-size: 16pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1em;">VENDOR SUPPLY AGREEMENT</h2>
+                <p style="font-size: 11pt; margin: 0;">Date: <strong>' . date('F j, Y') . '</strong></p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1em;">
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Vendor Name:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[VENDOR_NAME]</p>
+                    </div>
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Vendor ID/Tax ID:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[VENDOR_ID]</p>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1em;">
+                    <p style="margin: 0; font-weight: bold;">Vendor Address:</p>
+                    <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[VENDOR_ADDRESS]</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">1. SUPPLY TERMS</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The Vendor agrees to supply the following goods and/or services to Soliera Hotel in accordance with the terms and conditions set forth in this agreement:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">Product/Service: [PRODUCT_SERVICE]</li>
+                    <li style="margin-bottom: 0.3em;">Quantity: [QUANTITY]</li>
+                    <li style="margin-bottom: 0.3em;">Unit Price: $[UNIT_PRICE]</li>
+                    <li style="margin-bottom: 0.3em;">Total Contract Value: $[TOTAL_VALUE]</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">2. PRICING AND PAYMENT</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    Payment terms and conditions:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">Payment method: [PAYMENT_METHOD]</li>
+                    <li style="margin-bottom: 0.3em;">Payment terms: [PAYMENT_TERMS]</li>
+                    <li style="margin-bottom: 0.3em;">Invoice requirements: [INVOICE_REQUIREMENTS]</li>
+                    <li style="margin-bottom: 0.3em;">Late payment penalties: [LATE_PAYMENT_PENALTIES]</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">3. QUALITY STANDARDS</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    All goods and services provided under this agreement must meet the following quality standards:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">Compliance with all applicable health and safety regulations</li>
+                    <li style="margin-bottom: 0.3em;">Meeting specified industry standards and certifications</li>
+                    <li style="margin-bottom: 0.3em;">Freshness and quality requirements as specified</li>
+                    <li style="margin-bottom: 0.3em;">Proper packaging and labeling</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">4. DELIVERY TERMS</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    Delivery terms and schedule are as follows:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">Delivery frequency: [DELIVERY_FREQUENCY]</li>
+                    <li style="margin-bottom: 0.3em;">Delivery days: [DELIVERY_DAYS]</li>
+                    <li style="margin-bottom: 0.3em;">Delivery time window: [DELIVERY_TIME]</li>
+                    <li style="margin-bottom: 0.3em;">Delivery location: [DELIVERY_LOCATION]</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">5. TERM AND TERMINATION</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    This agreement shall commence on [START_DATE] and continue until [END_DATE], unless terminated earlier in accordance with the terms herein. Either party may terminate this agreement with [NOTICE_PERIOD] written notice.
+                </p>
+            </div>
+            
+            <div style="margin-top: 3em;">
+                <p style="text-align: justify; margin-bottom: 2em;">
+                    IN WITNESS WHEREOF, the parties have executed this Vendor Supply Agreement as of the date first written above.
+                </p>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 2em;">
+                    <div style="width: 45%;">
+                        <p style="border-bottom: 1px solid #000; margin-bottom: 0.5em; height: 2em;"></p>
+                        <p style="text-align: center; font-weight: bold; margin: 0;">SOLIERA HOTEL</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Authorized Representative</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Date: _______________</p>
+                    </div>
+                    <div style="width: 45%;">
+                        <p style="border-bottom: 1px solid #000; margin-bottom: 0.5em; height: 2em;"></p>
+                        <p style="text-align: center; font-weight: bold; margin: 0;">[VENDOR_NAME]</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Authorized Representative</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Date: _______________</p>
+                    </div>
+                </div>
+            </div>
+        </div>';
     }
 
     private function getHRPolicyTemplate()
     {
-        return '<h1>HUMAN RESOURCES POLICY</h1>
-        <p><strong>Policy Title:</strong> [POLICY NAME]</p>
-        <p><strong>Effective Date:</strong> [DATE]</p>
-        <p><strong>Department:</strong> [DEPARTMENT]</p>
-        
-        <h2>1. PURPOSE</h2>
-        <p>[Describe the purpose of this policy]</p>
-        
-        <h2>2. SCOPE</h2>
-        <p>[Define who this policy applies to]</p>
-        
-        <h2>3. POLICY STATEMENT</h2>
-        <p>[Include the main policy content]</p>
-        
-        <h2>4. PROCEDURES</h2>
-        <p>[Detail implementation procedures]</p>
-        
-        <h2>5. COMPLIANCE</h2>
-        <p>[Include compliance requirements]</p>
-        
-        <p><strong>Approved by:</strong> [APPROVER NAME] Date: _______</p>';
+        return '<div style="font-family: \'Times New Roman\', serif; font-size: 12pt; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in;">
+            <div style="text-align: center; margin-bottom: 2em;">
+                <h1 style="font-size: 18pt; font-weight: bold; margin-bottom: 0.5em; text-transform: uppercase; letter-spacing: 1px;">SOLIERA HOTEL</h1>
+                <p style="font-size: 10pt; color: #666; margin: 0;">[HOTEL ADDRESS]</p>
+                <p style="font-size: 10pt; color: #666; margin: 0;">[CITY, STATE ZIP]</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 2em;">
+                <h2 style="font-size: 16pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1em;">HUMAN RESOURCES POLICY</h2>
+                <p style="font-size: 11pt; margin: 0;">Policy Number: <strong>[POLICY_NUMBER]</strong></p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1em;">
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Policy Title:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">[POLICY_NAME]</p>
+                    </div>
+                    <div style="width: 48%;">
+                        <p style="margin: 0; font-weight: bold;">Effective Date:</p>
+                        <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em;">' . date('F j, Y') . '</p>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1em;">
+                    <p style="margin: 0; font-weight: bold;">Department:</p>
+                    <p style="border-bottom: 1px solid #000; margin: 0; padding: 0.2em 0; min-height: 1.2em; width: 300px;">[DEPARTMENT]</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">1. PURPOSE</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The purpose of this policy is to establish clear guidelines and standards for [POLICY_SUBJECT] within Soliera Hotel. This policy ensures consistency, fairness, and compliance with applicable laws and regulations while promoting a positive work environment for all employees.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">2. SCOPE</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    This policy applies to all employees of Soliera Hotel, including full-time, part-time, temporary, and contract workers. It also extends to all departments and levels of management within the organization.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">3. POLICY STATEMENT</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    Soliera Hotel is committed to [POLICY_COMMITMENT]. All employees are expected to adhere to the following principles and guidelines:
+                </p>
+                <ul style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">[PRINCIPLE_1]</li>
+                    <li style="margin-bottom: 0.3em;">[PRINCIPLE_2]</li>
+                    <li style="margin-bottom: 0.3em;">[PRINCIPLE_3]</li>
+                    <li style="margin-bottom: 0.3em;">[PRINCIPLE_4]</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">4. PROCEDURES</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    The following procedures shall be followed to ensure proper implementation of this policy:
+                </p>
+                <ol style="margin-left: 1in; margin-bottom: 0.5em;">
+                    <li style="margin-bottom: 0.3em;">[PROCEDURE_1]</li>
+                    <li style="margin-bottom: 0.3em;">[PROCEDURE_2]</li>
+                    <li style="margin-bottom: 0.3em;">[PROCEDURE_3]</li>
+                    <li style="margin-bottom: 0.3em;">[PROCEDURE_4]</li>
+                </ol>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">5. COMPLIANCE AND ENFORCEMENT</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    Compliance with this policy is mandatory for all employees. Violations of this policy may result in disciplinary action, up to and including termination of employment. The Human Resources Department is responsible for monitoring compliance and addressing any violations.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 2em;">
+                <h3 style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5em; border-bottom: 1px solid #000; padding-bottom: 0.2em;">6. REVIEW AND UPDATES</h3>
+                <p style="text-align: justify; margin-bottom: 0.5em; text-indent: 0.5in;">
+                    This policy will be reviewed annually or as needed to ensure it remains current and effective. Any updates or changes will be communicated to all employees through appropriate channels.
+                </p>
+            </div>
+            
+            <div style="margin-top: 3em;">
+                <div style="display: flex; justify-content: space-between; margin-top: 2em;">
+                    <div style="width: 45%;">
+                        <p style="border-bottom: 1px solid #000; margin-bottom: 0.5em; height: 2em;"></p>
+                        <p style="text-align: center; font-weight: bold; margin: 0;">[APPROVER_NAME]</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Human Resources Director</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Date: _______________</p>
+                    </div>
+                    <div style="width: 45%;">
+                        <p style="border-bottom: 1px solid #000; margin-bottom: 0.5em; height: 2em;"></p>
+                        <p style="text-align: center; font-weight: bold; margin: 0;">[GENERAL_MANAGER]</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">General Manager</p>
+                        <p style="text-align: center; font-size: 10pt; margin: 0;">Date: _______________</p>
+                    </div>
+                </div>
+            </div>
+        </div>';
     }
 
     private function generatePdfExport($document)
@@ -1257,6 +1977,590 @@ class LegalController extends Controller
         } catch (\Exception $e) {
             \Log::error('Word export failed', ['document_id' => $document->id, 'error' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to generate Word document: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Send an approved document for e-signature (provider-agnostic stub).
+     */
+    public function sendForESign(Request $request, $id)
+    {
+        $document = Document::findOrFail($id);
+
+        if ($document->status !== 'approved' && $document->status !== 'pending_signature') {
+            return response()->json(['success' => false, 'message' => 'Document must be approved before sending for e-signature'], 422);
+        }
+
+        // Collect signer data
+        $request->validate([
+            'hotel_signer_name' => 'required|string|max:255',
+            'hotel_signer_email' => 'required|email',
+            'vendor_signer_name' => 'required|string|max:255',
+            'vendor_signer_email' => 'required|email',
+        ]);
+
+        $signers = [
+            'hotel' => [
+                'name' => $request->hotel_signer_name,
+                'email' => $request->hotel_signer_email,
+                'role' => 'HOTEL_SIGNER'
+            ],
+            'vendor' => [
+                'name' => $request->vendor_signer_name,
+                'email' => $request->vendor_signer_email,
+                'role' => 'VENDOR_SIGNER'
+            ]
+        ];
+
+        // Mark as sent (simulate provider call). Integrate actual provider here.
+        $document->update([
+            'signature_status' => 'sent',
+            'signers' => $signers,
+            'workflow_log' => array_merge($document->workflow_log ?? [], [[
+                'at' => now()->toIso8601String(),
+                'action' => 'send_esign',
+                'by' => auth()->id(),
+            ]])
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'E-signature request sent',
+        ]);
+    }
+
+    /**
+     * Webhook endpoint for e-signature provider (provider-agnostic stub).
+     */
+    public function esignWebhook(Request $request)
+    {
+        // Validate payload as needed (HMAC, token)
+        $documentId = $request->input('document_id');
+        $status = $request->input('status'); // completed, declined, failed
+        $fileUrl = $request->input('file_url');
+
+        $document = Document::find($documentId);
+        if (!$document) {
+            return response()->json(['success' => false], 404);
+        }
+
+        if ($status === 'completed') {
+            // Optionally download signed PDF and store
+            $path = null;
+            try {
+                if ($fileUrl) {
+                    $contents = file_get_contents($fileUrl);
+                    $stored = 'legal/signed/' . ($document->reference_id ?? ('DOC-' . $document->id)) . '-' . now()->format('YmdHis') . '.pdf';
+                    \Storage::disk('local')->put($stored, $contents);
+                    $path = $stored;
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to download signed file', ['err' => $e->getMessage()]);
+            }
+
+            $document->update([
+                'signature_status' => 'completed',
+                'signed_at' => now(),
+                'final_pdf_path' => $path ?? $document->final_pdf_path,
+            ]);
+        } else {
+            $document->update(['signature_status' => $status]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Monitoring summary: status counts, signatures, expiring/renewals
+     */
+    public function monitoringSummary(Request $request)
+    {
+        $base = Document::query();
+        // Filters
+        if ($dept = $request->get('department')) { $base->where('department', $dept); }
+        if ($type = $request->get('type')) { $base->where('category', $type); }
+
+        $total = (clone $base)->count();
+        $pending = (clone $base)->where('status','pending_review')->count();
+        $approved = (clone $base)->where('status','active')->count();
+        $rejected = (clone $base)->where('status','rejected')->count();
+        $returned = (clone $base)->where('status','returned')->count();
+        $drafts = (clone $base)->where('status','draft')->count();
+
+        // Signature states
+        $signing = (clone $base)->where('signature_status','sent')->count();
+        $signed = (clone $base)->where('signature_status','completed')->count();
+
+        // Expiring (retention within 90d) and renewals due
+        $expiring = (clone $base)->whereNotNull('retention_until')
+            ->whereBetween('retention_until', [now(), now()->addDays(90)])
+            ->count();
+
+        // Upcoming renewal (metadata->renewal_date within 60d)
+        $renewals = (clone $base)->whereRaw("JSON_EXTRACT(metadata, '$.renewal_date') IS NOT NULL")
+            ->get()
+            ->filter(function($d){
+                $date = optional(optional(collect($d->metadata))->get('renewal_date'));
+                if (!$date) return false;
+                try { $dt = \Carbon\Carbon::parse($date); } catch (\Throwable $e) { return false; }
+                return $dt->between(now(), now()->addDays(60));
+            })->count();
+
+        return response()->json([
+            'success' => true,
+            'counts' => compact('total','pending','approved','rejected','returned','drafts','signing','signed','expiring','renewals')
+        ]);
+    }
+
+    /**
+     * Monitoring list: paginated documents with key fields for table
+     */
+    public function monitoringList(Request $request)
+    {
+        $query = Document::query();
+        if ($dept = $request->get('department')) { $query->where('department', $dept); }
+        if ($type = $request->get('type')) { $query->where('category', $type); }
+        if ($status = $request->get('status')) { $query->where('status', $status); }
+        if ($search = $request->get('search')) {
+            $query->where(function($q) use ($search){
+                $q->where('title','like',"%$search%")
+                  ->orWhere('reference_id','like',"%$search%");
+            });
+        }
+
+        $docs = $query->latest()->paginate(15);
+
+        $items = collect($docs->items())->map(function($d){
+            $meta = $d->metadata ?? [];
+            return [
+                'id' => $d->id,
+                'reference_id' => $d->reference_id,
+                'title' => $d->title,
+                'category' => $d->category,
+                'department' => $d->department,
+                'status' => $d->status,
+                'signature_status' => $d->signature_status,
+                'renewal_date' => $meta['renewal_date'] ?? null,
+                'retention_until' => optional($d->retention_until)->format('Y-m-d'),
+                'created_at' => optional($d->created_at)->format('Y-m-d'),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $items,
+            'meta' => [
+                'current_page' => $docs->currentPage(),
+                'last_page' => $docs->lastPage(),
+                'total' => $docs->total()
+            ]
+        ]);
+    }
+
+    /**
+     * AI Document Builder - Main interface
+     */
+    public function aiDocumentBuilder()
+    {
+        return view('legal.ai_document_builder');
+    }
+
+    /**
+     * Generate AI content for a specific section
+     */
+    public function aiGenerateSection(Request $request)
+    {
+        $request->validate([
+            'section_id' => 'required|string',
+            'prompt' => 'required|string',
+            'document_type' => 'required|string',
+            'context' => 'nullable|array'
+        ]);
+
+        try {
+            $geminiService = app(\App\Services\GeminiService::class);
+            
+            // Build enhanced prompt with context
+            $enhancedPrompt = $this->buildEnhancedPrompt(
+                $request->prompt,
+                $request->document_type,
+                $request->context ?? []
+            );
+
+            // Generate content using Gemini
+            $response = $geminiService->generateContent($enhancedPrompt);
+            
+            if ($response && !isset($response['error'])) {
+                return response()->json([
+                    'success' => true,
+                    'content' => $response['content'] ?? $response
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response['error'] ?? 'Failed to generate content'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            \Log::error('AI section generation failed', [
+                'error' => $e->getMessage(),
+                'section_id' => $request->section_id,
+                'document_type' => $request->document_type
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating content: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate AI suggestions for entire document
+     */
+    public function aiGenerateDocument(Request $request)
+    {
+        $request->validate([
+            'document_type' => 'required|string',
+            'title' => 'required|string',
+            'department' => 'required|string',
+            'priority' => 'required|string',
+            'sections' => 'required|array'
+        ]);
+
+        try {
+            $geminiService = app(\App\Services\GeminiService::class);
+            
+            // Build comprehensive prompt for document analysis
+            $prompt = $this->buildDocumentAnalysisPrompt(
+                $request->document_type,
+                $request->title,
+                $request->department,
+                $request->priority,
+                $request->sections
+            );
+
+            $response = $geminiService->generateContent($prompt);
+            
+            if ($response && !isset($response['error'])) {
+                // Parse response into structured suggestions
+                $suggestions = $this->parseDocumentSuggestions($response);
+                
+                return response()->json([
+                    'success' => true,
+                    'suggestions' => $suggestions
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response['error'] ?? 'Failed to generate suggestions'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            \Log::error('AI document generation failed', [
+                'error' => $e->getMessage(),
+                'document_type' => $request->document_type
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating suggestions: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save AI-generated document as draft
+     */
+    public function saveAiDocument(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'priority' => 'required|string',
+            'type' => 'required|string',
+            'sections' => 'required|array'
+        ]);
+
+        try {
+            // Combine all sections into final content
+            $content = $this->combineDocumentSections($request->sections, $request->type);
+            
+            $document = Document::create([
+                'title' => $request->title,
+                'description' => 'AI-generated document created with AI Document Builder',
+                'category' => $request->type,
+                'department' => $request->department,
+                'status' => 'draft',
+                'source' => 'ai_builder',
+                'file_path' => '',
+                'uploader_id' => auth()->id(),
+                'uploaded_by' => auth()->id(),
+                'metadata' => [
+                    'ai_generated' => true,
+                    'priority' => $request->priority,
+                    'sections' => $request->sections,
+                    'content' => $content,
+                    'created_in_ai_builder' => true,
+                    'last_saved' => now()->toISOString()
+                ],
+            ]);
+
+            $document->update(['reference_id' => 'AI-' . str_pad($document->id, 6, '0', STR_PAD_LEFT)]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'save_ai_document',
+                'description' => "Saved AI-generated document: {$document->title}",
+                'ip_address' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document saved as draft successfully',
+                'document_id' => $document->id,
+                'reference_id' => $document->reference_id
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('AI document save failed', [
+                'error' => $e->getMessage(),
+                'title' => $request->title
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving document: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Submit AI-generated document for review
+     */
+    public function submitAiDocument(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'priority' => 'required|string',
+            'type' => 'required|string',
+            'sections' => 'required|array'
+        ]);
+
+        try {
+            // Combine all sections into final content
+            $content = $this->combineDocumentSections($request->sections, $request->type);
+            
+            $document = Document::create([
+                'title' => $request->title,
+                'description' => 'AI-generated document submitted for legal review',
+                'category' => $request->type,
+                'department' => $request->department,
+                'status' => 'pending_review',
+                'source' => 'ai_builder',
+                'file_path' => '',
+                'uploader_id' => auth()->id(),
+                'uploaded_by' => auth()->id(),
+                'metadata' => [
+                    'ai_generated' => true,
+                    'priority' => $request->priority,
+                    'sections' => $request->sections,
+                    'content' => $content,
+                    'created_in_ai_builder' => true,
+                    'submitted_for_review' => now()->toISOString()
+                ],
+            ]);
+
+            $document->update(['reference_id' => 'AI-' . str_pad($document->id, 6, '0', STR_PAD_LEFT)]);
+
+            // Run AI analysis on submission
+            try {
+                $geminiService = app(\App\Services\GeminiService::class);
+                $analysis = $geminiService->analyzeDocument($content);
+                
+                if (is_array($analysis) && empty($analysis['error'])) {
+                    $document->update([
+                        'ai_analysis' => $analysis,
+                        'category' => $analysis['category'] ?? $document->category,
+                        'legal_risk_score' => $analysis['legal_risk_score'] ?? $document->legal_risk_score
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Auto AI analysis on AI document submit failed', [
+                    'doc_id' => $document->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'submit_ai_document',
+                'description' => "Submitted AI-generated document for review: {$document->title}",
+                'ip_address' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document submitted for review successfully',
+                'document_id' => $document->id,
+                'reference_id' => $document->reference_id
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('AI document submit failed', [
+                'error' => $e->getMessage(),
+                'title' => $request->title
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error submitting document: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Build enhanced prompt with context
+     */
+    public function buildEnhancedPrompt($basePrompt, $documentType, $context)
+    {
+        $contextStr = '';
+        if (!empty($context)) {
+            $contextStr = "\n\nContext:\n";
+            foreach ($context as $key => $value) {
+                $contextStr .= "- {$key}: {$value}\n";
+            }
+        }
+
+        return "You are a legal document expert. Generate professional, legally sound content for the following request:\n\n" .
+               "Document Type: {$documentType}\n" .
+               "Request: {$basePrompt}{$contextStr}\n\n" .
+               "Please provide:\n" .
+               "1. Professional, clear, and legally appropriate content\n" .
+               "2. Proper legal terminology and structure\n" .
+               "3. Complete sentences and paragraphs\n" .
+               "4. No placeholders or incomplete sections\n\n" .
+               "Generate the content now:";
+    }
+
+    /**
+     * Build document analysis prompt
+     */
+    public function buildDocumentAnalysisPrompt($documentType, $title, $department, $priority, $sections)
+    {
+        $sectionsContent = '';
+        foreach ($sections as $section) {
+            if (!empty($section['content'])) {
+                $sectionsContent .= "\n{$section['id']}: {$section['content']}\n";
+            }
+        }
+
+        return "You are a legal document expert. Analyze this {$documentType} document and provide suggestions:\n\n" .
+               "Document: {$title}\n" .
+               "Department: {$department}\n" .
+               "Priority: {$priority}\n" .
+               "Content: {$sectionsContent}\n\n" .
+               "Please provide suggestions in this format:\n" .
+               "STRUCTURE: [suggestions for document structure]\n" .
+               "CONTENT: [suggestions for content improvement]\n" .
+               "COMPLIANCE: [legal compliance recommendations]\n\n" .
+               "Analyze and provide suggestions:";
+    }
+
+    /**
+     * Parse document suggestions from AI response
+     */
+    public function parseDocumentSuggestions($response)
+    {
+        $content = is_array($response) ? ($response['content'] ?? $response) : $response;
+        
+        $suggestions = [
+            'structure' => 'No specific structure suggestions.',
+            'content' => 'No specific content suggestions.',
+            'compliance' => 'No specific compliance notes.'
+        ];
+
+        // Parse structured response
+        if (preg_match('/STRUCTURE:\s*(.+?)(?=CONTENT:|$)/s', $content, $matches)) {
+            $suggestions['structure'] = trim($matches[1]);
+        }
+        if (preg_match('/CONTENT:\s*(.+?)(?=COMPLIANCE:|$)/s', $content, $matches)) {
+            $suggestions['content'] = trim($matches[1]);
+        }
+        if (preg_match('/COMPLIANCE:\s*(.+?)$/s', $content, $matches)) {
+            $suggestions['compliance'] = trim($matches[1]);
+        }
+
+        return $suggestions;
+    }
+
+    /**
+     * Combine document sections into final content
+     */
+    public function combineDocumentSections($sections, $documentType)
+    {
+        $content = "<h1>{$documentType}</h1>\n\n";
+        
+        foreach ($sections as $sectionId => $sectionContent) {
+            if (!empty($sectionContent)) {
+                $content .= "<h2>Section: {$sectionId}</h2>\n";
+                $content .= "<p>{$sectionContent}</p>\n\n";
+            }
+        }
+        
+        return $content;
+    }
+
+    /**
+     * Bulk upload documents
+     */
+    public function bulkUpload(Request $request)
+    {
+        $request->validate([
+            'files.*' => 'required|file|mimes:pdf,doc,docx,txt|max:20480',
+            'category' => 'required|string|max:255',
+            'department' => 'required|string|max:255'
+        ]);
+
+        $uploadedCount = 0;
+        $errors = [];
+
+        foreach ($request->file('files') as $file) {
+            try {
+                $path = $file->store('legal_documents', 'public');
+                
+                Document::create([
+                    'title' => $file->getClientOriginalName(),
+                    'description' => 'Bulk uploaded document',
+                    'category' => $request->category,
+                    'department' => $request->department,
+                    'status' => 'pending_review',
+                    'source' => 'bulk_upload',
+                    'file_path' => $path,
+                    'uploader_id' => auth()->id(),
+                    'uploaded_by' => auth()->id(),
+                ]);
+                
+                $uploadedCount++;
+            } catch (\Exception $e) {
+                $errors[] = "Failed to upload {$file->getClientOriginalName()}: " . $e->getMessage();
+            }
+        }
+
+        if ($uploadedCount > 0) {
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully uploaded {$uploadedCount} documents",
+                'uploaded_count' => $uploadedCount,
+                'errors' => $errors
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No documents were uploaded',
+                'errors' => $errors
+            ], 400);
         }
     }
 }

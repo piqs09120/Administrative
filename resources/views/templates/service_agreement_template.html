@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Agreement Template</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        .document-header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+        
+        .document-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .document-subtitle {
+            font-size: 16px;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        .effective-date {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .parties-section {
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+        
+        .section-number {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .subsection {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .subsection-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .clause {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .indent {
+            margin-left: 20px;
+        }
+        
+        .double-indent {
+            margin-left: 40px;
+        }
+        
+        .signature-section {
+            margin-top: 50px;
+            page-break-inside: avoid;
+        }
+        
+        .signature-block {
+            display: inline-block;
+            width: 45%;
+            margin: 20px 2.5%;
+            vertical-align: top;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+            height: 20px;
+        }
+        
+        .schedule {
+            margin-top: 40px;
+            page-break-before: always;
+        }
+        
+        .schedule-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-decoration: underline;
+        }
+        
+        .template-field {
+            background-color: #ffffcc;
+            padding: 2px 4px;
+            border: 1px solid #cccccc;
+            font-weight: bold;
+        }
+        
+        .optional {
+            color: #666666;
+            font-style: italic;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .centered {
+            text-align: center;
+        }
+        
+        .right-aligned {
+            text-align: right;
+        }
+        
+        .bold {
+            font-weight: bold;
+        }
+        
+        .underline {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="document-header">
+        <div class="document-title">Service Agreement</div>
+        <div class="document-subtitle">("Agreement")</div>
+        <div class="effective-date">
+            This Service Agreement is entered into as of <span class="template-field">{{EffectiveDate}}</span> ("Effective Date") by and between:
+        </div>
+    </div>
+
+    <div class="parties-section">
+        <p><strong>(a)</strong> <span class="template-field">{{HotelLegalName}}</span>, a <span class="template-field">{{HotelEntityType}}</span> organized under the laws of <span class="template-field">{{HotelJurisdiction}}</span> with principal offices at <span class="template-field">{{HotelAddress}}</span> ("Hotel"); and</p>
+        
+        <p><strong>(b)</strong> <span class="template-field">{{ServiceProviderLegalName}}</span>, a <span class="template-field">{{ProviderEntityType}}</span> organized under the laws of <span class="template-field">{{ProviderJurisdiction}}</span> with principal offices at <span class="template-field">{{ProviderAddress}}</span> ("Service Provider").</p>
+        
+        <p>Hotel and Service Provider are each a "Party" and collectively the "Parties."</p>
+    </div>
+
+    <div class="section-number">1. DEFINITIONS</div>
+    <div class="subsection">
+        <div class="subsection-title">1.1 "Services"</div>
+        <div class="clause">means the services described in Schedule A (Statement of Work) and any Change Orders executed under Section 6 (Change Control).</div>
+        
+        <div class="subsection-title">1.2 "SLA"</div>
+        <div class="clause">means the service levels, KPIs, uptime/response targets, and credits set out in Schedule C.</div>
+        
+        <div class="subsection-title">1.3 "Guest Data"</div>
+        <div class="clause">means any information that identifies or can reasonably identify a guest or customer of Hotel (including contact, booking, billing, and stay data).</div>
+        
+        <div class="subsection-title">1.4 "Hotel Policies"</div>
+        <div class="clause">means Hotel's written policies provided or made available to Service Provider, including brand standards, health & safety, data protection, and anti-bribery policies.</div>
+    </div>
+
+    <div class="section-number">2. SCOPE; PERFORMANCE STANDARDS</div>
+    <div class="subsection">
+        <div class="subsection-title">2.1 Professional Performance</div>
+        <div class="clause">Service Provider shall perform the Services in a professional, workmanlike manner consistent with industry standards and the SLA.</div>
+        
+        <div class="subsection-title">2.2 Personnel Qualifications</div>
+        <div class="clause">Service Provider shall ensure personnel are suitably qualified, adequately supervised, and comply with Hotel Policies while on Hotel premises.</div>
+        
+        <div class="subsection-title">2.3 Onsite Services <span class="optional">[Optional]</span></div>
+        <div class="clause">Service Provider personnel shall sign in at security, wear visible ID, and follow all access rules, including quiet hours and guest privacy.</div>
+    </div>
+
+    <div class="section-number">3. TERM</div>
+    <div class="subsection">
+        <div class="subsection-title">3.1 Initial Term</div>
+        <div class="clause">This Agreement begins on the Effective Date and continues for <span class="template-field">{{InitialTerm}}</span> (the "Initial Term") unless terminated earlier under Section 14.</div>
+        
+        <div class="subsection-title">3.2 Renewal</div>
+        <div class="clause">The Agreement shall automatically renew for successive periods of <span class="template-field">{{RenewalTerm}}</span> (each a "Renewal Term") unless either Party gives at least <span class="template-field">{{NonRenewalNoticeDays}}</span> days' written notice of non‑renewal.</div>
+    </div>
+
+    <div class="section-number">4. FEES; TAXES; PAYMENT</div>
+    <div class="subsection">
+        <div class="subsection-title">4.1 Fees</div>
+        <div class="clause">Hotel shall pay the fees set out in Schedule B (Pricing). Unless otherwise stated, fees are in <span class="template-field">{{Currency}}</span> and exclude applicable taxes.</div>
+        
+        <div class="subsection-title">4.2 Invoices</div>
+        <div class="clause">Service Provider shall invoice <span class="template-field">{{Monthly/UponMilestone/Other}}</span> with sufficient detail (dates, hours, tasks, location). Hotel may dispute any portion in good faith within <span class="template-field">{{DisputeDays}}</span> days; undisputed portions shall be paid per Section 4.3.</div>
+        
+        <div class="subsection-title">4.3 Payment Terms</div>
+        <div class="clause">Net <span class="template-field">{{PaymentDays}}</span> days from receipt of a valid invoice. Late payment interest at the lesser of <span class="template-field">{{LateInterestRate}}</span>% per month or the maximum allowed by law.</div>
+        
+        <div class="subsection-title">4.4 Expenses <span class="optional">[Optional]</span></div>
+        <div class="clause">Pre‑approved, reasonable out‑of‑pocket expenses will be reimbursed at cost with receipts.</div>
+    </div>
+
+    <div class="section-number">5. SUBCONTRACTING; ASSIGNMENT</div>
+    <div class="subsection">
+        <div class="subsection-title">5.1 Assignment and Subcontracting</div>
+        <div class="clause">Service Provider may not assign this Agreement or subcontract the Services without Hotel's prior written consent (not to be unreasonably withheld). Service Provider remains fully responsible for all subcontractors.</div>
+    </div>
+
+    <div class="section-number">6. CHANGE CONTROL</div>
+    <div class="subsection">
+        <div class="subsection-title">6.1 Change Orders</div>
+        <div class="clause">Either Party may propose changes to the scope via a written Change Order describing impact on timeline, SLA, and pricing. Changes are binding only when signed by both Parties.</div>
+    </div>
+
+    <div class="section-number">7. COMPLIANCE; HEALTH & SAFETY; SECURITY</div>
+    <div class="subsection">
+        <div class="subsection-title">7.1 Compliance</div>
+        <div class="clause">Service Provider shall comply with all applicable laws (including labor, safety, environmental, and anti‑bribery), and Hotel Policies provided to Service Provider.</div>
+        
+        <div class="subsection-title">7.2 Incident Reporting</div>
+        <div class="clause">Service Provider shall immediately report accidents, injuries, property damage, or security incidents occurring on Hotel premises.</div>
+        
+        <div class="subsection-title">7.3 Background Checks <span class="optional">[Optional]</span></div>
+        <div class="clause">Service Provider represents personnel assigned to Hotel have passed background checks allowed by law.</div>
+    </div>
+
+    <div class="section-number">8. CONFIDENTIALITY</div>
+    <div class="subsection">
+        <div class="subsection-title">8.1 Confidential Information</div>
+        <div class="clause">Each Party shall protect the other Party's Confidential Information with at least the same degree of care used to protect its own (no less than reasonable care) and use it solely to perform under this Agreement. This obligation survives for <span class="template-field">{{ConfidentialityYears}}</span> years after termination.</div>
+    </div>
+
+    <div class="section-number">9. DATA PROTECTION</div>
+    <div class="subsection">
+        <div class="subsection-title">9.1 Data Processing</div>
+        <div class="clause">If Service Provider processes Guest Data or other personal data on behalf of Hotel, the Parties shall execute the Data Processing Addendum in Schedule E (incorporated by reference).</div>
+        
+        <div class="subsection-title">9.2 Data Security</div>
+        <div class="clause">Service Provider will implement industry‑standard administrative, technical, and physical safeguards to protect Guest Data against unauthorized access, disclosure, or loss, and shall notify Hotel without undue delay of any data incident.</div>
+        
+        <div class="subsection-title">9.3 PCI‑DSS <span class="optional">[Optional—if handling card data]</span></div>
+        <div class="clause">Service Provider represents and warrants ongoing PCI‑DSS compliance and will provide current Attestation of Compliance upon request.</div>
+    </div>
+
+    <div class="section-number">10. INTELLECTUAL PROPERTY</div>
+    <div class="subsection">
+        <div class="subsection-title">10.1 Background IP</div>
+        <div class="clause">Each Party retains ownership of IP it owned prior to this Agreement or developed independently without use of the other Party's Confidential Information.</div>
+        
+        <div class="subsection-title">10.2 Deliverables</div>
+        <div class="clause">Unless otherwise specified in Schedule A, all deliverables specifically created for Hotel under this Agreement ("Deliverables") shall be owned by Hotel upon full payment; Service Provider grants Hotel a perpetual, non‑exclusive, worldwide, royalty‑free license to use any embedded Service Provider background IP reasonably necessary to use the Deliverables.</div>
+    </div>
+
+    <div class="section-number">11. INSURANCE</div>
+    <div class="subsection">
+        <div class="subsection-title">11.1 Required Insurance</div>
+        <div class="clause">During the Term, Service Provider shall maintain at its own expense the following minimum insurance with reputable carriers:</div>
+        <div class="double-indent">
+            <p><strong>(a)</strong> Commercial General Liability: at least <span class="template-field">{{CGLAmount}}</span> per occurrence;</p>
+            <p><strong>(b)</strong> Workers' Compensation/Employer's Liability as required by law;</p>
+            <p><strong>(c)</strong> Professional Liability/Errors & Omissions: <span class="template-field">{{EAndOAmount}}</span> per claim;</p>
+            <p><strong>(d)</strong> <span class="optional">[Optional—Cyber Liability]</span> <span class="template-field">{{CyberAmount}}</span> per claim if processing Guest Data.</p>
+        </div>
+        
+        <div class="subsection-title">11.2 Certificates</div>
+        <div class="clause">Certificates of Insurance naming <span class="template-field">{{HotelLegalName}}</span> as an additional insured (where customary) shall be provided upon request.</div>
+    </div>
+
+    <div class="section-number">12. INDEMNITY</div>
+    <div class="subsection">
+        <div class="subsection-title">12.1 Indemnification</div>
+        <div class="clause">Service Provider shall indemnify, defend, and hold harmless Hotel, its affiliates, and their officers, directors, employees, and agents from and against any third‑party claims, damages, fines, penalties, costs, and expenses (including reasonable attorneys' fees) arising out of: (a) bodily injury, death, or property damage caused by Service Provider; (b) Service Provider's breach of this Agreement; (c) violations of law; or (d) data incidents caused by Service Provider's failure to comply with Section 9.</div>
+    </div>
+
+    <div class="section-number">13. LIMITATION OF LIABILITY</div>
+    <div class="subsection">
+        <div class="subsection-title">13.1 Exclusions</div>
+        <div class="clause">EXCEPT FOR (A) A PARTY'S INDEMNIFICATION OBLIGATIONS, (B) BREACH OF CONFIDENTIALITY, (C) DATA PROTECTION BREACHES, OR (D) FRAUD, GROSS NEGLIGENCE, OR WILLFUL MISCONDUCT, NEITHER PARTY SHALL BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES.</div>
+        
+        <div class="subsection-title">13.2 Aggregate Liability</div>
+        <div class="clause">Subject to 13.1, each Party's total liability under this Agreement shall not exceed <span class="template-field">{{LiabilityCap}}</span> (e.g., 12 months of fees).</div>
+    </div>
+
+    <div class="section-number">14. TERMINATION</div>
+    <div class="subsection">
+        <div class="subsection-title">14.1 Convenience</div>
+        <div class="clause">Either Party may terminate for convenience upon <span class="template-field">{{TerminationNoticeDays}}</span> days' written notice.</div>
+        
+        <div class="subsection-title">14.2 Cause</div>
+        <div class="clause">Either Party may terminate immediately for material breach not cured within <span class="template-field">{{CurePeriodDays}}</span> days after written notice.</div>
+        
+        <div class="subsection-title">14.3 Insolvency</div>
+        <div class="clause">Either Party may terminate if the other becomes insolvent or enters bankruptcy proceedings.</div>
+        
+        <div class="subsection-title">14.4 Effect of Termination</div>
+        <div class="clause">Hotel shall pay for Services properly performed through the effective date of termination. Sections intended to survive (including 4, 8–13, 16–18) shall survive.</div>
+    </div>
+
+    <div class="section-number">15. NON‑SOLICITATION <span class="optional">[Optional]</span></div>
+    <div class="subsection">
+        <div class="subsection-title">15.1 Non-Solicitation</div>
+        <div class="clause">During the Term and for <span class="template-field">{{NonSolicitMonths}}</span> months thereafter, neither Party shall solicit for employment the other Party's personnel who directly performed under this Agreement (general recruiting excluded).</div>
+    </div>
+
+    <div class="section-number">16. AUDIT; RECORDS</div>
+    <div class="subsection">
+        <div class="subsection-title">16.1 Record Keeping</div>
+        <div class="clause">Service Provider shall maintain complete and accurate records relating to fees and performance for <span class="template-field">{{RecordRetentionYears}}</span> years and allow Hotel to audit such records upon reasonable notice, no more than once per year.</div>
+    </div>
+
+    <div class="section-number">17. NOTICES</div>
+    <div class="subsection">
+        <div class="subsection-title">17.1 Notice Requirements</div>
+        <div class="clause">All notices under this Agreement shall be in writing and delivered to the addresses below (or as updated by notice):</div>
+        <div class="indent">
+            <p><strong>Hotel Notices To:</strong> <span class="template-field">{{HotelNoticeName}}</span>, <span class="template-field">{{HotelTitle}}</span>, <span class="template-field">{{HotelNoticeAddress}}</span>, <span class="template-field">{{HotelEmail}}</span></p>
+            <p><strong>Service Provider Notices To:</strong> <span class="template-field">{{ProviderNoticeName}}</span>, <span class="template-field">{{ProviderTitle}}</span>, <span class="template-field">{{ProviderNoticeAddress}}</span>, <span class="template-field">{{ProviderEmail}}</span></p>
+        </div>
+    </div>
+
+    <div class="section-number">18. GOVERNING LAW; DISPUTE RESOLUTION</div>
+    <div class="subsection">
+        <div class="subsection-title">18.1 Governing Law</div>
+        <div class="clause">Governing Law: <span class="template-field">{{GoverningLawJurisdiction}}</span> without regard to conflict of laws.</div>
+        
+        <div class="subsection-title">18.2 Venue</div>
+        <div class="clause">Venue: Courts located in <span class="template-field">{{VenueCity}}</span>, <span class="template-field">{{VenueStateCountry}}</span>.</div>
+        
+        <div class="subsection-title">18.3 Alternative Dispute Resolution <span class="optional">[Optional—Mediation/Arbitration clause if desired]</span></div>
+    </div>
+
+    <div class="section-number">19. MISCELLANEOUS</div>
+    <div class="subsection">
+        <div class="subsection-title">19.1 Entire Agreement; Order of Precedence</div>
+        <div class="clause">This Agreement including Schedules A–E constitutes the entire agreement and supersedes prior discussions. In the event of conflict, the main body of this Agreement prevails over Schedules, except that a signed Change Order prevails for its subject matter.</div>
+        
+        <div class="subsection-title">19.2 Counterparts; E‑Signature</div>
+        <div class="clause">This Agreement may be executed in counterparts and by electronic signatures, each of which is deemed an original.</div>
+    </div>
+
+    <div class="centered" style="margin-top: 50px;">
+        <p><strong>IN WITNESS WHEREOF, the Parties have executed this Agreement as of the Effective Date.</strong></p>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-block">
+            <div class="centered bold">HOTEL: <span class="template-field">{{HotelLegalName}}</span></div>
+            <div class="signature-line"></div>
+            <div class="centered">By: __________________________</div>
+            <div class="centered">Name: <span class="template-field">{{HotelSignerName}}</span></div>
+            <div class="centered">Title: <span class="template-field">{{HotelSignerTitle}}</span></div>
+            <div class="centered">Date: _________________________</div>
+        </div>
+        
+        <div class="signature-block">
+            <div class="centered bold">SERVICE PROVIDER: <span class="template-field">{{ServiceProviderLegalName}}</span></div>
+            <div class="signature-line"></div>
+            <div class="centered">By: __________________________</div>
+            <div class="centered">Name: <span class="template-field">{{ProviderSignerName}}</span></div>
+            <div class="centered">Title: <span class="template-field">{{ProviderSignerTitle}}</span></div>
+            <div class="centered">Date: _________________________</div>
+        </div>
+    </div>
+
+    <div class="schedule page-break">
+        <div class="schedule-title">SCHEDULE A – STATEMENT OF WORK (SOW)</div>
+        
+        <div class="section-number">1. Description of Services:</div>
+        <div class="indent">
+            <p><strong>Service category:</strong> <span class="template-field">{{ServiceCategory}}</span> (e.g., Laundry, Security, IT Support, HVAC, Landscaping, Catering)</p>
+            <p><strong>Locations / Properties:</strong> <span class="template-field">{{PropertyList}}</span></p>
+            <p><strong>Service windows / Hours:</strong> <span class="template-field">{{ServiceHours}}</span></p>
+            <p><strong>Deliverables / Milestones:</strong> <span class="template-field">{{Deliverables}}</span></p>
+        </div>
+        
+        <div class="section-number">2. Personnel & Roles:</div>
+        <div class="indent">
+            <p><strong>Key personnel:</strong> <span class="template-field">{{KeyPersonnel}}</span> (replacement with comparable qualifications; Hotel approval required)</p>
+        </div>
+        
+        <div class="section-number">3. Tools/Materials/Equipment:</div>
+        <div class="indent">
+            <p><strong>Provided by Service Provider:</strong> <span class="template-field">{{ProviderEquipment}}</span></p>
+            <p><strong>Provided by Hotel (if any):</strong> <span class="template-field">{{HotelEquipment}}</span></p>
+        </div>
+        
+        <div class="section-number">4. Dependencies & Access:</div>
+        <div class="indent">
+            <p>Site access, permits, loading docks, storage rules, safety inductions, etc.</p>
+        </div>
+    </div>
+
+    <div class="schedule page-break">
+        <div class="schedule-title">SCHEDULE B – PRICING & INVOICING</div>
+        
+        <div class="section-number">1. Pricing Model:</div>
+        <div class="indent">
+            <p><span class="template-field">{{FixedPrice/TimeAndMaterials/UnitRates}}</span></p>
+        </div>
+        
+        <div class="section-number">2. Rate Card / Unit Prices:</div>
+        <div class="indent">
+            <p>Role/Unit: __________ Rate: __________ UOM: __________</p>
+            <p>Role/Unit: __________ Rate: __________ UOM: __________</p>
+        </div>
+        
+        <div class="section-number">3. Minimums / Overtime / Call‑out charges:</div>
+        <div class="indent">
+            <p><span class="template-field">{{IfAny}}</span></p>
+        </div>
+        
+        <div class="section-number">4. Discounts / Volume tiers:</div>
+        <div class="indent">
+            <p><span class="template-field">{{IfAny}}</span></p>
+        </div>
+        
+        <div class="section-number">5. Invoicing Instructions:</div>
+        <div class="indent">
+            <p>PO required? <span class="template-field">{{Yes/No}}</span> • PO Number: <span class="template-field">{{PONumber}}</span></p>
+            <p>Invoice email/portal: <span class="template-field">{{InvoiceEmailOrURL}}</span></p>
+            <p>Supporting documents required: <span class="template-field">{{Timesheets/DeliveryNotes/SOWAcceptance}}</span></p>
+        </div>
+    </div>
+
+    <div class="schedule page-break">
+        <div class="schedule-title">SCHEDULE C – SERVICE LEVELS (SLA) & CREDITS</div>
+        
+        <div class="section-number">1. KPI Targets (examples—adapt to service type):</div>
+        <div class="indent">
+            <p>Response time to priority incidents: P1 <span class="template-field">{{P1Response}}</span> / P2 <span class="template-field">{{P2Response}}</span> / P3 <span class="template-field">{{P3Response}}</span></p>
+            <p>Resolution time: P1 <span class="template-field">{{P1Resolution}}</span> / P2 <span class="template-field">{{P2Resolution}}</span> / P3 <span class="template-field">{{P3Resolution}}</span></p>
+            <p>Uptime / Availability: <span class="template-field">{{UptimeTarget}}</span>%</p>
+            <p>Quality / Defect rate: ≤ <span class="template-field">{{DefectRate}}</span>%</p>
+            <p>Guest-impact incidents: <span class="template-field">{{GuestIncidentTarget}}</span></p>
+        </div>
+        
+        <div class="section-number">2. Reporting:</div>
+        <div class="indent">
+            <p>Monthly SLA report due by <span class="template-field">{{SLAReportDay}}</span> with KPI dashboard and root‑cause analyses.</p>
+        </div>
+        
+        <div class="section-number">3. Credits:</div>
+        <div class="indent">
+            <p>For each unmet KPI, apply service credit of <span class="template-field">{{CreditPercent}}</span>% of monthly fee for that KPI (cap <span class="template-field">{{CreditCapPercent}}</span>% per month). Credits are not penalties but adjustments against future invoices.</p>
+        </div>
+    </div>
+
+    <div class="schedule page-break">
+        <div class="schedule-title">SCHEDULE D – INSURANCE CERTIFICATES</div>
+        <div class="centered">
+            <p><em>Attach current certificates meeting Section 11.</em></p>
+        </div>
+    </div>
+
+    <div class="schedule page-break">
+        <div class="schedule-title">SCHEDULE E – DATA PROCESSING ADDENDUM (if applicable)</div>
+        <div class="centered">
+            <p><em>Incorporate DPA covering controller/processor roles, purpose/processing categories, sub‑processors, security measures, international transfers, and incident notification timelines.</em></p>
+        </div>
+    </div>
+</body>
+</html>

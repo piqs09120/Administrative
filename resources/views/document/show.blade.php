@@ -19,46 +19,47 @@
       @include('partials.navbar')
 
       <!-- Main content area -->
-      <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+      <main class="flex-1 overflow-y-auto bg-gray-50 p-3 sm:p-4 lg:p-6 xl:p-8">
         @if(session('success'))
-          <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>{{ session('success') }}</span>
+          <div class="alert alert-success mb-4 sm:mb-6">
+            <i data-lucide="check-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+            <span class="text-sm sm:text-base">{{ session('success') }}</span>
           </div>
         @endif
 
         @if(session('error'))
-          <div class="alert alert-error mb-6">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-            <span>{{ session('error') }}</span>
+          <div class="alert alert-error mb-4 sm:mb-6">
+            <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+            <span class="text-sm sm:text-base">{{ session('error') }}</span>
           </div>
         @endif
 
         <!-- Back button and title -->
-        <div class="flex items-center mb-6">
-          <a href="{{ route('document.index') }}" class="btn btn-ghost btn-sm mr-4" style="color: var(--color-regal-navy);">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2" style="color: var(--color-regal-navy);"></i>Back
+        <div class="flex items-center mb-4 sm:mb-6">
+          <a href="{{ route('document.index') }}" class="btn btn-ghost btn-sm mr-2 sm:mr-4" style="color: var(--color-regal-navy);">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-1 sm:mr-2" style="color: var(--color-regal-navy);"></i>
+            <span class="hidden sm:inline">Back</span>
           </a>
         </div>
 
         <!-- Success Banner -->
         @if(session('success') && str_contains(session('success'), 'uploaded'))
-          <div class="bg-green-500 text-white p-4 rounded-lg mb-6" style="background-color: var(--color-modern-teal); color: var(--color-white);">
+          <div class="bg-green-500 text-white p-3 sm:p-4 rounded-lg mb-4 sm:mb-6" style="background-color: var(--color-modern-teal); color: var(--color-white);">
             <div class="flex items-center">
-              <i data-lucide="check-circle" class="w-6 h-6 mr-3"></i>
-              <span class="text-lg font-medium">Document uploaded and analyzed successfully!</span>
+              <i data-lucide="check-circle" class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3"></i>
+              <span class="text-sm sm:text-lg font-medium">Document uploaded and analyzed successfully!</span>
             </div>
           </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <!-- Document Information -->
           <div class="lg:col-span-2">
             <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-              <div class="card-body">
-                <div class="flex justify-between items-start mb-4">
-                  <h2 class="card-title text-2xl" style="color: var(--color-charcoal-ink);">{{ $document->title }}</h2>
-                  <div class="badge badge-lg badge-{{ $document->status === 'archived' ? 'neutral' : ($document->status === 'pending_release' ? 'warning' : 'success') }}" style="background-color: var(--color-regal-navy); color: var(--color-white);">
+              <div class="card-body p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
+                  <h2 class="card-title text-lg sm:text-xl lg:text-2xl" style="color: var(--color-charcoal-ink);">{{ $document->title }}</h2>
+                  <div class="badge badge-sm sm:badge-lg badge-{{ $document->status === 'archived' ? 'neutral' : ($document->status === 'pending_release' ? 'warning' : 'success') }}" style="background-color: var(--color-regal-navy); color: var(--color-white);">
                     {{ ucfirst(str_replace('_', ' ', $document->status)) }}
                   </div>
                 </div>
@@ -70,36 +71,36 @@
                   </div>
                 @endif
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Uploaded By</h3>
-                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->uploader->name ?? 'Unknown' }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">Uploaded By</h3>
+                    <p class="text-gray-600 text-sm sm:text-base" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->uploader->name ?? 'Unknown' }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">File Path</h3>
-                    <p class="text-gray-600 text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->file_path }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">File Path</h3>
+                    <p class="text-gray-600 text-xs sm:text-sm break-all" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->file_path }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Category</h3>
-                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->category ?? 'Uncategorized' }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">Category</h3>
+                    <p class="text-gray-600 text-sm sm:text-base" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->category ?? 'Uncategorized' }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Upload Date</h3>
-                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->created_at->format('M d, Y H:i') }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">Upload Date</h3>
+                    <p class="text-gray-600 text-sm sm:text-base" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->created_at->format('M d, Y H:i') }}</p>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-700 mb-1" style="color: var(--color-charcoal-ink);">Last Updated</h3>
-                    <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->updated_at->format('M d, Y H:i') }}</p>
+                    <h3 class="font-semibold text-gray-700 mb-1 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">Last Updated</h3>
+                    <p class="text-gray-600 text-sm sm:text-base" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->updated_at->format('M d, Y H:i') }}</p>
                   </div>
                 </div>
 
                 <!-- AI Tags -->
                 @if($document->ai_analysis && isset($document->ai_analysis['tags']))
-                  <div class="mb-6">
-                    <h3 class="font-semibold text-gray-700 mb-3" style="color: var(--color-charcoal-ink);">AI Tags</h3>
-                    <div class="flex flex-wrap gap-2">
+                  <div class="mb-4 sm:mb-6">
+                    <h3 class="font-semibold text-gray-700 mb-2 sm:mb-3 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">AI Tags</h3>
+                    <div class="flex flex-wrap gap-1 sm:gap-2">
                       @foreach($document->ai_analysis['tags'] as $tag)
-                        <span class="badge badge-outline badge-lg" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">{{ $tag }}</span>
+                        <span class="badge badge-outline badge-sm sm:badge-lg text-xs sm:text-sm" style="border-color: var(--color-regal-navy); color: var(--color-regal-navy);">{{ $tag }}</span>
                       @endforeach
                     </div>
                   </div>
@@ -107,36 +108,76 @@
 
                 <!-- Compliance Status -->
                 @if($document->ai_analysis && isset($document->ai_analysis['compliance_status']))
-                  <div class="mb-6">
-                    <h3 class="font-semibold text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">Compliance Status</h3>
-                    <span class="badge badge-{{ $document->ai_analysis['compliance_status'] === 'compliant' ? 'success' : ($document->ai_analysis['compliance_status'] === 'non-compliant' ? 'error' : 'warning') }} badge-lg" style="background-color: var(--color-regal-navy); color: var(--color-white);">
+                  <div class="mb-4 sm:mb-6">
+                    <h3 class="font-semibold text-gray-700 mb-2 text-sm sm:text-base" style="color: var(--color-charcoal-ink);">Compliance Status</h3>
+                    <span class="badge badge-{{ $document->ai_analysis['compliance_status'] === 'compliant' ? 'success' : ($document->ai_analysis['compliance_status'] === 'non-compliant' ? 'error' : 'warning') }} badge-sm sm:badge-lg text-xs sm:text-sm" style="background-color: var(--color-regal-navy); color: var(--color-white);">
                       {{ ucfirst(str_replace('_', ' ', $document->ai_analysis['compliance_status'])) }}
                     </span>
                   </div>
                 @endif
 
-                <div class="card-actions">
+                <div class="card-actions flex flex-wrap gap-2">
                   @if($document->status === 'archived')
                     <form action="{{ route('document.requestRelease', $document->id) }}" method="POST" class="inline">
                       @csrf
-                      <button type="submit" class="btn btn-warning" onclick="return confirm('Request release for this document?')" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
-                        <i data-lucide="send" class="w-4 h-4 mr-2"></i>Request Release
+                      <button type="submit" class="btn btn-warning btn-sm sm:btn-md" onclick="return confirm('Request release for this document?')" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
+                        <i data-lucide="send" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                        <span class="text-xs sm:text-sm">Request Release</span>
                       </button>
                     </form>
                   @endif
                   
                   <form action="{{ route('document.analyze', $document->id) }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" class="btn btn-primary" style="background-color: var(--color-modern-teal); color: var(--color-white); border-color: var(--color-modern-teal);">
-                      <i data-lucide="brain" class="w-4 h-4 mr-2"></i>AI Analysis
+                    <button type="submit" class="btn btn-primary btn-sm sm:btn-md" style="background-color: var(--color-modern-teal); color: var(--color-white); border-color: var(--color-modern-teal);">
+                      <i data-lucide="brain" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                      <span class="text-xs sm:text-sm">AI Analysis</span>
                     </button>
                   </form>
                   
-                  <!-- Edit Button - Only for Administrator -->
-                  @if(auth()->user()->role === 'Administrator')
-                    <a href="{{ route('document.edit', $document->id) }}" class="btn btn-outline" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
-                      <i data-lucide="edit" class="w-4 h-4 mr-2"></i>Edit
+                  <!-- Administrator Actions -->
+                  @if($isAdmin)
+                    <!-- Edit Button -->
+                    <a href="{{ route('document.edit', $document->id) }}" class="btn btn-outline btn-sm sm:btn-md" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
+                      <i data-lucide="edit" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                      <span class="text-xs sm:text-sm">Edit</span>
                     </a>
+                    
+                    <!-- Download Button -->
+                    <a href="{{ route('document.download', $document->id) }}" class="btn btn-outline btn-sm sm:btn-md" style="color: var(--color-regal-navy); border-color: var(--color-regal-navy);">
+                      <i data-lucide="download" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                      <span class="text-xs sm:text-sm">Download</span>
+                    </a>
+                    
+                    <!-- Archive Button (if not already archived) -->
+                    @if($document->status !== 'archived' && $document->status !== 'disposed')
+                      <button onclick="archiveDocument({{ $document->id }})" class="btn btn-warning btn-sm sm:btn-md" style="background-color: var(--color-golden-ember); color: var(--color-white); border-color: var(--color-golden-ember);">
+                        <i data-lucide="archive" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                        <span class="text-xs sm:text-sm">Archive</span>
+                      </button>
+                    @endif
+                    
+                    <!-- Unarchive Button (if archived) -->
+                    @if($document->status === 'archived')
+                      <button onclick="unarchiveDocument({{ $document->id }})" class="btn btn-info btn-sm sm:btn-md" style="background-color: var(--color-modern-teal); color: var(--color-white); border-color: var(--color-modern-teal);">
+                        <i data-lucide="archive-restore" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                        <span class="text-xs sm:text-sm">Unarchive</span>
+                      </button>
+                    @endif
+                    
+                    <!-- Dispose Button (if expired) -->
+                    @if($document->status === 'expired')
+                      <button onclick="disposeDocument({{ $document->id }})" class="btn btn-error btn-sm sm:btn-md" style="background-color: var(--color-danger-red); color: var(--color-white); border-color: var(--color-danger-red);">
+                        <i data-lucide="trash-2" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                        <span class="text-xs sm:text-sm">Dispose</span>
+                      </button>
+                    @endif
+                    
+                    <!-- Delete Button (permanent deletion) -->
+                    <button onclick="deleteDocument({{ $document->id }})" class="btn btn-error btn-sm sm:btn-md" style="background-color: var(--color-danger-red); color: var(--color-white); border-color: var(--color-danger-red);">
+                      <i data-lucide="trash" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                      <span class="text-xs sm:text-sm">Delete</span>
+                    </button>
                   @endif
                 </div>
               </div>
@@ -146,9 +187,9 @@
           <!-- Request History -->
           <div class="lg:col-span-1">
             <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-              <div class="card-body">
-                <h3 class="card-title text-lg mb-4" style="color: var(--color-charcoal-ink);">
-                  <i data-lucide="rotate-ccw" class="w-5 h-5 mr-2" style="color: var(--color-regal-navy);"></i>Request History
+              <div class="card-body p-4 sm:p-6">
+                <h3 class="card-title text-base sm:text-lg mb-3 sm:mb-4" style="color: var(--color-charcoal-ink);">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4 sm:w-5 sm:h-5 mr-2" style="color: var(--color-regal-navy);"></i>Request History
                 </h3>
 
                 @if($document->documentRequests->count() > 0)
@@ -197,142 +238,43 @@
           </div>
         </div>
 
-        <!-- Enhanced Lifecycle Tracking Section (TO BE Diagram Implementation) -->
-        <div class="mt-8">
-          <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-            <div class="card-body">
-              <h3 class="card-title text-xl mb-6 flex items-center" style="color: var(--color-charcoal-ink);">
-                <i data-lucide="activity" class="w-6 h-6 mr-3" style="color: var(--color-regal-navy);"></i>
-                Document Lifecycle Tracking
-                <div class="badge badge-sm ml-3" style="background-color: var(--color-modern-teal); color: var(--color-white);">TO BE Enhanced</div>
-              </h3>
-
-              @if($document->lifecycle_log && count($document->lifecycle_log) > 0)
-                <div class="timeline">
-                  @foreach($document->lifecycle_log as $index => $log)
-                    @php
-                      $stepIcons = [
-                        'uploaded' => 'upload',
-                        'sanitization_started' => 'file-search',
-                        'sanitization_completed' => 'check-circle',
-                        'sanitization_failed' => 'x-circle',
-                        'classification_started' => 'brain',
-                        'classification_completed' => 'check-circle',
-                        'classification_failed' => 'x-circle',
-                        'routing_decision_started' => 'git-branch',
-                        'routed_to_module' => 'arrow-right',
-                        'routed_to_fr' => 'building',
-                        'routed_to_lm' => 'scale',
-                        'routed_to_vm' => 'users',
-                        'auto_scheduled_successfully' => 'calendar-check',
-                        'manual_reservation_created' => 'calendar-plus',
-                        'legal_case_created' => 'file-text',
-                        'archived_non_actionable' => 'archive',
-                        'archived_with_legal_flag' => 'flag',
-                        'status_update' => 'refresh-cw',
-                        'lifecycle_completed' => 'check-circle-2'
-                      ];
-                      $icon = $stepIcons[$log['step']] ?? 'circle';
-                      
-                      $stepColors = [
-                        'uploaded' => 'regal-navy',
-                        'sanitization_completed' => 'modern-teal',
-                        'classification_completed' => 'modern-teal',
-                        'routed_to_module' => 'golden-ember',
-                        'auto_scheduled_successfully' => 'modern-teal',
-                        'legal_case_created' => 'golden-ember',
-                        'lifecycle_completed' => 'modern-teal',
-                        'sanitization_failed' => 'danger-red',
-                        'classification_failed' => 'danger-red'
-                      ];
-                      $color = $stepColors[$log['step']] ?? 'charcoal-ink';
-                    @endphp
-                    
-                    <div class="flex items-start space-x-4 {{ !$loop->last ? 'mb-6' : '' }}">
-                      <!-- Timeline Dot -->
-                      <div class="flex flex-col items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center border-2" style="background-color: color-mix(in srgb, var(--color-{{ $color }}), white 85%); border-color: var(--color-{{ $color }});">
-                          <i data-lucide="{{ $icon }}" class="w-5 h-5" style="color: var(--color-{{ $color }});"></i>
-                        </div>
-                        @if(!$loop->last)
-                          <div class="w-0.5 h-12 mt-2" style="background-color: var(--color-snow-mist);"></div>
-                        @endif
-                      </div>
-                      
-                      <!-- Timeline Content -->
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between">
-                          <h4 class="font-semibold text-sm" style="color: var(--color-charcoal-ink);">
-                            {{ ucfirst(str_replace('_', ' ', $log['step'])) }}
-                          </h4>
-                          <span class="text-xs" style="color: var(--color-charcoal-ink); opacity: 0.6;">
-                            {{ \Carbon\Carbon::parse($log['timestamp'])->format('M d, Y H:i:s') }}
-                          </span>
-                        </div>
-                        
-                        @if(isset($log['details']) && !empty($log['details']))
-                          <div class="mt-2 p-3 rounded-lg text-xs" style="background-color: color-mix(in srgb, var(--color-snow-mist), white 50%); color: var(--color-charcoal-ink);">
-                            @foreach($log['details'] as $key => $value)
-                              @if(is_string($value) || is_numeric($value))
-                                <div class="mb-1">
-                                  <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span> 
-                                  {{ $value }}
-                                </div>
-                              @endif
-                            @endforeach
-                          </div>
-                        @endif
-                      </div>
-                    </div>
-                  @endforeach
-                </div>
-              @else
-                <div class="text-center py-8" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                  <i data-lucide="clock" class="w-12 h-12 mx-auto mb-4" style="color: var(--color-charcoal-ink); opacity: 0.5;"></i>
-                  <p class="text-sm">No lifecycle tracking data available for this document.</p>
-                  <p class="text-xs mt-2">Lifecycle tracking is available for documents uploaded after the TO BE enhancement.</p>
-                </div>
-              @endif
-            </div>
-          </div>
-        </div>
 
         <!-- Legal Case Information (if applicable) -->
         @if($document->legal_case_data)
-          <div class="mt-6">
+          <div class="mt-4 sm:mt-6">
             <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-              <div class="card-body">
-                <h3 class="card-title text-lg mb-4 flex items-center" style="color: var(--color-charcoal-ink);">
-                  <i data-lucide="scale" class="w-5 h-5 mr-3" style="color: var(--color-golden-ember);"></i>
+              <div class="card-body p-4 sm:p-6">
+                <h3 class="card-title text-base sm:text-lg mb-3 sm:mb-4 flex items-center" style="color: var(--color-charcoal-ink);">
+                  <i data-lucide="scale" class="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" style="color: var(--color-golden-ember);"></i>
                   Legal Case Information
-                  <div class="badge badge-sm ml-3" style="background-color: var(--color-golden-ember); color: var(--color-white);">Auto-Generated</div>
+                  <div class="badge badge-xs sm:badge-sm ml-2 sm:ml-3" style="background-color: var(--color-golden-ember); color: var(--color-white);">Auto-Generated</div>
                 </h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <h4 class="font-semibold text-sm mb-1" style="color: var(--color-charcoal-ink);">Case Title</h4>
-                    <p class="text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->legal_case_data['case_title'] ?? 'N/A' }}</p>
+                    <h4 class="font-semibold text-xs sm:text-sm mb-1" style="color: var(--color-charcoal-ink);">Case Title</h4>
+                    <p class="text-xs sm:text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ $document->legal_case_data['case_title'] ?? 'N/A' }}</p>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-sm mb-1" style="color: var(--color-charcoal-ink);">Priority</h4>
-                    <span class="badge badge-sm" style="background-color: var(--color-{{ $document->legal_case_data['priority'] === 'urgent' ? 'danger-red' : ($document->legal_case_data['priority'] === 'normal' ? 'golden-ember' : 'modern-teal') }}); color: var(--color-white);">
+                    <h4 class="font-semibold text-xs sm:text-sm mb-1" style="color: var(--color-charcoal-ink);">Priority</h4>
+                    <span class="badge badge-xs sm:badge-sm" style="background-color: var(--color-{{ $document->legal_case_data['priority'] === 'urgent' ? 'danger-red' : ($document->legal_case_data['priority'] === 'normal' ? 'golden-ember' : 'modern-teal') }}); color: var(--color-white);">
                       {{ ucfirst($document->legal_case_data['priority'] ?? 'normal') }}
                     </span>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-sm mb-1" style="color: var(--color-charcoal-ink);">Status</h4>
-                    <p class="text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ ucfirst(str_replace('_', ' ', $document->legal_case_data['status'] ?? 'pending')) }}</p>
+                    <h4 class="font-semibold text-xs sm:text-sm mb-1" style="color: var(--color-charcoal-ink);">Status</h4>
+                    <p class="text-xs sm:text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ ucfirst(str_replace('_', ' ', $document->legal_case_data['status'] ?? 'pending')) }}</p>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-sm mb-1" style="color: var(--color-charcoal-ink);">Compliance Status</h4>
-                    <p class="text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ ucfirst(str_replace('_', ' ', $document->legal_case_data['compliance_status'] ?? 'review_required')) }}</p>
+                    <h4 class="font-semibold text-xs sm:text-sm mb-1" style="color: var(--color-charcoal-ink);">Compliance Status</h4>
+                    <p class="text-xs sm:text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">{{ ucfirst(str_replace('_', ' ', $document->legal_case_data['compliance_status'] ?? 'review_required')) }}</p>
                   </div>
                 </div>
                 
                 @if(isset($document->legal_case_data['case_description']))
-                  <div class="mt-4">
-                    <h4 class="font-semibold text-sm mb-2" style="color: var(--color-charcoal-ink);">Case Description</h4>
-                    <div class="p-3 rounded-lg text-sm" style="background-color: color-mix(in srgb, var(--color-snow-mist), white 50%); color: var(--color-charcoal-ink);">
+                  <div class="mt-3 sm:mt-4">
+                    <h4 class="font-semibold text-xs sm:text-sm mb-2" style="color: var(--color-charcoal-ink);">Case Description</h4>
+                    <div class="p-2 sm:p-3 rounded-lg text-xs sm:text-sm" style="background-color: color-mix(in srgb, var(--color-snow-mist), white 50%); color: var(--color-charcoal-ink);">
                       {{ $document->legal_case_data['case_description'] }}
                     </div>
                   </div>
@@ -342,26 +284,27 @@
           </div>
         @endif
 
+
         <!-- Linked Reservation Information (if applicable) -->
         @if($document->linked_reservation_id)
-          <div class="mt-6">
+          <div class="mt-4 sm:mt-6">
             <div class="card bg-white shadow-xl" style="background-color: var(--color-white); border-color: var(--color-snow-mist);">
-              <div class="card-body">
-                <h3 class="card-title text-lg mb-4 flex items-center" style="color: var(--color-charcoal-ink);">
-                  <i data-lucide="calendar-check" class="w-5 h-5 mr-3" style="color: var(--color-modern-teal);"></i>
+              <div class="card-body p-4 sm:p-6">
+                <h3 class="card-title text-base sm:text-lg mb-3 sm:mb-4 flex items-center" style="color: var(--color-charcoal-ink);">
+                  <i data-lucide="calendar-check" class="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" style="color: var(--color-modern-teal);"></i>
                   Auto-Scheduled Facility Reservation
-                  <div class="badge badge-sm ml-3" style="background-color: var(--color-modern-teal); color: var(--color-white);">Auto-Created</div>
+                  <div class="badge badge-xs sm:badge-sm ml-2 sm:ml-3" style="background-color: var(--color-modern-teal); color: var(--color-white);">Auto-Created</div>
                 </h3>
                 
-                <div class="flex items-center justify-between">
-                  <p class="text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                  <p class="text-xs sm:text-sm" style="color: var(--color-charcoal-ink); opacity: 0.8;">
                     A facility reservation was automatically created based on the content of this document.
                   </p>
                   <a href="{{ route('facility_reservations.show', $document->linked_reservation_id) }}" 
-                     class="btn btn-sm btn-outline" 
+                     class="btn btn-xs sm:btn-sm btn-outline flex-shrink-0" 
                      style="color: var(--color-modern-teal); border-color: var(--color-modern-teal);">
-                    <i data-lucide="external-link" class="w-4 h-4 mr-2"></i>
-                    View Reservation
+                    <i data-lucide="external-link" class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2"></i>
+                    <span class="text-xs sm:text-sm">View Reservation</span>
                   </a>
                 </div>
               </div>
@@ -394,6 +337,109 @@
       // Update time every second
       setInterval(updateDateTime, 1000);
     });
+
+    // Document action functions
+    function archiveDocument(documentId) {
+      if (confirm('Are you sure you want to archive this document?')) {
+        fetch(`/document/${documentId}/archive`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while archiving the document.');
+        });
+      }
+    }
+
+    function unarchiveDocument(documentId) {
+      if (confirm('Are you sure you want to unarchive this document?')) {
+        fetch(`/document/${documentId}/unarchive`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while unarchiving the document.');
+        });
+      }
+    }
+
+    function disposeDocument(documentId) {
+      if (confirm('Are you sure you want to dispose of this document? This action cannot be undone!')) {
+        fetch(`/document/${documentId}/dispose`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while disposing of the document.');
+        });
+      }
+    }
+
+    function deleteDocument(documentId) {
+      if (confirm('Are you sure you want to permanently delete this document? This action cannot be undone!')) {
+        fetch(`/document/${documentId}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.location.href = '/document';
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while deleting the document.');
+        });
+      }
+    }
+
+
   </script>
 </body>
 </html> 

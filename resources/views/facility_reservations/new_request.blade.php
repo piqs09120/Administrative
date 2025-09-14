@@ -93,13 +93,24 @@
         </div>
 
 
-        <!-- Tabs (like Visitor Logs) -->
-        <div class="bg-gray-100 px-6 py-2 border-b border-gray-200 mb-0 rounded-t-xl" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
-          <div class="flex space-x-1">
-            <button id="nrTabFacility" class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="nrShowTab('reservation')" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);">Facility Request</button>
-            <button id="nrTabMaintenance" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="nrShowTab('maintenance')" style="color: var(--color-charcoal-ink);">Maintenance</button>
-            <button id="nrTabEquipment" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-200 rounded-t-lg" onclick="nrShowTab('equipment_request')" style="color: var(--color-charcoal-ink);">Equipment Request</button>
-          </div>
+        <!-- Clickable Breadcrumb Navigation -->
+        <div class="mb-6">
+          <nav class="flex items-center space-x-2 text-sm">
+            <button id="nav-facility" class="text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='reservation' ? 'text-blue-800 font-semibold' : '' }}" onclick="nrShowTab('reservation')">
+              <i data-lucide="building" class="w-4 h-4 mr-1"></i>
+              Facility Request
+            </button>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+            <button id="nav-maintenance" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='maintenance' ? 'text-blue-600 font-semibold' : '' }}" onclick="nrShowTab('maintenance')">
+              <i data-lucide="wrench" class="w-4 h-4 inline mr-1"></i>
+              Maintenance
+            </button>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+            <button id="nav-equipment" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='equipment_request' ? 'text-blue-600 font-semibold' : '' }}" onclick="nrShowTab('equipment_request')">
+              <i data-lucide="box" class="w-4 h-4 inline mr-1"></i>
+              Equipment Request
+            </button>
+          </nav>
         </div>
 
         <!-- Requests Table Section -->
@@ -239,27 +250,47 @@
   <script>
     // Tab filtering logic
     function nrShowTab(type) {
-      const dirBtn = document.getElementById('nrTabFacility');
-      const mainBtn = document.getElementById('nrTabMaintenance');
-      const eqBtn = document.getElementById('nrTabEquipment');
-      const setActive = (btn, active) => {
-        if (active) {
-          btn.classList.add('bg-blue-100','border-b-2','border-blue-500');
-          btn.classList.remove('text-gray-500');
-          btn.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
-          btn.style.color = 'var(--color-charcoal-ink)';
-          btn.style.borderColor = 'var(--color-regal-navy)';
-        } else {
-          btn.classList.remove('bg-blue-100','border-b-2','border-blue-500');
-          btn.classList.add('text-gray-500');
-          btn.style.backgroundColor = 'inherit';
-          btn.style.borderColor = 'transparent';
+      // Reset all navigation buttons
+      const nav1 = document.getElementById('nav-facility');
+      const nav2 = document.getElementById('nav-maintenance');
+      const nav3 = document.getElementById('nav-equipment');
+      
+      [nav1, nav2, nav3].forEach(btn => {
+        if (btn) {
+          btn.classList.remove('text-blue-600', 'text-blue-800', 'font-semibold');
+          btn.classList.add('text-gray-600');
         }
-      };
+      });
 
-      setActive(dirBtn, type === 'reservation');
-      setActive(mainBtn, type === 'maintenance');
-      setActive(eqBtn, type === 'equipment_request');
+      // Update active navigation button
+      if (type === 'reservation' && nav1) {
+        nav1.classList.remove('text-gray-600');
+        nav1.classList.add('text-blue-800', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tab');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      } else if (type === 'maintenance' && nav2) {
+        nav2.classList.remove('text-gray-600');
+        nav2.classList.add('text-blue-600', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'maintenance');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      } else if (type === 'equipment_request' && nav3) {
+        nav3.classList.remove('text-gray-600');
+        nav3.classList.add('text-blue-600', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'equipment_request');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      }
 
       // Filter rows
       const rows = document.querySelectorAll('#nrRequestsTable tbody tr');

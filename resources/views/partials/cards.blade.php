@@ -3,7 +3,7 @@
   <div>
     <h2 class="text-xl font-semibold mb-4 text-[#191970]">Reservations</h2>
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      <a href="#" class="card bg-base-100 hover:bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.1s">
+      <a href="#" class="card bg-base-100 shadow-lg transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.1s">
         <div class="card-body">
           <div class="flex items-center">
             <div class="rounded-lg p-2 bg-green-100 text-green-600 shadow-inner group-hover:scale-110 transition-transform">
@@ -20,7 +20,7 @@
         </div>
       </a>
 
-      <a href="#" class="card bg-base-100 hover:bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.1s">
+      <a href="#" class="card bg-base-100 shadow-lg transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.1s">
         <div class="card-body">
           <div class="flex items-center">
             <div class="rounded-lg p-2 bg-blue-100 text-blue-600 shadow-inner group-hover:scale-110 transition-transform">
@@ -37,7 +37,7 @@
         </div>
       </a>
 
-      <a href="#" class="card bg-base-100 hover:bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.2s">
+      <a href="#" class="card bg-base-100 shadow-lg transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.2s">
         <div class="card-body">
           <div class="flex items-center">
             <div class="rounded-lg p-2 bg-purple-100 text-purple-600 shadow-inner group-hover:scale-110 transition-transform">
@@ -54,7 +54,7 @@
         </div>
       </a>
 
-      <a href="#" class="card bg-base-100 hover:bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.3s">
+      <a href="#" class="card bg-base-100 shadow-lg transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.3s">
         <div class="card-body">
           <div class="flex items-center">
             <div class="rounded-lg p-2 bg-yellow-100 text-yellow-600 shadow-inner group-hover:scale-110 transition-transform">
@@ -71,7 +71,7 @@
         </div>
       </a>
 
-      <a href="#" class="card bg-base-100 hover:bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.1s">
+      <a href="#" class="card bg-base-100 shadow-lg transition-all duration-300 animate-fadeIn group" style="animation-delay: 0.1s">
         <div class="card-body">
           <div class="flex items-center">
             <div class="rounded-lg p-2 bg-indigo-100 text-indigo-600 shadow-inner group-hover:scale-110 transition-transform">

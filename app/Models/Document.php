@@ -13,7 +13,10 @@ class Document extends Model
         'title', 'description', 'department', 'author', 'file_path', 'status', 'uploaded_by', 
         'ai_analysis', 'category', 'source', 'extracted_text', 'metadata',
         'requires_legal_review', 'requires_visitor_coordination', 'legal_risk_score',
-        'workflow_stage', 'workflow_log', 'lifecycle_log', 'legal_case_data', 'linked_reservation_id'
+        'workflow_stage', 'workflow_log', 'lifecycle_log', 'legal_case_data', 'linked_reservation_id',
+        'linked_case_id',
+        // DMS-only metadata
+        'document_uid', 'confidentiality', 'retention_until', 'retention_policy'
     ];
 
     protected $casts = [
@@ -21,7 +24,8 @@ class Document extends Model
         'workflow_log' => 'array',
         'lifecycle_log' => 'array',
         'legal_case_data' => 'array',
-        'metadata' => 'array'
+        'metadata' => 'array',
+        'retention_until' => 'datetime'
     ];
 
     public function uploader() {
@@ -80,4 +84,5 @@ class Document extends Model
     {
         return $this->workflow_stage ?? 'uploaded';
     }
+
 }

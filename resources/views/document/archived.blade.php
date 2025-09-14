@@ -9,6 +9,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   @vite(['resources/css/soliera.css'])
+  @php
+    use Illuminate\Support\Facades\Storage;
+  @endphp
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -18,50 +21,161 @@
       <main class="flex-1 overflow-y-auto p-8">
         <h1 class="text-3xl font-bold mb-6" style="color: var(--color-charcoal-ink);">Archived Documents</h1>
 
-        <div class="bg-white rounded-xl shadow-md">
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-semibold" style="color: var(--color-charcoal-ink);">Archived Documents List</h2>
-              <div class="w-full max-w-sm">
-                <input id="searchInput" type="text" placeholder="Search documents..." class="input input-bordered w-full" />
+        <!-- Complete Archived Documents Table -->
+        <div class="card bg-white shadow-xl">
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="card-title text-xl">
+                <i data-lucide="archive" class="w-6 h-6 text-gray-500"></i>
+                Document Management System - Archived Documents
+              </h3>
+              <div class="flex items-center gap-3">
+                <div class="text-sm text-gray-600">
+                  Total: <span class="font-semibold">{{ $documents->count() }}</span> archived documents
+                </div>
               </div>
             </div>
+            
             <div class="overflow-x-auto">
-              <table class="table w-full">
+              <table class="table table-zebra w-full">
                 <thead>
-                  <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Document Title</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Department</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Archived Date</th>
-                    <th class="text-center py-4 px-6 font-semibold text-gray-700">Status</th>
-                    <th class="text-center py-4 px-6 font-semibold text-gray-700">Actions</th>
+                  <tr class="bg-gray-50">
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Document Name/Title</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Document Type</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Department/Owner</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Date Created</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Confidentiality Level</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Retention Period</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Status</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Expiration Date</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @forelse($documents as $document)
-                    <tr data-row>
-                      <td class="font-medium">{{ $document->title }}</td>
-                      <td>{{ $document->department ?? '—' }}</td>
-                      <td>{{ optional($document->updated_at)->format('M d, Y') }}</td>
-                      <td class="text-center">
-                        <div class="flex justify-center">
-                          <div class="badge badge-neutral">{{ ucfirst($document->status ?? 'archived') }}</div>
+                  @forelse($documents as $index => $document)
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                      <!-- Document Name/Title Column -->
+                      <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                          <div class="avatar placeholder">
+                            <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center">
+                              <span class="text-sm font-semibold">
+                                {{ substr($document->title ?? 'UN', 0, 2) }}
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 class="font-semibold text-gray-900">{{ $document->title ?: 'Untitled Document' }}</h4>
+                            <p class="text-sm text-gray-500">#{{ $document->id }}</p>
+                          </div>
                         </div>
                       </td>
-                      <td class="text-center">
-                        <div class="flex justify-center">
-                          <button class="btn btn-xs btn-outline btn-success hover:btn-success" onclick="unarchiveDocument({{ $document->id }})" title="Unarchive Document">
-                            <i data-lucide="archive-restore" class="w-4 h-4"></i>
+                      
+                      <!-- Document Type Column -->
+                      <td class="py-4 px-4 text-center">
+                        <span class="text-sm font-medium text-gray-700">{{ ucfirst($document->category ?: 'Unknown') }}</span>
+                      </td>
+                      
+                      <!-- Department/Owner Column -->
+                      <td class="py-4 px-4 text-center">
+                        <span class="text-sm font-medium text-gray-700">{{ $document->department ?: 'Unassigned' }}</span>
+                      </td>
+                      
+                      <!-- Date Created Column -->
+                      <td class="py-4 px-4 text-center">
+                        <span class="text-sm text-gray-600">{{ $document->created_at->format('M d, Y') }}</span>
+                      </td>
+                      
+                      <!-- Confidentiality Level Column -->
+                      <td class="py-4 px-4 text-center">
+                        @php
+                          $confidentialityLevel = $document->confidentiality_level ?? 'internal';
+                          $confidentialityClass = match($confidentialityLevel) {
+                            'restricted' => 'bg-red-100 text-red-800',
+                            'confidential' => 'bg-orange-100 text-orange-800',
+                            'internal' => 'bg-yellow-100 text-yellow-800',
+                            'public' => 'bg-green-100 text-green-800',
+                            default => 'bg-gray-100 text-gray-800'
+                          };
+                        @endphp
+                        <span class="text-xs font-medium {{ $confidentialityClass }} px-2.5 py-1 rounded-full">
+                          {{ ucfirst($confidentialityLevel) }}
+                        </span>
+                      </td>
+                      
+                      <!-- Retention Period Column -->
+                      <td class="py-4 px-4 text-center">
+                        @php
+                          $retentionPeriod = $document->retention_period ?? match($document->category) {
+                            'contract' => '7 Years',
+                            'legal' => '10 Years',
+                            'policy' => '5 Years',
+                            'report' => '3 Years',
+                            default => '2 Years'
+                          };
+                        @endphp
+                        <span class="text-sm text-gray-600">{{ $retentionPeriod }}</span>
+                      </td>
+                      
+                      <!-- Status Column -->
+                      <td class="py-4 px-4 text-center">
+                        @php
+                          $status = $document->status ?? 'active';
+                          $statusClass = match($status) {
+                            'expired' => 'bg-red-100 text-red-800',
+                            'expiring_soon' => 'bg-orange-100 text-orange-800',
+                            'active' => 'bg-green-100 text-green-800',
+                            'archived' => 'bg-blue-100 text-blue-800',
+                            'disposed' => 'bg-gray-100 text-gray-800',
+                            default => 'bg-gray-100 text-gray-800'
+                          };
+                        @endphp
+                        <span class="text-xs font-medium {{ $statusClass }} px-2.5 py-1 rounded-full">
+                          {{ ucfirst($status) }}
+                        </span>
+                      </td>
+                      
+                      <!-- Expiration Date Column -->
+                      <td class="py-4 px-4 text-center">
+                        @if($document->retention_until)
+                          <span class="text-sm text-gray-600">{{ $document->retention_until->format('M d, Y') }}</span>
+                        @else
+                          <span class="text-sm text-gray-400">Not set</span>
+                        @endif
+                      </td>
+                      
+                      <!-- Actions Column -->
+                      <td class="py-4 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                          <button onclick="viewDocument({{ $document->id }})" 
+                                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200" 
+                                  title="View Document">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
                           </button>
+                          <button onclick="downloadDocument({{ $document->id }})" 
+                                  class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200" 
+                                  title="Download Document">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                          </button>
+                          @if($document->status === 'expired')
+                            <button onclick="disposeDocument({{ $document->id }})" 
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200" 
+                                    title="Dispose Document">
+                              <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                          @endif
                         </div>
                       </td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="5" class="text-center py-8">
-                        <div class="flex flex-col items-center gap-2">
-                          <i data-lucide="archive" class="w-8 h-8 text-gray-400"></i>
-                          <span>No archived documents found</span>
+                      <td colspan="9" class="py-12 text-center">
+                        <div class="flex flex-col items-center">
+                          <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="archive" class="w-10 h-10 text-gray-400"></i>
+                          </div>
+                          <h3 class="text-lg font-semibold text-gray-600 mb-2">No Archived Documents Found</h3>
+                          <p class="text-gray-500 text-sm mb-4">No documents have been archived yet.</p>
                         </div>
                       </td>
                     </tr>
@@ -330,6 +444,35 @@
 
     function downloadDocument(documentId) {
       window.location.href = `/document/${documentId}/download`;
+    }
+
+    function disposeDocument(documentId) {
+      if (confirm('Are you sure you want to permanently dispose of this document? This action cannot be undone.')) {
+        fetch(`/document/${documentId}/dispose`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Document disposed successfully');
+            window.location.reload();
+          } else {
+            alert('Error disposing document: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error disposing document');
+        });
+      }
+    }
+
+    function refreshTable() {
+      location.reload();
     }
 
     // Filter functions

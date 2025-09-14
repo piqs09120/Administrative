@@ -445,7 +445,7 @@
         <!-- Stats Cards (DaisyUI) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <!-- Total Facilities -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -463,7 +463,7 @@
           </div>
 
           <!-- Available Facilities -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -481,7 +481,7 @@
           </div>
 
           <!-- Occupied Facilities -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-error">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -499,7 +499,7 @@
           </div>
 
           <!-- Total Reservations -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -572,19 +572,24 @@
           </div>
         </div>
 
-        <!-- Tabs: Facility Directory | Monitoring (styled like Visitor Logs) -->
-        <div class="bg-gray-100 px-6 py-2 border-b border-gray-200 mb-0" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
-          <div class="flex space-x-1">
-            <button id="facilityTabDirectoryBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="facilityShowTab('directory')" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);">
+        <!-- Clickable Breadcrumb Navigation -->
+        <div class="mb-6">
+          <nav class="flex items-center space-x-2 text-sm">
+            <button id="nav-directory" class="text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='directory' ? 'text-blue-800 font-semibold' : '' }}" onclick="facilityShowTab('directory')">
+              <i data-lucide="building" class="w-4 h-4 mr-1"></i>
               Facility Directory
             </button>
-            <button id="facilityTabMonitoringBtn" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="facilityShowTab('monitoring')" style="color: var(--color-charcoal-ink);">
+            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+            <button id="nav-monitoring" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='monitoring' ? 'text-blue-600 font-semibold' : '' }}" onclick="facilityShowTab('monitoring')">
+              <i data-lucide="activity" class="w-4 h-4 inline mr-1"></i>
               Monitoring
             </button>
-            <button id="facilityTabEquipmentBtn" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="facilityShowTab('equipment')" style="color: var(--color-charcoal-ink);">
+            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+            <button id="nav-equipment" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='equipment' ? 'text-blue-600 font-semibold' : '' }}" onclick="facilityShowTab('equipment')">
+              <i data-lucide="box" class="w-4 h-4 inline mr-1"></i>
               Equipment Details
             </button>
-          </div>
+          </nav>
         </div>
 
         <!-- Facilities Grid -->
@@ -611,6 +616,7 @@
           </div>
 
           @if($facilities->count() > 0)
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               @foreach($facilities as $facility)
                 <div id="facility-card-{{ $facility->id }}" class="facility-card hover:shadow-lg transition-all duration-300 hover:scale-105">
@@ -790,7 +796,7 @@
         <div id="facilitiesMonitoringView" class="bg-white rounded-xl shadow-lg p-6 hidden">
           <!-- Stats Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="card bg-base-100 shadow hover:shadow-lg border-l-4 border-l-primary">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm text-gray-500">Total Requests</span>
@@ -800,7 +806,7 @@
                 <div class="badge badge-success badge-outline mt-2 text-xs" id="mon-total-diff">&nbsp;</div>
               </div>
             </div>
-            <div class="card bg-base-100 shadow hover:shadow-lg border-l-4 border-l-warning">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm text-gray-500">In Progress</span>
@@ -810,7 +816,7 @@
                 <div class="badge badge-error badge-outline mt-2 text-xs" id="mon-inprogress-diff">&nbsp;</div>
               </div>
             </div>
-            <div class="card bg-base-100 shadow hover:shadow-lg border-l-4 border-l-success">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm text-gray-500">Completed</span>
@@ -820,7 +826,7 @@
                 <div class="badge badge-success badge-outline mt-2 text-xs" id="mon-completed-diff">&nbsp;</div>
               </div>
             </div>
-            <div class="card bg-base-100 shadow hover:shadow-lg border-l-4 border-l-error">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm text-gray-500">Urgent</span>
@@ -1259,32 +1265,44 @@
     // Facilities tabs: directory | monitoring (scoped, minimal; non-breaking)
     function facilityShowTab(tabName) {
       console.log('Switching to tab:', tabName);
-      const dirBtn = document.getElementById('facilityTabDirectoryBtn');
-      const monBtn = document.getElementById('facilityTabMonitoringBtn');
-      const eqBtn = document.getElementById('facilityTabEquipmentBtn');
       const dirView = document.getElementById('facilitiesGridView');
       const monView = document.getElementById('facilitiesMonitoringView');
       const eqView = document.getElementById('facilitiesEquipmentView');
 
-      if (!dirBtn || !monBtn || !dirView || !monView) {
+      if (!dirView || !monView) {
         console.error('Missing required elements for tab switching');
         return;
       }
+
+      // Reset all navigation buttons
+      const nav1 = document.getElementById('nav-directory');
+      const nav2 = document.getElementById('nav-monitoring');
+      const nav3 = document.getElementById('nav-equipment');
+      
+      [nav1, nav2, nav3].forEach(btn => {
+        if (btn) {
+          btn.classList.remove('text-blue-600', 'text-blue-800', 'font-semibold');
+          btn.classList.add('text-gray-600');
+        }
+      });
 
       if (tabName === 'monitoring') {
         dirView.classList.add('hidden');
         monView.classList.remove('hidden');
         if (eqView) eqView.classList.add('hidden');
-        // Update tab styles (match Visitor Logs look)
-        dirBtn.classList.remove('bg-blue-100','text-gray-700','border-blue-500','border-b-2');
-        dirBtn.style.backgroundColor = 'inherit';
-        dirBtn.style.color = 'var(--color-charcoal-ink)';
-        dirBtn.style.borderColor = 'transparent';
-        monBtn.classList.remove('text-gray-500');
-        monBtn.classList.add('bg-blue-100','text-gray-700','border-b-2','border-blue-500');
-        monBtn.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
-        monBtn.style.color = 'var(--color-charcoal-ink)';
-        monBtn.style.borderColor = 'var(--color-regal-navy)';
+        
+        // Update active navigation button
+        if (nav2) {
+          nav2.classList.remove('text-gray-600');
+          nav2.classList.add('text-blue-600', 'font-semibold');
+          // Reflect in URL
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'monitoring');
+            window.history.replaceState({}, '', url);
+          } catch(e) {}
+        }
+        
         // Load monitoring data
         console.log('Loading monitoring data for tab switch');
         loadFacilitiesMonitoring();
@@ -1292,10 +1310,19 @@
         if (dirView) dirView.classList.add('hidden');
         if (monView) monView.classList.add('hidden');
         if (eqView) eqView.classList.remove('hidden');
-        // update tab styles
-        if (monBtn){monBtn.classList.remove('bg-blue-100','text-gray-700','border-blue-500','border-b-2'); monBtn.style.backgroundColor='inherit'; monBtn.style.color='var(--color-charcoal-ink)'; monBtn.style.borderColor='transparent';}
-        if (dirBtn){dirBtn.classList.remove('bg-blue-100','text-gray-700','border-blue-500','border-b-2'); dirBtn.style.backgroundColor='inherit'; dirBtn.style.color='var(--color-charcoal-ink)'; dirBtn.style.borderColor='transparent';}
-        if (eqBtn){eqBtn.classList.add('bg-blue-100','text-gray-700','border-b-2','border-blue-500'); eqBtn.style.backgroundColor='color-mix(in srgb, var(--color-regal-navy), white 80%)'; eqBtn.style.color='var(--color-charcoal-ink)'; eqBtn.style.borderColor='var(--color-regal-navy)';}
+        
+        // Update active navigation button
+        if (nav3) {
+          nav3.classList.remove('text-gray-600');
+          nav3.classList.add('text-blue-600', 'font-semibold');
+          // Reflect in URL
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'equipment');
+            window.history.replaceState({}, '', url);
+          } catch(e) {}
+        }
+        
         // Lazy load equipment
         loadEquipmentDetails();
       } else {
@@ -1303,17 +1330,20 @@
         monView.classList.add('hidden');
         dirView.classList.remove('hidden');
         if (eqView) eqView.classList.add('hidden');
-        monBtn.classList.remove('bg-blue-100','text-gray-700','border-blue-500','border-b-2');
-        monBtn.style.backgroundColor = 'inherit';
-        monBtn.style.color = 'var(--color-charcoal-ink)';
-        monBtn.style.borderColor = 'transparent';
-        dirBtn.classList.remove('text-gray-500');
-        dirBtn.classList.add('bg-blue-100','text-gray-700','border-b-2','border-blue-500');
-        dirBtn.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
-        dirBtn.style.color = 'var(--color-charcoal-ink)';
-        dirBtn.style.borderColor = 'var(--color-regal-navy)';
-        if (eqBtn){eqBtn.classList.remove('bg-blue-100','text-gray-700','border-blue-500','border-b-2'); eqBtn.style.backgroundColor='inherit'; eqBtn.style.color='var(--color-charcoal-ink)'; eqBtn.style.borderColor='transparent';}
+        
+        // Update active navigation button
+        if (nav1) {
+          nav1.classList.remove('text-gray-600');
+          nav1.classList.add('text-blue-800', 'font-semibold');
+          // Reflect in URL
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('tab');
+            window.history.replaceState({}, '', url);
+          } catch(e) {}
+        }
       }
+      
       if (window.lucide && window.lucide.createIcons) {
         window.lucide.createIcons();
       }

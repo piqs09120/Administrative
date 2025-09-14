@@ -36,7 +36,7 @@
         <!-- Stats Cards (DaisyUI, same as Visitor Logs) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           <!-- Total Visitors -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -54,7 +54,7 @@
           </div>
           
           <!-- Active Visitors -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -72,7 +72,7 @@
           </div>
           
           <!-- Today's Visitors -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -90,7 +90,7 @@
           </div>
           
           <!-- Completed Visits -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
             <div class="card-body p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
@@ -122,19 +122,24 @@
         
         <!-- MODERN VISITOR INTERFACE -->
         <div class="mt-8">
-          <!-- Navigation Tabs -->
-          <div class="bg-gray-100 px-6 py-2 border-b border-gray-200" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
-            <div class="flex space-x-1">
-              <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 rounded-t-lg border-b-2 border-blue-500" onclick="showTab('current')" style="background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);">
+          <!-- Clickable Breadcrumb Navigation -->
+          <div class="mb-6">
+            <nav class="flex items-center space-x-2 text-sm">
+              <button id="nav-current" class="text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='current' ? 'text-blue-800 font-semibold' : '' }}" onclick="showTab('current')">
+                <i data-lucide="users" class="w-4 h-4 mr-1"></i>
                 Current Visitors
               </button>
-              <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showTab('scheduled')" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
+              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+              <button id="nav-scheduled" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='scheduled' ? 'text-blue-600 font-semibold' : '' }}" onclick="showTab('scheduled')">
+                <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
                 Scheduled Visits
               </button>
-              <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-t-lg" onclick="showTab('monitoring')" style="color: var(--color-charcoal-ink); hover:background-color: var(--color-snow-mist);">
-                <i data-lucide="activity" class="w-4 h-4 mr-1"></i>Monitoring
+              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+              <button id="nav-monitoring" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='monitoring' ? 'text-blue-600 font-semibold' : '' }}" onclick="showTab('monitoring')">
+                <i data-lucide="activity" class="w-4 h-4 inline mr-1"></i>
+                Monitoring
               </button>
-            </div>
+            </nav>
           </div>
 
           <!-- Main Content -->
@@ -155,6 +160,7 @@
                     <input type="text" placeholder="Search visitors..." class="input input-bordered w-full pl-10" id="visitorSearch" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                   </div>
                 </div>
+                
                 
                 <!-- Visitor Cards -->
                 <div class="space-y-4">
@@ -240,6 +246,17 @@
                 <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Upcoming visitor appointments</p>
               </div>
               
+              <!-- Table Header for Scheduled Visit Cards -->
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
+                <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">
+                  <div class="col-span-4">Visitor Information</div>
+                  <div class="col-span-2 text-center">Scheduled Time</div>
+                  <div class="col-span-2 text-center">Purpose</div>
+                  <div class="col-span-2 text-center">Status</div>
+                  <div class="col-span-2 text-center">Actions</div>
+                </div>
+              </div>
+              
               <div class="space-y-4">
                 <!-- Sample scheduled visits -->
                 @forelse($visitors->whereNull('time_out')->where('time_in', '>=', now()->startOfDay())->where('time_in', '<=', now()->endOfDay()) as $visitor) {{-- Only show scheduled visitors for today --}}
@@ -293,6 +310,7 @@
                   <input type="text" placeholder="Search visitors..." class="input input-bordered w-full pl-10" id="monitoringSearch" style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);"/>
                 </div>
               </div>
+
 
               <!-- Visitor Cards Grid -->
               <div id="monitoring-visitors-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1083,21 +1101,47 @@
       // Show selected tab
       document.getElementById(tabName + '-tab').classList.remove('hidden');
       
-      // Update tab buttons
-      const tabs = document.querySelectorAll('[onclick^="showTab"]');
-      tabs.forEach(tab => {
-        tab.classList.remove('bg-blue-100', 'text-gray-700', 'border-blue-500');
-        tab.classList.add('text-gray-500');
-        tab.style.backgroundColor = 'inherit';
-        tab.style.color = 'var(--color-charcoal-ink)';
-        tab.style.borderColor = 'transparent';
+      // Reset all navigation buttons
+      const nav1 = document.getElementById('nav-current');
+      const nav2 = document.getElementById('nav-scheduled');
+      const nav3 = document.getElementById('nav-monitoring');
+      
+      [nav1, nav2, nav3].forEach(btn => {
+        if (btn) {
+          btn.classList.remove('text-blue-600', 'text-blue-800', 'font-semibold');
+          btn.classList.add('text-gray-600');
+        }
       });
       
-      event.target.classList.remove('text-gray-500');
-      event.target.classList.add('bg-blue-100', 'text-gray-700', 'border-blue-500');
-      event.target.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
-      event.target.style.color = 'var(--color-charcoal-ink)';
-      event.target.style.borderColor = 'var(--color-regal-navy)';
+      // Update active navigation button
+      if (tabName === 'current' && nav1) {
+        nav1.classList.remove('text-gray-600');
+        nav1.classList.add('text-blue-800', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tab');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      } else if (tabName === 'scheduled' && nav2) {
+        nav2.classList.remove('text-gray-600');
+        nav2.classList.add('text-blue-600', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'scheduled');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      } else if (tabName === 'monitoring' && nav3) {
+        nav3.classList.remove('text-gray-600');
+        nav3.classList.add('text-blue-600', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'monitoring');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      }
 
       // Load data for the selected tab
       loadTabData(tabName);

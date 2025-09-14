@@ -780,4 +780,111 @@ LEGAL_RISK_SCORE: [Low/Medium/High]"
             ];
         }
     }
+
+    /**
+     * Generate content using Gemini AI
+     */
+    public function generateContent($prompt)
+    {
+        try {
+            // If API key is missing, return fallback content
+            if (empty($this->apiKey)) {
+                \Log::warning('GEMINI_API_KEY is not set, using fallback content generation');
+                return $this->generateFallbackContent($prompt);
+            }
+            
+            $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' . $this->apiKey;
+            
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                [
+                                    'text' => $prompt
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+            
+            $result = json_decode($response->getBody(), true);
+            
+            if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+                return [
+                    'content' => $result['candidates'][0]['content']['parts'][0]['text']
+                ];
+            }
+            
+            return [
+                'error' => true,
+                'message' => 'Invalid response format from Gemini API'
+            ];
+            
+        } catch (RequestException $e) {
+            \Log::error('Gemini content generation failed', [
+                'error' => $e->getMessage(),
+                'falling_back_to_local' => true
+            ]);
+            return $this->generateFallbackContent($prompt);
+        } catch (\Throwable $e) {
+            \Log::error('Unexpected error in Gemini content generation', [
+                'error' => $e->getMessage(),
+                'falling_back_to_local' => true
+            ]);
+            return $this->generateFallbackContent($prompt);
+        }
+    }
+
+    /**
+     * Generate fallback content when AI is unavailable
+     */
+    private function generateFallbackContent($prompt)
+    {
+        // Extract document type from prompt
+        $documentType = 'general';
+        if (strpos($prompt, 'employment contract') !== false) {
+            $documentType = 'employment_contract';
+        } elseif (strpos($prompt, 'service contract') !== false) {
+            $documentType = 'service_contract';
+        } elseif (strpos($prompt, 'guest agreement') !== false) {
+            $documentType = 'guest_agreement';
+        } elseif (strpos($prompt, 'vendor agreement') !== false) {
+            $documentType = 'vendor_agreement';
+        } elseif (strpos($prompt, 'hr policy') !== false) {
+            $documentType = 'hr_policy';
+        }
+
+        // Generate appropriate fallback content based on document type
+        switch ($documentType) {
+            case 'employment_contract':
+                return [
+                    'content' => "This section outlines the terms and conditions of employment. The employee agrees to perform duties as assigned and follow company policies. Compensation will be provided as agreed upon in the employment terms. Both parties acknowledge their rights and responsibilities under this agreement."
+                ];
+            case 'service_contract':
+                return [
+                    'content' => "This section defines the scope of services to be provided. The service provider agrees to deliver services according to the specifications outlined. Payment terms and performance standards are established to ensure quality service delivery. Both parties commit to fulfilling their obligations under this agreement."
+                ];
+            case 'guest_agreement':
+                return [
+                    'content' => "This section establishes the terms for guest accommodation and facility access. Guests agree to follow facility rules and regulations during their stay. The host provides appropriate accommodations and maintains facility standards. Both parties acknowledge their respective responsibilities for a safe and comfortable experience."
+                ];
+            case 'vendor_agreement':
+                return [
+                    'content' => "This section outlines the supply terms and conditions for vendor services. The vendor agrees to provide goods or services according to specified requirements. Quality standards and delivery schedules are established to ensure consistent performance. Both parties commit to maintaining professional business relationships."
+                ];
+            case 'hr_policy':
+                return [
+                    'content' => "This section establishes organizational policies and procedures for employee conduct and operations. All employees are expected to comply with these guidelines to maintain workplace standards. The policy outlines expectations, procedures, and consequences for non-compliance. Regular review and updates ensure the policy remains current and effective."
+                ];
+            default:
+                return [
+                    'content' => "This section contains important information relevant to the document. Please review the content carefully and ensure all details are accurate and complete. Additional information may be required based on specific circumstances and requirements."
+                ];
+        }
+    }
 }

@@ -62,7 +62,7 @@
             </div>
           @endif
 
-          <form action="{{ route('legal.store') }}" method="POST" enctype="multipart/form-data" id="legalCaseForm">
+          <form action="{{ route('legal.store') }}" method="POST" id="legalCaseForm">
             @csrf
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -148,63 +148,45 @@
                     Assign the case to a team member
                   </p>
                 </div>
-              </div>
 
-              <!-- Right Column: Document Upload & AI Analysis -->
-              <div class="space-y-6">
-                <!-- Document File Section -->
+                <!-- Employee Involved -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                    Document File
+                    Employee Involved
                   </label>
-                  <p class="text-sm text-gray-500 mb-3" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                    PDF, Word, Excel, PPT, Text files (Max: 10MB)
+                  <input type="text" name="employee_involved" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                         value="{{ old('employee_involved') }}" placeholder="Enter employee name or ID"
+                         style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Name or employee ID of the person involved
                   </p>
-                  
-                  <!-- File Upload Zone -->
-                  <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center transition-colors cursor-pointer bg-blue-50 hover:bg-blue-100"
-                       onclick="document.getElementById('legal_document').click()" 
-                       ondrop="handleDrop(event)" 
-                       ondragover="handleDragOver(event)" 
-                       ondragleave="handleDragLeave(event)"
-                       id="uploadZone">
-                    
-                    <input type="file" name="legal_document" id="legal_document" class="hidden" 
-                           accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" required>
-                    
-                    <div class="space-y-4">
-                      <div class="flex justify-center">
-                        <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100">
-                          <i data-lucide="cloud-arrow-up" class="w-8 h-8 text-blue-600"></i>
-                        </div>
-                      </div>
-                      <div>
-                        <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Click to select or drag file</p>
-                        <p class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">Max file size: 10MB</p>
-                      </div>
-                      <p class="text-sm text-blue-600 font-medium">AI will automatically analyze and classify your document</p>
-                    </div>
-                  </div>
-                  
-                  <!-- File Preview -->
-                  <div id="filePreview" class="mt-4 hidden">
-                    <div class="rounded-lg p-4 border border-green-300 bg-green-50">
-                      <div class="flex items-center gap-3">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
-                        <div class="flex-1">
-                          <p class="font-medium text-green-800" id="fileName"></p>
-                          <p class="text-sm text-green-600" id="fileSize"></p>
-                        </div>
-                        <button type="button" onclick="removeFile()" class="text-green-600 hover:text-green-800">
-                          <i data-lucide="x" class="w-5 h-5"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
-                <!-- AI Analysis Complete Section (matches document modal) -->
-                <div id="aiAnalysis" class="hidden"></div>
+                <!-- Incident Date -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Incident Date
+                  </label>
+                  <input type="datetime-local" name="incident_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                         value="{{ old('incident_date') }}"
+                         style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    When did the incident occur?
+                  </p>
+                </div>
+
+                <!-- Incident Location -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
+                    Incident Location
+                  </label>
+                  <input type="text" name="incident_location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                         value="{{ old('incident_location') }}" placeholder="Enter location where incident occurred"
+                         style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
+                  <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
+                    Where did the incident occur?
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -223,162 +205,6 @@
 
   @include('partials.soliera_js')
   <script>
-    // File upload handling
-    function handleDrop(e) {
-      e.preventDefault();
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        document.getElementById('legal_document').files = files;
-        updateFilePreview(files[0]);
-        analyzeDocument(files[0]);
-      }
-    }
-
-    function handleDragOver(e) {
-      e.preventDefault();
-    }
-
-    function handleDragLeave(e) {
-      e.preventDefault();
-    }
-
-    function updateFilePreview(file) {
-      const preview = document.getElementById('filePreview');
-      const fileName = document.getElementById('fileName');
-      const fileSize = document.getElementById('fileSize');
-      
-      fileName.textContent = file.name;
-      fileSize.textContent = formatFileSize(file.size);
-      preview.classList.remove('hidden');
-    }
-
-    function removeFile() {
-      document.getElementById('legal_document').value = '';
-      document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('aiAnalysis').classList.add('hidden');
-    }
-
-    function formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // File input change handler
-    document.getElementById('legal_document').addEventListener('change', function(e) {
-      if (e.target.files.length > 0) {
-        updateFilePreview(e.target.files[0]);
-        analyzeDocument(e.target.files[0]);
-      }
-    });
-
-    // AI Document Analysis
-    function analyzeDocument(file) {
-      const formData = new FormData();
-      formData.append('document_file', file);
-      formData.append('_token', '{{ csrf_token() }}');
-
-      // Show loading state (same as document modal)
-      const aiAnalysisPanel = document.getElementById('aiAnalysis');
-      aiAnalysisPanel.classList.remove('hidden');
-      aiAnalysisPanel.innerHTML = `
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-center gap-3 mb-3">
-            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-blue-500"></i>
-            <h3 class="font-medium text-blue-800">Analyzing Document...</h3>
-          </div>
-          <p class="text-sm text-blue-600">AI is processing your document</p>
-        </div>
-      `;
-
-      fetch('{{ route("document.analyzeUpload") }}', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-      .then(async response => {
-        const contentType = response.headers.get('content-type') || '';
-        if (!response.ok) {
-          const fallback = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Server error' };
-          return fallback;
-        }
-        if (!contentType.includes('application/json')) {
-          return { success: false, message: 'Unexpected response from server' };
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.success) {
-          // Update AI analysis results and render like document modal
-          const categoryDisplayNames = {
-            'memorandum': 'Memorandum',
-            'contract': 'Contract',
-            'subpoena': 'Subpoena',
-            'affidavit': 'Affidavit',
-            'cease_desist': 'Cease & Desist',
-            'legal_notice': 'Legal Notice',
-            'policy': 'Policy',
-            'legal_brief': 'Legal Brief',
-            'financial': 'Financial Document',
-            'compliance': 'Compliance Document',
-            'report': 'Report',
-            'general': 'Legal General'
-          };
-
-          const displayCategory = categoryDisplayNames[data.analysis.category] || 'Legal General';
-          
-          const summary = data.analysis.summary || '—';
-          const compliance = data.analysis.compliance_status || 'review_required';
-          const tags = data.analysis.tags ? (Array.isArray(data.analysis.tags) ? data.analysis.tags.join(', ') : data.analysis.tags) : '—';
-          const risk = data.analysis.legal_risk_score || 'Low';
-          const needsReview = (data.analysis.requires_legal_review ? 'Yes' : 'No');
-
-          aiAnalysisPanel.innerHTML = `
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <i data-lucide=\"check-circle\" class=\"w-5 h-5 text-green-500\"></i>
-                <h3 class="font-medium text-green-800">AI Analysis Complete</h3>
-              </div>
-              <div class="space-y-2 text-sm">
-                <div><strong>Category:</strong> <span class="font-semibold text-green-700">${displayCategory}</span></div>
-                <div><strong>Summary:</strong> <span class="text-green-700">${summary}</span></div>
-                <div><strong>Compliance:</strong> <span class="text-green-700">${compliance}</span></div>
-                <div><strong>Tags:</strong> <span class="text-green-700">${tags}</span></div>
-                <div><strong>Legal Risk:</strong> <span class="text-green-700">${risk}</span></div>
-                <div><strong>Legal Review Required:</strong> <span class="text-green-700">${needsReview}</span></div>
-              </div>
-            </div>
-          `;
-          lucide.createIcons();
-        } else {
-          // Show error state like document modal
-          aiAnalysisPanel.innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <i data-lucide=\"alert-triangle\" class=\"w-5 h-5 text-red-500\"></i>
-                <h3 class="font-medium text-red-800">Analysis Failed</h3>
-              </div>
-              <p class="text-sm text-red-600">${data.message || 'Unable to analyze document'}</p>
-            </div>
-          `;
-        }
-      })
-      .catch(error => {
-        // Show error state like document modal
-        aiAnalysisPanel.innerHTML = `
-          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div class="flex items-center gap-3 mb-3">
-              <i data-lucide=\"alert-triangle\" class=\"w-5 h-5 text-red-500\"></i>
-              <h3 class="font-medium text-red-800">Analysis Failed</h3>
-            </div>
-            <p class="text-sm text-red-600">Network or server error</p>
-          </div>
-        `;
-      });
-    }
-
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize Lucide icons

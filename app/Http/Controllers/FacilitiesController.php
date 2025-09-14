@@ -77,7 +77,12 @@ class FacilitiesController extends Controller
             ]);
         }
         
-        return view('facilities.index', compact('facilities'));
+        // Get active tab from request parameter
+        $validTabs = ['directory', 'monitoring', 'equipment'];
+        $tabParam = $request->get('tab');
+        $activeTab = in_array($tabParam, $validTabs) ? $tabParam : 'directory';
+        
+        return view('facilities.index', compact('facilities', 'activeTab'));
     }
 
     public function calendar(Request $request)

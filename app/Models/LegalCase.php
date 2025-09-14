@@ -24,11 +24,17 @@ class LegalCase extends Model
         'outcome',
         'notes',
         'linked_case_id',
+        'employee_involved',
+        'incident_date',
+        'incident_location',
+        'metadata',
     ];
 
     protected $casts = [
         'filing_date' => 'date',
         'court_date' => 'date',
+        'incident_date' => 'datetime',
+        'metadata' => 'array',
     ];
 
     /**

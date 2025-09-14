@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\DocumentRequest;
 use App\Models\FacilityReservation;
 use App\Models\AccessLog;
+use App\Models\DisposalHistory;
 use App\Services\GeminiService;
 use App\Services\DocumentTextExtractorService;
 use App\Services\DocumentWorkflowNotificationService;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class DocumentController extends Controller
 {
@@ -30,10 +32,45 @@ class DocumentController extends Controller
 
     public function index()
     {
+        // Exclude legal documents from general document management
         $documents = Document::with('uploader')
+            ->whereNotIn('source', ['legal_management', 'legal_submission', 'ai_builder'])
             ->latest()
             ->get();
         return view('document.index', compact('documents'));
+    }
+
+    public function view()
+    {
+        // Get all documents for the table view
+        $documents = Document::with('uploader')
+            ->whereNotIn('source', ['legal_management', 'legal_submission', 'ai_builder'])
+            ->latest()
+            ->paginate(20);
+
+        return view('document.view', compact('documents'));
+    }
+
+    /**
+     * Basic reports view for DMS
+     */
+    public function reports()
+    {
+        $documents = Document::whereNotIn('source', ['legal_management','legal_submission','ai_builder'])->get();
+        $byDepartment = $documents->groupBy('department')->map->count();
+        $byStatus = $documents->groupBy('status')->map->count();
+        return view('document.reports', compact('byDepartment','byStatus'));
+    }
+
+    /**
+     * Document receiving interface for DMS
+     */
+    public function receive()
+    {
+        $documents = Document::whereNotIn('source', ['legal_management','legal_submission','ai_builder'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return view('document.receive', compact('documents'));
     }
 
     public function create()
@@ -196,6 +233,10 @@ class DocumentController extends Controller
             'description' => 'nullable|string',
             'department' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
+            // DMS metadata
+            'confidentiality' => 'nullable|string|in:public,internal,restricted',
+            'retention_policy' => 'nullable|string|in:none,30_days,6_months,1_year,3_years,custom',
+            'retention_until' => 'nullable|date',
             'source' => 'nullable|string|in:document_management,legal_management,visitor_management,facility_management',
             'document_file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png|max:10240'
         ]);
@@ -244,7 +285,12 @@ class DocumentController extends Controller
                 'source' => $request->source ?? 'document_management',
                 'workflow_stage' => 'uploaded',
                 'workflow_log' => [],
-                'lifecycle_log' => []
+                'lifecycle_log' => [],
+                // DMS fields
+                'document_uid' => 'DOC-' . strtoupper(uniqid()),
+                'confidentiality' => $request->input('confidentiality', 'internal'),
+                'retention_until' => $request->input('retention_until'),
+                'retention_policy' => $request->input('retention_policy')
             ]);
             
             \Log::info('Document record created successfully', [
@@ -733,26 +779,56 @@ class DocumentController extends Controller
         $document = Document::with(['uploader', 'documentRequests.requester', 'documentRequests.approver'])
             ->where('source', 'document_management')
             ->findOrFail($id);
-        return view('document.show', compact('document'));
+            
+        // Check access permissions
+        if (!$this->canAccessDocument(Auth::user(), $document)) {
+            return redirect()->back()->with('error', 'Access Denied: You do not have permission to view this document.');
+        }
+        
+        // Log access
+        $this->logDocumentAccess($document, Auth::user(), 'view');
+        
+        // Check if user is administrator for action buttons
+        $isAdmin = $this->isAdministrator(Auth::user());
+        
+        return view('document.show', compact('document', 'isAdmin'));
     }
 
     public function edit($id)
     {
+        // Check if user is administrator
+        if (!$this->isAdministrator(Auth::user())) {
+            return redirect()->back()->with('error', 'Access Denied: Only administrators can edit documents.');
+        }
+        
         $document = Document::where('source', 'document_management')->findOrFail($id);
         return view('document.edit', compact('document'));
     }
 
     public function update(Request $request, $id)
     {
+        // Check if user is administrator
+        if (!$this->isAdministrator(Auth::user())) {
+            return redirect()->back()->with('error', 'Access Denied: Only administrators can update documents.');
+        }
+        
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'department' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'confidentiality' => 'nullable|string|in:public,internal,restricted',
+            'retention_policy' => 'nullable|string|in:none,30_days,6_months,1_year,3_years,custom',
+            'retention_until' => 'nullable|date'
         ]);
 
         $document = Document::where('source', 'document_management')->findOrFail($id);
-        $document->update([
-            'title' => $request->title,
-            'description' => $request->description
+        $document->update($request->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until']));
+
+        // Log the update
+        $document->logWorkflowStep('document_updated', 'Document updated by administrator', [
+            'updated_by' => Auth::user()->name ?? Auth::user()->id,
+            'updated_fields' => array_keys($request->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until']))
         ]);
 
         return redirect()->route('document.show', $id)->with('success', 'Document updated successfully!');
@@ -760,6 +836,11 @@ class DocumentController extends Controller
 
     public function destroy($id)
     {
+        // Check if user is administrator
+        if (!$this->isAdministrator(Auth::user())) {
+            return redirect()->back()->with('error', 'Access Denied: Only administrators can delete documents.');
+        }
+        
         try {
             $document = Document::where('source', 'document_management')->findOrFail($id);
 
@@ -824,9 +905,17 @@ class DocumentController extends Controller
     {
         $document = Document::where('source', 'document_management')->findOrFail($id);
         
+        // Check access permissions
+        if (!$this->canAccessDocument(Auth::user(), $document)) {
+            return redirect()->back()->with('error', 'Access Denied: You do not have permission to download this document.');
+        }
+        
         if (!Storage::disk('public')->exists($document->file_path)) {
             return redirect()->back()->with('error', 'File not found.');
         }
+
+        // Log download access
+        $this->logDocumentAccess($document, Auth::user(), 'download');
 
         return response()->download(storage_path('app/public/' . $document->file_path), $document->title . '.' . pathinfo($document->file_path, PATHINFO_EXTENSION));
     }
@@ -1424,11 +1513,112 @@ class DocumentController extends Controller
    {
        $document = Document::findOrFail($id);
        
-       if (Storage::disk('public')->exists($document->file_path)) {
-           return Storage::disk('public')->download($document->file_path);
+       $filePath = storage_path('app/public/' . $document->file_path);
+       if (file_exists($filePath)) {
+           return response()->download($filePath);
        }
        
        return back()->with('error', 'File not found.');
+   }
+
+   /**
+    * Approve legal document
+    */
+   public function approveLegalDocument(Request $request, $id)
+   {
+       try {
+           $document = Document::where('source', 'legal_management')->findOrFail($id);
+           
+           $notes = $request->input('notes', '');
+           
+           $document->update([
+               'status' => 'approved',
+               'approved_by' => Auth::id(),
+               'approval_notes' => $notes,
+               'approved_at' => now()
+           ]);
+
+           // Log the approval
+           AccessLog::create([
+               'user_id' => Auth::id() ?? 'unknown',
+               'action' => 'legal_document_approved',
+               'description' => "Approved legal document: {$document->title}",
+               'ip_address' => request()->ip()
+           ]);
+
+           if ($request->ajax()) {
+               return response()->json([
+                   'success' => true,
+                   'message' => 'Document approved successfully!'
+               ]);
+           }
+
+           return redirect()->route('legal.legal_documents')->with('success', 'Document approved successfully!');
+       } catch (\Exception $e) {
+           if ($request->ajax()) {
+               return response()->json([
+                   'success' => false,
+                   'message' => 'Error approving document: ' . $e->getMessage()
+               ], 500);
+           }
+           
+           return back()->with('error', 'Error approving document: ' . $e->getMessage());
+       }
+   }
+
+   /**
+    * Decline legal document
+    */
+   public function declineLegalDocument(Request $request, $id)
+   {
+       try {
+           $document = Document::where('source', 'legal_management')->findOrFail($id);
+           
+           $reason = $request->input('reason', '');
+           
+           if (empty($reason)) {
+               if ($request->ajax()) {
+                   return response()->json([
+                       'success' => false,
+                       'message' => 'Decline reason is required.'
+                   ], 422);
+               }
+               return back()->with('error', 'Decline reason is required.');
+           }
+           
+           $document->update([
+               'status' => 'declined',
+               'declined_by' => Auth::id(),
+               'decline_reason' => $reason,
+               'declined_at' => now()
+           ]);
+
+           // Log the decline
+           AccessLog::create([
+               'user_id' => Auth::id() ?? 'unknown',
+               'action' => 'legal_document_declined',
+               'description' => "Declined legal document: {$document->title} - Reason: {$reason}",
+               'ip_address' => request()->ip()
+           ]);
+
+           if ($request->ajax()) {
+               return response()->json([
+                   'success' => true,
+                   'message' => 'Document declined successfully!'
+               ]);
+           }
+
+           return redirect()->route('legal.legal_documents')->with('success', 'Document declined successfully!');
+       } catch (\Exception $e) {
+           if ($request->ajax()) {
+               return response()->json([
+                   'success' => false,
+                   'message' => 'Error declining document: ' . $e->getMessage()
+               ], 500);
+           }
+           
+           return back()->with('error', 'Error declining document: ' . $e->getMessage());
+       }
    }
 
     /**
@@ -1436,15 +1626,31 @@ class DocumentController extends Controller
      */
     public function archive($id)
     {
+        // Check if user is administrator
+        if (!$this->isAdministrator(Auth::user())) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access Denied: Only administrators can archive documents.'
+                ], 403);
+            }
+            return back()->with('error', 'Access Denied: Only administrators can archive documents.');
+        }
+        
         try {
             $document = Document::findOrFail($id);
             $document->update(['status' => 'archived']);
             
             // Log the archive action
+            $document->logWorkflowStep('document_archived', 'Document archived by administrator', [
+                'archived_by' => Auth::user()->name ?? Auth::user()->id,
+                'archived_at' => now()->toISOString()
+            ]);
+            
             AccessLog::create([
                 'user_id' => Auth::id() ?? 'unknown',
                 'action' => 'document_archived',
-                'description' => "Document '{$document->title}' archived",
+                'description' => "Document '{$document->title}' archived by administrator",
                 'ip_address' => request()->ip()
             ]);
             
@@ -1510,10 +1716,19 @@ class DocumentController extends Controller
      */
     public function archived()
     {
-        $documents = Document::with('uploader')
-            ->where('status', 'archived')
+        // Show both archived documents and expired documents (ready for disposal)
+        $documents = Document::where(function($query) {
+                $query->where('status', 'archived')
+                      ->orWhere('status', 'expired')
+                      ->orWhere(function($q) {
+                          $q->whereNotNull('retention_until')
+                            ->where('retention_until', '<=', now()->addDays(30));
+                      });
+            })
+            ->with(['uploader'])
             ->latest()
-            ->get();
+            ->paginate(20);
+
         return view('document.archived', compact('documents'));
     }
 
@@ -1812,5 +2027,181 @@ class DocumentController extends Controller
         } else {
             return 'high';
         }
+    }
+
+    /**
+     * Show disposal queue for expired documents
+     */
+    public function disposal()
+    {
+        // Get expired documents
+        $documents = Document::where('status', 'expired')
+            ->whereNotNull('retention_until')
+            ->latest()
+            ->paginate(20);
+
+        // Get disposal stats
+        $stats = [
+            'expired' => Document::where('status', 'expired')->count(),
+            'pending_disposal' => Document::where('status', 'expired')
+                ->whereNotNull('retention_until')
+                ->where('retention_until', '<=', now())
+                ->count(),
+            'disposed' => Document::where('status', 'disposed')->count()
+        ];
+
+        return view('document.disposal', compact('documents', 'stats'));
+    }
+
+    /**
+     * Dispose of a document (permanent deletion)
+     */
+    public function dispose($id)
+    {
+        // Check if user is administrator
+        if (!$this->isAdministrator(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access Denied: Only administrators can dispose documents.'
+            ], 403);
+        }
+        
+        try {
+            $document = Document::findOrFail($id);
+
+            // Only allow disposal of expired documents
+            if ($document->status !== 'expired') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only expired documents can be disposed.'
+                ], 422);
+            }
+
+            // Delete file from storage if present
+            if (!empty($document->file_path) && Storage::disk('public')->exists($document->file_path)) {
+                Storage::disk('public')->delete($document->file_path);
+            }
+
+            // Log disposal action
+            AccessLog::create([
+                'user_id' => Auth::id() ?? 'unknown',
+                'action' => 'document_disposed',
+                'description' => "Document '{$document->title}' permanently disposed",
+                'ip_address' => request()->ip()
+            ]);
+
+            // Log disposal in lifecycle
+            $log = $document->lifecycle_log ?? [];
+            $log[] = [
+                'step' => 'manually_disposed',
+                'timestamp' => now()->toISOString(),
+                'user_id' => Auth::id(),
+                'details' => [
+                    'previous_status' => $document->status,
+                    'retention_until' => optional($document->retention_until)->toDateTimeString(),
+                    'disposed_by' => Auth::id()
+                ],
+                'ip_address' => request()->ip()
+            ];
+
+            // Update document before deletion to log the action
+            $document->update(['lifecycle_log' => $log]);
+
+            // Create disposal history record before deleting
+            DisposalHistory::create([
+                'document_title' => $document->title,
+                'document_description' => $document->description,
+                'document_category' => $document->category,
+                'document_department' => $document->department,
+                'document_author' => $document->author,
+                'file_path' => $document->file_path,
+                'file_name' => basename($document->file_path ?? ''),
+                'file_type' => pathinfo($document->file_path ?? '', PATHINFO_EXTENSION),
+                'file_size' => $document->file_path ? Storage::disk('public')->size($document->file_path) : null,
+                'confidentiality_level' => $document->confidentiality,
+                'retention_until' => $document->retention_until,
+                'retention_policy' => $document->retention_policy,
+                'previous_status' => $document->status,
+                'disposal_reason' => 'manually_disposed',
+                'disposed_at' => now(),
+                'disposed_by' => Auth::id(),
+                'lifecycle_log' => $log,
+                'ai_analysis' => $document->ai_analysis,
+                'metadata' => $document->metadata,
+                'ip_address' => request()->ip()
+            ]);
+
+            // Permanently delete the document record
+            $document->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document disposed successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error disposing document', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error disposing document: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    /**
+     * Check if user can access document based on confidentiality level
+     */
+    private function canAccessDocument($user, Document $document)
+    {
+        $confidentiality = $document->confidentiality ?? 'internal';
+        $userRole = $user->role ?? 'user';
+        
+        switch ($confidentiality) {
+            case 'public':
+                return true;
+            case 'internal':
+                return true;
+            case 'restricted':
+                return in_array($userRole, ['admin', 'super_admin', 'legal_admin', 'hr_admin']);
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Log document access
+     */
+    private function logDocumentAccess(Document $document, $user, $action)
+    {
+        // Log to general AccessLog
+        AccessLog::create([
+            'user_id' => $user->id,
+            'action' => 'document_' . $action,
+            'description' => "Document {$action}: {$document->title} (ID: {$document->id})",
+            'ip_address' => request()->ip(),
+            'metadata' => [
+                'document_id' => $document->id,
+                'document_title' => $document->title,
+                'confidentiality' => $document->confidentiality,
+                'user_role' => $user->role ?? 'unknown'
+            ]
+        ]);
+    }
+
+    /**
+     * Check if user is administrator
+     */
+    private function isAdministrator($user)
+    {
+        if (!$user) {
+            return false;
+        }
+        
+        $userRole = $user->role ?? 'user';
+        return in_array($userRole, ['admin', 'Administrator', 'super_admin', 'legal_admin', 'hr_admin']);
     }
 } 

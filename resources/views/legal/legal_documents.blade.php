@@ -12,10 +12,14 @@
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
     @include('partials.sidebarr')
+    
     <!-- Main content -->
-    <div class="flex flex-col flex-1 overflow-hidden">
+    <div class="flex flex-col flex-1 overflow-hidden lg:ml-0">
       <!-- Header -->
       @include('partials.navbar')
 
@@ -37,100 +41,122 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Legal Documents</h1>
-            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Manage legal documents, contracts, and legal materials</p>
+          <div class="pb-5 border-b border-base-300 mb-6">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <h1 class="text-2xl font-semibold bg-white bg-clip-text text-[#191970]" style="color: var(--color-charcoal-ink);">Legal Documents</h1>
+              </div>
+            </div>
           </div>
 
           <!-- Status Summary Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <!-- Total Legal Documents -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary hover:shadow-2xl">
+              <div class="card-body p-3 sm:p-4">
+                <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
-                    <div class="bg-primary text-primary-content rounded-full w-12 h-12">
-                      <i data-lucide="folder" class="w-6 h-6"></i>
+                    <div class="bg-primary text-primary-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                      <i data-lucide="folder" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                   </div>
-                  <div class="badge badge-primary badge-outline">Total</div>
+                  <div class="badge badge-primary badge-outline text-xs">Total</div>
                 </div>
                 <div class="text-center">
-                  <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2">{{ $stats['total'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">Legal Documents</p>
+                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-primary justify-center mb-1">{{ $stats['total'] ?? 0 }}</h2>
+                  <p class="text-xs sm:text-sm text-base-content/70">Legal Documents</p>
                 </div>
               </div>
             </div>
 
             <!-- For Review Documents -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning hover:shadow-2xl">
+              <div class="card-body p-3 sm:p-4">
+                <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
-                    <div class="bg-warning text-warning-content rounded-full w-12 h-12">
-                      <i data-lucide="clock" class="w-6 h-6"></i>
+                    <div class="bg-warning text-warning-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                      <i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                   </div>
-                  <div class="badge badge-warning badge-outline">Review</div>
+                  <div class="badge badge-warning badge-outline text-xs">Review</div>
                 </div>
                 <div class="text-center">
-                  <h2 class="card-title text-4xl font-bold text-warning justify-center mb-2">{{ $stats['pending_review'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">For Review</p>
+                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-warning justify-center mb-1">{{ $stats['pending_review'] ?? 0 }}</h2>
+                  <p class="text-xs sm:text-sm text-base-content/70">For Review</p>
                 </div>
               </div>
             </div>
 
             <!-- Approved Documents -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success hover:shadow-2xl">
+              <div class="card-body p-3 sm:p-4">
+                <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
-                    <div class="bg-success text-success-content rounded-full w-12 h-12">
-                      <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    <div class="bg-success text-success-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                      <i data-lucide="check-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                   </div>
-                  <div class="badge badge-success badge-outline">Approved</div>
+                  <div class="badge badge-success badge-outline text-xs">Approved</div>
                 </div>
                 <div class="text-center">
-                  <h2 class="card-title text-4xl font-bold text-success justify-center mb-2">{{ $stats['active'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">Approved</p>
+                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-success justify-center mb-1">{{ $stats['active'] ?? 0 }}</h2>
+                  <p class="text-xs sm:text-sm text-base-content/70">Approved</p>
                 </div>
               </div>
             </div>
 
             <!-- Decline Documents -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-error">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error hover:shadow-2xl">
+              <div class="card-body p-3 sm:p-4">
+                <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
-                    <div class="bg-error text-error-content rounded-full w-12 h-12">
-                      <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    <div class="bg-error text-error-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                      <i data-lucide="x-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                   </div>
-                  <div class="badge badge-error badge-outline">Declined</div>
+                  <div class="badge badge-error badge-outline text-xs">Declined</div>
                 </div>
                 <div class="text-center">
-                  <h2 class="card-title text-4xl font-bold text-error justify-center mb-2">{{ $stats['archived'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">Declined</p>
+                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-error justify-center mb-1">{{ $stats['archived'] ?? 0 }}</h2>
+                  <p class="text-xs sm:text-sm text-base-content/70">Declined</p>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Bottom Border Separator -->
+          <div class="border-b border-base-300 mb-6"></div>
         </div>
 
         <!-- Tabs -->
-        @php $activeTab = request('tab') === 'create' ? 'create' : 'documents'; @endphp
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="mb-4 bg-gray-100 px-6 py-2 border-b border-gray-200" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
-            <div class="flex space-x-1">
-              <button id="btn-documents" class="px-4 py-2 text-sm font-medium {{ $activeTab==='documents' ? 'text-gray-700 bg-blue-100 border-b-2' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200' }} rounded-t-lg {{ $activeTab==='documents' ? '' : '' }}" onclick="showLegalTab('documents')" style="{{ $activeTab==='documents' ? 'background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);' : 'color: var(--color-charcoal-ink);' }}">
-                Documents
-              </button>
-              <button id="btn-create" class="px-4 py-2 text-sm font-medium {{ $activeTab==='create' ? 'text-gray-700 bg-blue-100 border-b-2' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200' }} rounded-t-lg" onclick="showLegalTab('create')" style="{{ $activeTab==='create' ? 'background-color: color-mix(in srgb, var(--color-regal-navy), white 80%); color: var(--color-charcoal-ink); border-color: var(--color-regal-navy);' : 'color: var(--color-charcoal-ink);' }}">
-                Create
-              </button>
+        @php 
+          $validTabs = ['documents','create','monitor'];
+          $tabParam = request('tab');
+          $activeTab = in_array($tabParam, $validTabs) ? $tabParam : 'documents';
+        @endphp
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <!-- Clickable Breadcrumb Navigation -->
+            <div class="mb-4 sm:mb-6">
+              <nav class="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <button id="nav-documents" class="text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors duration-200 px-2 py-1 rounded {{ $activeTab==='documents' ? 'text-blue-800 font-semibold bg-blue-50' : '' }}" onclick="showLegalTab('documents')">
+                  <i data-lucide="folder" class="w-3 h-3 sm:w-4 sm:h-4 mr-1"></i>
+                  <span class="hidden sm:inline">Documents</span>
+                  <span class="sm:hidden">Docs</span>
+                </button>
+                <i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400"></i>
+                <button id="nav-create" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 px-2 py-1 rounded {{ $activeTab==='create' ? 'text-blue-600 font-semibold bg-blue-50' : '' }}" onclick="showLegalTab('create')">
+                  <i data-lucide="plus" class="w-3 h-3 sm:w-4 sm:h-4 mr-1"></i>
+                  <span class="hidden sm:inline">Create</span>
+                  <span class="sm:hidden">New</span>
+                </button>
+                <i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400"></i>
+                <button id="nav-monitor" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 px-2 py-1 rounded {{ $activeTab==='monitor' ? 'text-blue-600 font-semibold bg-blue-50' : '' }}" onclick="showLegalTab('monitor')">
+                  <i data-lucide="bar-chart" class="w-3 h-3 sm:w-4 sm:h-4 mr-1"></i>
+                  <span class="hidden sm:inline">Monitoring</span>
+                  <span class="sm:hidden">Monitor</span>
+                </button>
+              </nav>
             </div>
-          </div>
 
           <!-- CREATE TAB CONTENT -->
           <div id="legal-create-tab" class="{{ $activeTab==='create' ? '' : 'hidden' }}">
@@ -152,99 +178,332 @@
               </div>
             </div>
 
-            <h3 class="text-md font-semibold mt-6 mb-3">Document Templates</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="border rounded-xl p-4">
-                <div class="text-sm text-gray-600 mb-2">Legal</div>
-                <div class="font-semibold">Service Contract</div>
-                <p class="text-xs text-gray-500 mt-1 mb-3">Standard service agreements and contracts</p>
-                <a href="{{ route('legal.documents.draft', ['template'=>'service_contract']) }}" class="btn btn-outline btn-xs">Use Template</a>
+            <h3 class="text-md font-semibold mt-4 sm:mt-6 mb-3">Document Templates</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              <div class="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-shadow duration-200">
+                <div class="text-xs sm:text-sm text-gray-600 mb-2">Legal</div>
+                <div class="font-semibold text-sm sm:text-base">Service Contract</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3 line-clamp-2">Standard service agreements and contracts</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'service_contract']) }}" class="btn btn-outline btn-xs w-full sm:w-auto">Use Template</a>
               </div>
-              <div class="border rounded-xl p-4">
-                <div class="text-sm text-gray-600 mb-2">Operations</div>
-                <div class="font-semibold">Guest Agreement</div>
-                <p class="text-xs text-gray-500 mt-1 mb-3">Visitor and guest access agreements</p>
-                <a href="{{ route('legal.documents.draft', ['template'=>'guest_agreement']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              <div class="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-shadow duration-200">
+                <div class="text-xs sm:text-sm text-gray-600 mb-2">HR</div>
+                <div class="font-semibold text-sm sm:text-base">Employment Contract</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3 line-clamp-2">Legally sound employment agreement with placeholders</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'employment_contract']) }}" class="btn btn-outline btn-xs w-full sm:w-auto">Use Template</a>
               </div>
-              <div class="border rounded-xl p-4">
-                <div class="text-sm text-gray-600 mb-2">Procurement</div>
-                <div class="font-semibold">Vendor Agreement</div>
-                <p class="text-xs text-gray-500 mt-1 mb-3">Supplier and vendor contracts</p>
-                <a href="{{ route('legal.documents.draft', ['template'=>'vendor_agreement']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              <div class="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-shadow duration-200">
+                <div class="text-xs sm:text-sm text-gray-600 mb-2">Operations</div>
+                <div class="font-semibold text-sm sm:text-base">Guest Agreement</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3 line-clamp-2">Visitor and guest access agreements</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'guest_agreement']) }}" class="btn btn-outline btn-xs w-full sm:w-auto">Use Template</a>
               </div>
-              <div class="border rounded-xl p-4">
-                <div class="text-sm text-gray-600 mb-2">HR</div>
-                <div class="font-semibold">HR Policy Document</div>
-                <p class="text-xs text-gray-500 mt-1 mb-3">Human resources policies and procedures</p>
-                <a href="{{ route('legal.documents.draft', ['template'=>'hr_policy']) }}" class="btn btn-outline btn-xs">Use Template</a>
+              <div class="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-shadow duration-200">
+                <div class="text-xs sm:text-sm text-gray-600 mb-2">Procurement</div>
+                <div class="font-semibold text-sm sm:text-base">Vendor Agreement</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3 line-clamp-2">Supplier and vendor contracts</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'vendor_agreement']) }}" class="btn btn-outline btn-xs w-full sm:w-auto">Use Template</a>
+              </div>
+              <div class="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-shadow duration-200">
+                <div class="text-xs sm:text-sm text-gray-600 mb-2">HR</div>
+                <div class="font-semibold text-sm sm:text-base">HR Policy Document</div>
+                <p class="text-xs text-gray-500 mt-1 mb-3 line-clamp-2">Human resources policies and procedures</p>
+                <a href="{{ route('legal.documents.draft', ['template'=>'hr_policy']) }}" class="btn btn-outline btn-xs w-full sm:w-auto">Use Template</a>
               </div>
             </div>
 
-            <!-- Created Documents Table -->
+            <!-- Document List Cards -->
             <div class="mt-8">
               <h3 class="text-md font-semibold mb-3">My Created Documents</h3>
-              <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                  <thead>
-                    <tr class="bg-gray-50">
-                      <th class="text-left py-3 px-4 font-medium text-gray-700">Document Name</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Type</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Uploaded By</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Department</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Status</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Date</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @forelse($createdDocuments as $doc)
-                    <tr>
-                      <td class="py-3 px-4">
-                        <div>
-                          <div class="font-bold">{{ $doc->title }}</div>
-                          <div class="text-xs text-gray-500">{{ $doc->description }}</div>
-                        </div>
-                      </td>
-                      <td class="py-3 px-4 text-center">
-                        <span class="badge badge-outline badge-sm">{{ ucfirst($doc->category ?? 'general') }}</span>
-                      </td>
-                      <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $doc->uploader->employee_name ?? 'Unknown' }}</td>
-                      <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $doc->department ?? ($doc->uploader->dept_name ?? 'N/A') }}</td>
-                      <td class="py-3 px-4 text-center">
-                        @php
-                          $status = $doc->status ?? 'draft';
-                          $badge = match($status){
-                            'pending_review' => 'badge-warning',
-                            'active' => 'badge-success',
-                            'draft' => 'badge-info',
-                            default => 'badge-neutral'
-                          };
-                        @endphp
-                        <span class="badge {{ $badge }}">{{ ucfirst(str_replace('_',' ', $status)) }}</span>
-                      </td>
-                      <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $doc->created_at?->format('M d, Y') }}</td>
-                      <td class="py-3 px-4 text-center">
-                        <div class="flex items-center justify-center gap-1">
-                          <button onclick="aiAnalysis({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="AI Analysis">
-                            <i data-lucide="brain" class="w-4 h-4 text-purple-600"></i>
-                          </button>
-                          @if(($doc->status ?? 'draft') === 'draft')
-                          <a href="{{ route('legal.documents.create') }}?edit={{ $doc->id }}" class="btn btn-ghost btn-xs tooltip" data-tip="Continue Editing">
-                            <i data-lucide="edit-3" class="w-4 h-4 text-blue-600"></i>
-                          </a>
-                          @endif
-                          <button onclick="downloadDocument({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Download">
-                            <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="7" class="text-center text-gray-500 py-6">No created documents</td></tr>
-                    @endforelse
-                  </tbody>
-                </table>
+              
+              <!-- Table Header for Document Cards -->
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
+                <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">
+                  <div class="col-span-4">Document Information</div>
+                  <div class="col-span-2 text-center">Type</div>
+                  <div class="col-span-2 text-center">Uploaded By</div>
+                  <div class="col-span-2 text-center">Status</div>
+                  <div class="col-span-2 text-center">Actions</div>
+                </div>
               </div>
+              
+              <!-- Document Cards -->
+              <div class="space-y-4">
+                @forelse($createdDocuments as $doc)
+                <div class="bg-white rounded-lg border-2 border-gray-100 p-4 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 shadow-lg" 
+                     style="background-color: var(--color-white); border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                  
+                  <!-- Card Header with Status Badge -->
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                      </div>
+                      <div>
+                        <div class="font-semibold text-gray-800">{{ $doc->title }}</div>
+                        <div class="text-sm text-gray-500">{{ $doc->description }}</div>
+                      </div>
+                    </div>
+                    @php
+                      $status = $doc->status ?? 'draft';
+                      $badge = match($status){
+                        'pending_review' => 'badge-warning',
+                        'active' => 'badge-success',
+                        'draft' => 'badge-info',
+                        default => 'badge-neutral'
+                      };
+                    @endphp
+                    <span class="badge {{ $badge }}">{{ ucfirst(str_replace('_',' ', $status)) }}</span>
+                  </div>
+
+                  <!-- Document Details -->
+                  <div class="grid grid-cols-12 gap-4 text-sm">
+                    <div class="col-span-4">
+                      <div class="text-gray-600">Department:</div>
+                      <div class="font-medium">{{ $doc->department ?? ($doc->uploader->dept_name ?? 'N/A') }}</div>
+                    </div>
+                    <div class="col-span-2 text-center">
+                      <div class="text-gray-600">Type</div>
+                      <span class="badge badge-outline badge-sm">{{ ucfirst($doc->category ?? 'general') }}</span>
+                    </div>
+                    <div class="col-span-2 text-center">
+                      <div class="text-gray-600">Uploaded By</div>
+                      <div class="font-medium">{{ $doc->uploader->employee_name ?? 'Unknown' }}</div>
+                    </div>
+                    <div class="col-span-2 text-center">
+                      <div class="text-gray-600">Date</div>
+                      <div class="font-medium">{{ $doc->created_at?->format('M d, Y') }}</div>
+                    </div>
+                    <div class="col-span-2 text-center">
+                      <div class="flex items-center justify-center gap-1">
+                        <!-- AI Analysis Button -->
+                        <button onclick="aiAnalysis({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="AI Analysis">
+                          <i data-lucide="brain" class="w-4 h-4 text-purple-600"></i>
+                        </button>
+                        
+                        <!-- Download Button -->
+                        <button onclick="downloadDocument({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Download">
+                          <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
+                        </button>
+                        
+                        <!-- Edit Button (only for draft documents) -->
+                        @if(($doc->status ?? 'draft') === 'draft')
+                        <a href="{{ route('legal.documents.draft') }}?edit={{ $doc->id }}" class="btn btn-ghost btn-xs tooltip" data-tip="Edit Document">
+                          <i data-lucide="edit-3" class="w-4 h-4 text-green-600"></i>
+                        </a>
+                        @endif
+                        
+                        <!-- Delete Button -->
+                        <button onclick="deleteDocument({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Delete">
+                          <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                @empty
+                <div class="text-center py-8">
+                  <div class="flex flex-col items-center">
+                    <i data-lucide="file-x" class="w-12 h-12 text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
+                    <p class="text-gray-500 mb-4">Start by creating your first legal document.</p>
+                    <a href="{{ route('legal.documents.create') }}" class="btn btn-primary">
+                      <i data-lucide="plus" class="w-4 h-4 mr-2"></i>Create Document
+                    </a>
+                  </div>
+                </div>
+                @endforelse
+              </div>
+            </div>
+          </div>
+
+          <!-- MONITOR TAB CONTENT (placeholder) -->
+          <div id="legal-monitor-tab" class="{{ $activeTab==='monitor' ? '' : 'hidden' }}">
+            <div class="space-y-4">
+
+              <!-- Filters -->
+              <div class="bg-gray-50 p-4 rounded-lg border">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <input id="mon-search" type="text" placeholder="Search title or ID..." class="input input-bordered w-full" />
+                  <select id="mon-dept" class="select select-bordered w-full"><option value="">All Departments</option></select>
+                  <select id="mon-type" class="select select-bordered w-full"><option value="">All Types</option><option value="contract">Contract</option><option value="policy">Policy</option><option value="license">License</option><option value="notice">Notice</option><option value="agreement">Agreement</option></select>
+                  <select id="mon-status" class="select select-bordered w-full"><option value="">All Status</option><option value="draft">Draft</option><option value="pending_review">Pending Review</option><option value="active">Approved</option><option value="returned">Returned</option><option value="rejected">Rejected</option></select>
+                </div>
+              </div>
+
+              <!-- Monitoring Statistics Cards -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Total Documents -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-10 h-10">
+                          <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-primary badge-outline text-xs">Total</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1" id="mon-total">0</h2>
+                      <p class="text-sm text-base-content/70">Total</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pending Review -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-warning text-warning-content rounded-full w-10 h-10">
+                          <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-warning badge-outline text-xs">Pending Review</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1" id="mon-pending">0</h2>
+                      <p class="text-sm text-base-content/70">Pending Review</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Approved -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-success text-success-content rounded-full w-10 h-10">
+                          <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-success badge-outline text-xs">Approved</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="mon-approved">0</h2>
+                      <p class="text-sm text-base-content/70">Approved</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rejected -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-error text-error-content rounded-full w-10 h-10">
+                          <i data-lucide="x-circle" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-error badge-outline text-xs">Rejected</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-error justify-center mb-1" id="mon-rejected">0</h2>
+                      <p class="text-sm text-base-content/70">Rejected</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Secondary Statistics Cards -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Drafts -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-neutral">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-neutral text-neutral-content rounded-full w-10 h-10">
+                          <i data-lucide="edit" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-neutral badge-outline text-xs">Drafts</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-neutral justify-center mb-1" id="mon-drafts">0</h2>
+                      <p class="text-sm text-base-content/70">Drafts</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Signatures Sent -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-info text-info-content rounded-full w-10 h-10">
+                          <i data-lucide="send" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-info badge-outline text-xs">Signatures Sent</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1" id="mon-signatures">0</h2>
+                      <p class="text-sm text-base-content/70">Signatures Sent</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Signed -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-success text-success-content rounded-full w-10 h-10">
+                          <i data-lucide="check-square" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-success badge-outline text-xs">Signed</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="mon-signed">0</h2>
+                      <p class="text-sm text-base-content/70">Signed</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Expiring (90d) -->
+                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
+                  <div class="card-body p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-warning text-warning-content rounded-full w-10 h-10">
+                          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                        </div>
+                      </div>
+                      <div class="badge badge-warning badge-outline text-xs">Expiring (90d)</div>
+                    </div>
+                    <div class="text-center">
+                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1" id="mon-expiring">0</h2>
+                      <p class="text-sm text-base-content/70">Expiring (90d)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table Header for Monitoring Cards -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+                  <div class="grid grid-cols-10 gap-4 text-sm font-semibold text-gray-700">
+                    <div class="col-span-1 text-center">Ref ID</div>
+                    <div class="col-span-2">Title</div>
+                    <div class="col-span-1 text-center">Type</div>
+                    <div class="col-span-1 text-center">Department</div>
+                    <div class="col-span-1 text-center">Status</div>
+                    <div class="col-span-1 text-center">Signature</div>
+                    <div class="col-span-1 text-center">Renewal</div>
+                    <div class="col-span-1 text-center">Retention</div>
+                    <div class="col-span-1 text-center">Actions</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monitoring Cards -->
+              <div id="mon-cards-container" class="space-y-4">
+                <div class="text-center py-8 text-gray-500">Loading...</div>
+              </div>
+
+              <div class="flex justify-end items-center gap-2" id="mon-pager"></div>
             </div>
           </div>
 
@@ -254,9 +513,9 @@
             <div class="mb-6">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-4">
-                  <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
-                    Document List
+                  <h3 class="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2" style="color: var(--color-charcoal-ink);">
+                    <i data-lucide="inbox" class="w-5 h-5 text-blue-600"></i>
+                    Incoming Legal Submissions
                   </h3>
                   <!-- Search Bar -->
                   <div class="relative">
@@ -268,144 +527,187 @@
                   </div>
                 </div>
 
-                <!-- Add Document Button - Only for Administrator (Creation moved to tab) -->
-                @if(auth()->user()->role === 'Administrator')
-                  <button onclick="openUploadModal()" class="btn btn-primary btn-sm">
-                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
-                    Add Document
-                  </button>
-                @endif
               </div>
 
               <!-- Filters Row -->
-              <div class="flex items-center gap-4">
-              <!-- Category Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Category:</label>
-                <select id="categoryFilter" class="select select-bordered select-sm w-40">
-                  <option value="">All Categories</option>
-                  <option value="contract">Contract</option>
-                  <option value="legal_notice">Legal Notice</option>
-                  <option value="policy">Policy</option>
-                  <option value="compliance">Compliance</option>
-                  <option value="financial">Financial</option>
-                  <option value="report">Report</option>
-                  <option value="memorandum">Memorandum</option>
-                  <option value="affidavit">Affidavit</option>
-                  <option value="subpoena">Subpoena</option>
-                  <option value="cease_desist">Cease & Desist</option>
-                  <option value="legal_brief">Legal Brief</option>
-                </select>
+              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <!-- Filters -->
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+                  <!-- Category Filter -->
+                  <div class="flex items-center gap-2">
+                    <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Category:</label>
+                    <select id="categoryFilter" class="select select-bordered select-sm w-full sm:w-40">
+                      <option value="">All Categories</option>
+                      <option value="contract">Contract</option>
+                      <option value="legal_notice">Legal Notice</option>
+                      <option value="policy">Policy</option>
+                      <option value="compliance">Compliance</option>
+                      <option value="financial">Financial</option>
+                      <option value="report">Report</option>
+                      <option value="memorandum">Memorandum</option>
+                      <option value="affidavit">Affidavit</option>
+                      <option value="subpoena">Subpoena</option>
+                      <option value="cease_desist">Cease & Desist</option>
+                      <option value="legal_brief">Legal Brief</option>
+                    </select>
+                  </div>
+
+                  <!-- Status Filter -->
+                  <div class="flex items-center gap-2">
+                    <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Status:</label>
+                    <select id="statusFilter" class="select select-bordered select-sm w-full sm:w-32">
+                      <option value="">All Status</option>
+                      <option value="active">Active</option>
+                      <option value="pending_review">Pending Review</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="archived">Archived</option>
+                      <option value="draft">Draft</option>
+                    </select>
+                  </div>
+
+                  <!-- Clear Filters Button -->
+                  <button onclick="clearFilters()" class="btn btn-ghost btn-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                    <i data-lucide="x" class="w-3 h-3 mr-1"></i>
+                    <span class="hidden sm:inline">Clear</span>
+                  </button>
+                </div>
               </div>
-
-              <!-- Status Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Status:</label>
-                <select id="statusFilter" class="select select-bordered select-sm w-32">
-                  <option value="">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="pending_review">Pending Review</option>
-                  <option value="archived">Archived</option>
-                  <option value="draft">Draft</option>
-                </select>
-              </div>
-
-              <!-- Clear Filters Button -->
-              <button onclick="clearFilters()" class="btn btn-ghost btn-xs text-gray-500 hover:text-gray-700">
-                <i data-lucide="x" class="w-3 h-3 mr-1"></i>
-                Clear
-              </button>
-            </div>
             </div>
 
-          <!-- Documents Table -->
-          <div class="overflow-x-auto">
+          <!-- Desktop Table View -->
+          <div class="hidden lg:block overflow-x-auto">
             <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">Document Name</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Type</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Uploaded By</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Department</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Status</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Date</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Document Information</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700 w-32">Type</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700 w-40">Uploaded By</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700 w-32">Department</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700 w-32">Status</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700 w-32">Date</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700 w-32">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                @forelse($documents as $document)
-                  <tr class="hover:bg-gray-50 transition-colors" data-document-id="{{ $document->id }}">
+                @forelse($documents as $index => $document)
+                  <tr class="hover:bg-gray-50 transition-colors duration-200" data-document-id="{{ $document->id }}">
+                    <!-- Document Information Column -->
                     <td class="py-3 px-4">
                       <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                          @php
-                            $fileExtension = pathinfo($document->file_path ?? '', PATHINFO_EXTENSION);
-                            $iconColor = 'text-blue-600';
-                            
-                            switch(strtolower($fileExtension)) {
-                              case 'pdf':
-                                $iconColor = 'text-red-600';
-                                break;
-                              case 'doc':
-                              case 'docx':
-                                $iconColor = 'text-blue-600';
-                                break;
-                              case 'xls':
-                              case 'xlsx':
-                                $iconColor = 'text-green-600';
-                                break;
-                              case 'ppt':
-                              case 'pptx':
-                                $iconColor = 'text-orange-600';
-                                break;
-                              default:
-                                $iconColor = 'text-gray-600';
-                            }
-                          @endphp
-                          <i data-lucide="file-text" class="w-5 h-5 {{ $iconColor }}"></i>
+                        <!-- Avatar -->
+                        <div class="avatar placeholder">
+                          <div class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center">
+                            @php
+                              $fileExtension = pathinfo($document->file_path ?? '', PATHINFO_EXTENSION);
+                              $iconColor = 'text-blue-600';
+                              
+                              switch(strtolower($fileExtension)) {
+                                case 'pdf':
+                                  $iconColor = 'text-red-600';
+                                  break;
+                                case 'doc':
+                                case 'docx':
+                                  $iconColor = 'text-blue-600';
+                                  break;
+                                case 'xls':
+                                case 'xlsx':
+                                  $iconColor = 'text-green-600';
+                                  break;
+                                case 'ppt':
+                                case 'pptx':
+                                  $iconColor = 'text-orange-600';
+                                  break;
+                                default:
+                                  $iconColor = 'text-gray-600';
+                              }
+                            @endphp
+                            <i data-lucide="file-text" class="w-4 h-4 {{ $iconColor }}"></i>
+                          </div>
                         </div>
+                        
+                        <!-- Document Title -->
                         <div>
-                          <div class="font-medium text-gray-900">{{ $document->title }}</div>
-                          <div class="text-sm text-gray-500">{{ Str::limit($document->description, 50) }}</div>
+                          <h4 class="font-semibold text-gray-900 text-sm">{{ $document->title }}</h4>
+                          <p class="text-xs text-gray-500">{{ Str::limit($document->description, 40) }}</p>
+                          <p class="text-xs font-mono text-blue-600">{{ $document->legal_document_id ?? 'LD-' . now()->format('Y') . '-' . str_pad($document->id, 6, '0', STR_PAD_LEFT) }}</p>
                         </div>
                       </div>
                     </td>
+                    
+                    <!-- Type Column -->
                     <td class="py-3 px-4 text-center">
-                      <span class="badge badge-outline badge-sm">{{ ucfirst(str_replace('_', ' ', $document->category ?? 'General')) }}</span>
+                      <span class="text-sm font-medium text-gray-700">{{ ucfirst(str_replace('_', ' ', $document->category ?? 'General')) }}</span>
                     </td>
-                    <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $document->uploader->employee_name ?? 'Unknown' }}</td>
-                    <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $document->uploader->dept_name ?? 'N/A' }}</td>
+                    
+                    <!-- Uploaded By Column -->
+                    <td class="py-3 px-4 text-center">
+                      <span class="text-sm font-medium text-gray-700">{{ $document->uploader->employee_name ?? 'Unknown' }}</span>
+                    </td>
+                    
+                    <!-- Department Column -->
+                    <td class="py-3 px-4 text-center">
+                      <span class="text-sm font-medium text-gray-700">{{ $document->uploader->dept_name ?? 'N/A' }}</span>
+                    </td>
+                    
+                    <!-- Status Column -->
                     <td class="py-3 px-4 text-center">
                       @php
                         $statusConfig = [
-                          'active' => ['icon' => 'check-circle', 'color' => 'text-success'],
-                          'pending_review' => ['icon' => 'clock', 'color' => 'text-warning'],
-                          'archived' => ['icon' => 'archive', 'color' => 'text-neutral'],
-                          'draft' => ['icon' => 'edit-3', 'color' => 'text-info']
-                        ];
-                        $status = $document->status ?? 'active';
-                        $config = $statusConfig[$status] ?? $statusConfig['active'];
-                      @endphp
-                      <div class="flex items-center justify-center">
-                        <i data-lucide="{{ $config['icon'] }}" class="w-4 h-4 {{ $config['color'] }}"></i>
-                        @if($status !== 'active')
-                          <span class="ml-2 text-sm text-gray-600">{{ ucfirst(str_replace('_', ' ', $status)) }}</span>
-                        @endif
+                          'active' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle', 'text' => 'Active'],
+                            'pending_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'clock', 'text' => 'Pending Review'],
+                            'archived' => ['class' => 'bg-gray-100 text-gray-800', 'icon' => 'archive', 'text' => 'Archived'],
+                            'draft' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'edit-3', 'text' => 'Draft'],
+                            'approved' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle-2', 'text' => 'Approved'],
+                            'declined' => ['class' => 'bg-red-100 text-red-800', 'icon' => 'x-circle', 'text' => 'Declined']
+                          ];
+                          $status = $document->status ?? 'active';
+                          $config = $statusConfig[$status] ?? $statusConfig['active'];
+                        @endphp
+                      <div class="flex items-center justify-center space-x-1">
+                        <i data-lucide="{{ $config['icon'] }}" class="w-4 h-4"></i>
+                        <span class="text-xs font-medium {{ $config['class'] }} px-2 py-1 rounded-full">{{ $config['text'] }}</span>
                       </div>
                     </td>
-                    <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $document->created_at->format('M d, Y') }}</td>
+                    
+                    <!-- Date Column -->
                     <td class="py-3 px-4 text-center">
-                      <div class="flex items-center justify-center gap-1">
-                        <button onclick="aiAnalysis({{ $document->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="AI Analysis">
-                          <i data-lucide="brain" class="w-4 h-4 text-purple-600"></i>
+                      <span class="text-sm text-gray-600">{{ $document->created_at->format('M d, Y') }}</span>
+                    </td>
+                    
+                    <!-- Actions Column -->
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center space-x-1">
+                        <!-- Approve Button -->
+                        @if($document->status !== 'approved' && $document->status !== 'declined')
+                          <button onclick="approveDocument({{ $document->id }})" 
+                                  class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200" 
+                                  title="Approve">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                          </button>
+                        @endif
+                        
+                        <!-- Decline Button -->
+                        @if($document->status !== 'approved' && $document->status !== 'declined')
+                          <button onclick="declineDocument({{ $document->id }})" 
+                                  class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200" 
+                                  title="Decline">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                          </button>
+                        @endif
+                        
+                        <!-- AI Analysis Button -->
+                        <button onclick="aiAnalysis({{ $document->id }})" 
+                                class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200 touch-manipulation" 
+                                title="AI Analysis">
+                          <i data-lucide="brain" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="downloadDocument({{ $document->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Download">
-                          <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
-                        </button>
+                        
                         <!-- Delete Button - Only for Administrator -->
                         @if(auth()->user()->role === 'Administrator')
-                          <button onclick="deleteDocument({{ $document->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Delete">
-                            <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+                          <button onclick="deleteDocument({{ $document->id }})" 
+                                  class="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200 touch-manipulation" 
+                                  title="Delete">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                           </button>
                         @endif
                       </div>
@@ -413,8 +715,8 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="7" class="text-center py-12">
-                      <div class="flex flex-col items-center">
+                    <td colspan="7" class="py-12 text-center">
+                      <div class="flex flex-col items-center justify-center">
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <i data-lucide="folder" class="w-10 h-10 text-gray-400"></i>
                         </div>
@@ -426,6 +728,103 @@
                 @endforelse
               </tbody>
             </table>
+          </div>
+
+          <!-- Mobile Card View -->
+          <div class="lg:hidden space-y-4">
+            @forelse($documents as $index => $document)
+              <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200" data-document-id="{{ $document->id }}">
+                <!-- Card Header -->
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center space-x-3 flex-1 min-w-0">
+                    <!-- Avatar -->
+                    <div class="avatar placeholder flex-shrink-0">
+                      <div class="bg-primary text-primary-content rounded-full w-10 h-10">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                      </div>
+                    </div>
+                    <!-- Document Info -->
+                    <div class="flex-1 min-w-0">
+                      <h3 class="font-semibold text-gray-900 truncate">{{ $document->title }}</h3>
+                      <p class="text-sm text-gray-500 truncate">{{ $document->description ?: 'No description' }}</p>
+                    </div>
+                  </div>
+                  <!-- Status Badge -->
+                  @php
+                    $status = $document->status ?? 'draft';
+                    $badgeClass = match($status) {
+                      'pending_review' => 'badge-warning',
+                      'active' => 'badge-success',
+                      'draft' => 'badge-info',
+                      'archived' => 'badge-error',
+                      default => 'badge-neutral'
+                    };
+                  @endphp
+                  <span class="badge {{ $badgeClass }} text-xs">{{ ucfirst(str_replace('_', ' ', $status)) }}</span>
+                </div>
+
+                <!-- Document Details -->
+                <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+                  <div>
+                    <span class="text-gray-500">Type:</span>
+                    <span class="font-medium ml-1">{{ ucfirst($document->category ?? 'General') }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Department:</span>
+                    <span class="font-medium ml-1">{{ $document->department ?? ($document->uploader->dept_name ?? 'N/A') }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Uploaded By:</span>
+                    <span class="font-medium ml-1">{{ $document->uploader->employee_name ?? 'Unknown' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Date:</span>
+                    <span class="font-medium ml-1">{{ $document->created_at?->format('M d, Y') }}</span>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-2">
+                  <!-- AI Analysis Button -->
+                  <button onclick="aiAnalysis({{ $document->id }})" class="btn btn-ghost btn-sm text-purple-600 hover:bg-purple-50">
+                    <i data-lucide="brain" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">AI Analysis</span>
+                  </button>
+                  
+                  <!-- Download Button -->
+                  <button onclick="downloadDocument({{ $document->id }})" class="btn btn-ghost btn-sm text-blue-600 hover:bg-blue-50">
+                    <i data-lucide="download" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">Download</span>
+                  </button>
+                  
+                  <!-- Edit Button (only for draft documents) -->
+                  @if(($document->status ?? 'draft') === 'draft')
+                  <a href="{{ route('legal.documents.draft') }}?edit={{ $document->id }}" class="btn btn-ghost btn-sm text-green-600 hover:bg-green-50">
+                    <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">Edit</span>
+                  </a>
+                  @endif
+                  
+                  <!-- Delete Button - Only for Administrator -->
+                  @if(auth()->user()->role === 'Administrator')
+                  <button onclick="deleteDocument({{ $document->id }})" class="btn btn-ghost btn-sm text-red-600 hover:bg-red-50">
+                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">Delete</span>
+                  </button>
+                  @endif
+                </div>
+              </div>
+            @empty
+              <div class="text-center py-12">
+                <div class="flex flex-col items-center">
+                  <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="file-text" class="w-10 h-10 text-gray-400"></i>
+                  </div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+                  <p class="text-gray-500">Get started by uploading your first document.</p>
+                </div>
+              </div>
+            @endforelse
           </div>
 
           <!-- Pagination -->
@@ -440,148 +839,6 @@
     </div>
   </div>
 
-  <!-- Upload Document Modal -->
-  <div id="uploadModal" class="modal">
-    <div class="modal-box w-11/12 max-w-4xl">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <i data-lucide="upload" class="w-8 h-8 text-blue-500"></i>
-          Upload Legal Document
-        </h3>
-        <button onclick="closeUploadModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="uploadForm" action="{{ route('document.store') }}" method="POST" enctype="multipart/form-data" onsubmit="handleUploadSubmit(event)">
-        @csrf
-        <input type="hidden" name="source" value="legal_management">
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          <!-- Left Column: Form Fields -->
-          <div class="space-y-6">
-            <!-- Title Field -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Document Title *</span>
-              </label>
-              <input type="text" name="title" id="uploadTitle" class="input input-bordered w-full" 
-                     placeholder="Enter document title" required>
-              <div class="label">
-                <span class="label-text-alt">Enter a descriptive title for the document</span>
-              </div>
-            </div>
-
-            <!-- Category Field -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Category *</span>
-              </label>
-              <select name="category" id="uploadCategory" class="select select-bordered w-full" required>
-                <option value="">Select category</option>
-                <option value="contract">Contract</option>
-                <option value="legal_notice">Legal Notice</option>
-                <option value="policy">Policy</option>
-                <option value="compliance">Compliance</option>
-                <option value="financial">Financial</option>
-                <option value="report">Report</option>
-                <option value="memorandum">Memorandum</option>
-                <option value="affidavit">Affidavit</option>
-                <option value="subpoena">Subpoena</option>
-                <option value="cease_desist">Cease & Desist</option>
-                <option value="legal_brief">Legal Brief</option>
-              </select>
-              <div class="label">
-                <span class="label-text-alt">Select the appropriate legal document category</span>
-              </div>
-            </div>
-
-
-            <!-- Description Field -->
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">Description</span>
-              </label>
-              <textarea name="description" id="uploadDescription" class="textarea textarea-bordered w-full h-24" 
-                        placeholder="Brief description of the document's purpose and content..."></textarea>
-              <div class="label">
-                <span class="label-text-alt">Provide a brief summary of the document</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: File Upload Area -->
-          <div class="space-y-6">
-            <div>
-              <h2 class="text-xl font-bold text-gray-800">Document File</h2>
-              <p class="text-gray-600">PDF, Word, Excel, PowerPoint, Text files (Max: 10MB)</p>
-            </div>
-
-            <!-- File Upload Zone -->
-            <div id="uploadZone" class="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" 
-                 onclick="document.getElementById('document_file').click()" 
-                 ondrop="handleDrop(event)" 
-                 ondragover="handleDragOver(event)" 
-                 ondragleave="handleDragLeave(event)">
-              
-              <input type="file" name="document_file" id="document_file" class="hidden" 
-                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" required>
-              
-              <div class="space-y-4">
-                <div class="flex justify-center">
-                  <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100">
-                    <i data-lucide="cloud-upload" class="w-8 h-8 text-blue-500"></i>
-                  </div>
-                </div>
-                <div>
-                  <p class="text-lg font-medium text-gray-700">Click to select or drag file</p>
-                  <p class="text-sm text-gray-500 mt-2">Max file size: 10MB</p>
-                  <p class="text-xs text-gray-400 mt-1">Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- File Preview -->
-            <div id="filePreview" class="hidden">
-              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div class="flex items-center gap-3">
-                  <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                  <div>
-                    <p class="font-medium text-green-800" id="fileName"></p>
-                    <p class="text-sm text-green-600" id="fileSize"></p>
-                  </div>
-                  <button type="button" onclick="removeFile()" class="btn btn-ghost btn-sm">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- File Validation Errors -->
-            <div id="fileErrors" class="hidden">
-              <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div class="flex items-center gap-3">
-                  <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
-                  <div>
-                    <p class="font-medium text-red-800" id="errorMessage"></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="pt-4">
-              <button type="submit" id="uploadSubmitBtn" class="btn btn-primary btn-lg w-full">
-                <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
-                Upload Legal Document
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Bulk Upload Modal -->
   <div id="bulkUploadModal" class="modal">
@@ -740,47 +997,71 @@
         <div id="aiResults" class="hidden space-y-6">
           <!-- Document Info -->
           <div class="bg-gray-50 rounded-lg p-4">
-            <h4 class="font-semibold text-gray-800 mb-2">Document Information</h4>
-            <div class="grid grid-cols-2 gap-4 text-sm">
-              <div><strong>Title:</strong> <span id="aiDocTitle">—</span></div>
-              <div><strong>Type:</strong> <span id="aiDocType">—</span></div>
-              <div><strong>Status:</strong> <span id="aiDocStatus">—</span></div>
-              <div><strong>Upload Date:</strong> <span id="aiDocDate">—</span></div>
+
+          <!-- AI Analysis Overview -->
+          <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="brain" class="w-5 h-5 text-purple-600"></i>
+              <h4 class="font-semibold text-gray-800">AI Analysis Overview</h4>
+              <span class="ml-auto text-sm text-blue-600" id="aiConfidence">—</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span class="text-gray-600">Document Type:</span>
+                <span class="font-semibold text-blue-900 ml-2" id="aiCategory">—</span>
+              </div>
+              <div>
+                <span class="text-gray-600">Legal Risk:</span>
+                <span class="font-semibold ml-2" id="aiRisk">—</span>
+              </div>
+              <div>
+                <span class="text-gray-600">Compliance:</span>
+                <span class="font-semibold ml-2" id="aiCompliance">—</span>
+              </div>
+              <div>
+                <span class="text-gray-600">Review Required:</span>
+                <span class="font-semibold ml-2" id="aiReview">—</span>
+              </div>
             </div>
           </div>
 
-          <!-- AI Classification -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div class="flex items-center gap-2 mb-2">
-              <i data-lucide="wrench" class="w-4 h-4 text-blue-600"></i>
-              <span class="text-sm font-medium text-blue-800">AI Classification</span>
-            </div>
-            <div class="text-lg font-bold text-blue-900 mb-1" id="aiCategory">—</div>
-            <div class="text-sm text-blue-700" id="aiConfidence">AI Confidence: —</div>
-          </div>
-
-          <!-- AI Summary -->
+          <!-- Document Summary -->
           <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h4 class="font-semibold text-green-800 mb-2">AI Summary</h4>
+            <h4 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              Document Summary
+            </h4>
             <p class="text-green-700 text-sm" id="aiSummary">—</p>
           </div>
 
-
-
-          <!-- Legal Implications -->
+          <!-- Legal Assessment -->
           <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <h4 class="font-semibold text-orange-800 mb-2">Legal Implications</h4>
+            <h4 class="font-semibold text-orange-800 mb-2 flex items-center gap-2">
+              <i data-lucide="scale" class="w-4 h-4"></i>
+              Legal Assessment
+            </h4>
             <p class="text-orange-700 text-sm" id="aiLegalImplications">—</p>
           </div>
 
-          <!-- Analysis Details -->
-          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 class="font-semibold text-gray-800 mb-2">Analysis Details</h4>
-            <div class="grid grid-cols-2 gap-4 text-sm">
-              <div><strong>Compliance:</strong> <span id="aiCompliance">—</span></div>
-              <div><strong>Tags:</strong> <span id="aiTags">—</span></div>
-              <div><strong>Legal Risk:</strong> <span id="aiRisk">—</span></div>
-              <div><strong>Review Required:</strong> <span id="aiReview">—</span></div>
+          <!-- AI-Powered Insights -->
+          <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <h4 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              AI-Powered Insights
+            </h4>
+            <div class="space-y-3">
+              <div>
+                <span class="text-sm font-medium text-gray-700">Auto-tagged Details:</span>
+                <div class="mt-1 flex flex-wrap gap-1" id="aiTags">—</div>
+              </div>
+              <div>
+                <span class="text-sm font-medium text-gray-700">Suggested Clauses:</span>
+                <p class="text-sm text-gray-600 mt-1" id="aiAssistSuggest">—</p>
+              </div>
+              <div>
+                <span class="text-sm font-medium text-gray-700">Risky Terms Detected:</span>
+                <p class="text-sm text-gray-600 mt-1" id="aiAssistRisky">—</p>
+              </div>
             </div>
           </div>
         </div>
@@ -812,47 +1093,6 @@
     }
 
     // Modal functions
-    function openUploadModal() {
-      const modal = document.getElementById('uploadModal');
-      modal.classList.add('modal-open');
-    }
-
-    function closeUploadModal() {
-      console.log('closeUploadModal called'); // Debug log
-      const modal = document.getElementById('uploadModal');
-      if (!modal) {
-        console.error('Upload modal not found!'); // Debug log
-        return;
-      }
-      
-      console.log('Modal classes before:', modal.className); // Debug log
-      modal.classList.remove('modal-open');
-      console.log('Modal classes after:', modal.className); // Debug log
-      
-      const form = document.getElementById('uploadForm');
-      if (form) form.reset();
-      document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('fileErrors').classList.add('hidden');
-      document.getElementById('uploadZone').classList.remove('border-blue-500', 'bg-blue-50');
-      document.getElementById('uploadZone').innerHTML = `
-        <input type="file" name="document_file" id="document_file" class="hidden" 
-               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" required>
-        <div class="space-y-4">
-          <div class="flex justify-center">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100">
-              <i data-lucide="cloud-upload" class="w-8 h-8 text-blue-500"></i>
-            </div>
-          </div>
-          <div>
-            <p class="text-lg font-medium text-gray-700">Click to select or drag file</p>
-            <p class="text-sm text-gray-500 mt-2">Max file size: 10MB</p>
-            <p class="text-xs text-gray-400 mt-1">Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT</p>
-          </div>
-        </div>
-      `;
-      
-      console.log('Upload modal closed successfully'); // Debug log
-    }
 
     function openBulkUploadModal() {
       const modal = document.getElementById('bulkUploadModal');
@@ -935,15 +1175,6 @@
       // Get document data for display
       const row = document.querySelector(`tr[data-document-id="${documentId}"]`);
       if (row) {
-        const title = row.querySelector('td:first-child .font-medium')?.textContent || '—';
-        const type = row.querySelector('td:nth-child(2) .badge')?.textContent || '—';
-        const status = row.querySelector('td:nth-child(5) .badge')?.textContent || '—';
-        const date = row.querySelector('td:nth-child(6)')?.textContent || '—';
-        
-        document.getElementById('aiDocTitle').textContent = title;
-        document.getElementById('aiDocType').textContent = type;
-        document.getElementById('aiDocStatus').textContent = status;
-        document.getElementById('aiDocDate').textContent = date;
       }
       
       // Perform AI analysis
@@ -1086,6 +1317,30 @@
       
       document.getElementById('aiRisk').textContent = analysis.legal_risk_score || '—';
       document.getElementById('aiReview').textContent = analysis.requires_legal_review ? 'Yes' : 'No';
+
+      // Populate AI-Powered Insights
+      const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value && String(value).trim() !== '' ? value : '—'; };
+      
+      // Auto-tagged details (as tags)
+      const detailsCandidates = [analysis.key_details, analysis.extracted_details, analysis.extracted_entities, analysis.entities, analysis.highlights, analysis.tags];
+      let detailsText = '—';
+      for (const cand of detailsCandidates) {
+        if (!cand) continue;
+        if (Array.isArray(cand)) { detailsText = cand.join(', '); break; }
+        if (typeof cand === 'object') { detailsText = Object.entries(cand).map(([k,v])=>`${k}: ${Array.isArray(v)?v.join(', '):v}`).join('; '); break; }
+        if (typeof cand === 'string') { detailsText = cand; break; }
+      }
+      setText('aiTags', detailsText);
+      
+      // Suggested clauses
+      const suggestions = analysis.suggested_clauses || analysis.missing_clauses || analysis.clause_suggestions || [];
+      const suggestText = Array.isArray(suggestions) ? suggestions.join(', ') : (suggestions || '—');
+      setText('aiAssistSuggest', suggestText);
+      
+      // Risky terms
+      const risky = analysis.risky_terms || analysis.ambiguous_terms || analysis.risk_notes || [];
+      const riskyText = Array.isArray(risky) ? risky.join(', ') : (risky || '—');
+      setText('aiAssistRisky', riskyText);
       
       // Show results
       document.getElementById('aiLoading').classList.add('hidden');
@@ -1464,14 +1719,9 @@
 
     // Close modals when clicking outside
     document.addEventListener('click', function(event) {
-      const uploadModal = document.getElementById('uploadModal');
       const bulkUploadModal = document.getElementById('bulkUploadModal');
       const editModal = document.getElementById('editModal');
       const aiAnalysisModal = document.getElementById('aiAnalysisModal');
-      
-      if (event.target === uploadModal) {
-        closeUploadModal();
-      }
       if (event.target === bulkUploadModal) {
         closeBulkUploadModal();
       }
@@ -1488,7 +1738,6 @@
     // Close modals with Escape key
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
-        closeUploadModal();
         closeBulkUploadModal();
         closeEditModal();
         closeAiAnalysisModal();
@@ -2075,6 +2324,158 @@
     }
 
     // Filtering functionality
+    // Monitoring tab logic
+    const MON = {
+      page: 1,
+      params() {
+        return {
+          search: document.getElementById('mon-search')?.value || '',
+          department: document.getElementById('mon-dept')?.value || '',
+          type: document.getElementById('mon-type')?.value || '',
+          status: document.getElementById('mon-status')?.value || '',
+          page: this.page
+        };
+      }
+    };
+    function loadMonitoringSummary(){
+      const p = MON.params();
+      const q = new URLSearchParams(p).toString();
+      fetch(`/legal/monitoring/summary?${q}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }})
+        .then(r=>r.json()).then(d=>{
+          if(!d.success) return;
+          const c = d.counts || {};
+          const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val ?? 0; };
+          set('mon-total', c.total);
+          set('mon-pending', c.pending);
+          set('mon-approved', c.approved);
+          set('mon-rejected', c.rejected);
+          set('mon-drafts', c.drafts);
+          set('mon-signatures', c.signing);
+          set('mon-signed', c.signed);
+          set('mon-expiring', c.expiring);
+        }).catch(()=>{});
+    }
+    function loadMonitoringList(){
+      const p = MON.params();
+      const q = new URLSearchParams(p).toString();
+      const container = document.getElementById('mon-cards-container');
+      if(container){ container.innerHTML = '<div class="text-center py-8 text-gray-500">Loading...</div>'; }
+      fetch(`/legal/monitoring/list?${q}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }})
+        .then(r=>r.json()).then(d=>{
+          if(!d.success) return;
+          const cards = (d.data||[]).map(item=>{
+            const sBadge = (s)=>{
+              const m = (s||'').toLowerCase();
+              const cls = m==='active'?'badge-success': m==='pending_review'?'badge-warning': m==='draft'?'badge-ghost': m==='returned'?'badge-info': m==='rejected'?'badge-error':'badge-ghost';
+              return `<span class="badge ${cls}">${s||'—'}</span>`;
+            };
+            const sig = item.signature_status ? `<span class="badge">${item.signature_status}</span>` : '—';
+            return `
+              <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div class="px-6 py-4">
+                  <div class="grid grid-cols-10 gap-4 items-center text-sm">
+                    <!-- Ref ID -->
+                    <div class="col-span-1 text-center">
+                      <div class="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                        ${item.reference_id||'—'}
+                      </div>
+                    </div>
+                    
+                    <!-- Title -->
+                    <div class="col-span-2">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="font-semibold text-gray-800 truncate">${item.title||'—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Type -->
+                    <div class="col-span-1 text-center">
+                      <span class="text-sm font-medium text-gray-700">${item.category||'—'}</span>
+                    </div>
+                    
+                    <!-- Department -->
+                    <div class="col-span-1 text-center">
+                      <span class="text-sm font-medium text-gray-700">${item.department||'—'}</span>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="col-span-1 text-center">
+                      ${sBadge(item.status)}
+                    </div>
+                    
+                    <!-- Signature -->
+                    <div class="col-span-1 text-center">
+                      ${sig}
+                    </div>
+                    
+                    <!-- Renewal -->
+                    <div class="col-span-1 text-center">
+                      <span class="text-sm text-gray-600">${item.renewal_date||'—'}</span>
+                    </div>
+                    
+                    <!-- Retention -->
+                    <div class="col-span-1 text-center">
+                      <span class="text-sm text-gray-600">${item.retention_until||'—'}</span>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="col-span-1 text-center">
+                      <div class="flex items-center justify-center gap-1">
+                        <button class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="View" onclick="viewDocument(${item.id})">
+                          <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+          }).join('');
+          if(container){ container.innerHTML = cards || '<div class="text-center py-8 text-gray-500">No documents found</div>'; }
+          // pager
+          const pager = document.getElementById('mon-pager');
+          if(pager){
+            const cp = d.meta?.current_page||1; const lp = d.meta?.last_page||1;
+            pager.innerHTML = `
+              <div class="join">
+                <button class="btn btn-sm join-item" ${cp<=1?'disabled':''} onclick="MON.page=${cp-1}; loadMonitoringList();">Prev</button>
+                <span class="px-2 text-sm">Page ${cp} of ${lp}</span>
+                <button class="btn btn-sm join-item" ${cp>=lp?'disabled':''} onclick="MON.page=${cp+1}; loadMonitoringList();">Next</button>
+              </div>`;
+          }
+          if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+        }).catch(()=>{
+          if(container){ container.innerHTML = '<div class="text-center py-8 text-error">Failed to load</div>'; }
+        });
+    }
+    function initMonitoringFilters(){
+      ['mon-search','mon-dept','mon-type','mon-status'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.addEventListener('input', ()=>{ MON.page = 1; loadMonitoringSummary(); loadMonitoringList(); });
+        el.addEventListener('change', ()=>{ MON.page = 1; loadMonitoringSummary(); loadMonitoringList(); });
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+      // Load departments into filter if we have a server-provided list in the page future; keep simple for now
+      initMonitoringFilters();
+      // Auto-load when Monitoring tab is active
+      const activeTabBtn = document.getElementById('btn-monitor');
+      if (activeTabBtn && activeTabBtn.className.includes('text-gray-700')) {
+        loadMonitoringSummary();
+        loadMonitoringList();
+      }
+    });
+    function viewDocument(id){
+      window.location.href = `/legal/documents/${id}`;
+    }
+    
+    
+    
     function filterDocuments() {
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
       const categoryFilter = document.getElementById('categoryFilter').value;
@@ -2159,21 +2560,27 @@
     function showLegalTab(name) {
       const createTab = document.getElementById('legal-create-tab');
       const docsTab = document.getElementById('legal-documents-tab');
-      const t1 = document.getElementById('btn-documents');
-      const t2 = document.getElementById('btn-create');
+      const monTab = document.getElementById('legal-monitor-tab');
+      const nav1 = document.getElementById('nav-documents');
+      const nav2 = document.getElementById('nav-create');
+      const nav3 = document.getElementById('nav-monitor');
       if (!createTab || !docsTab) return;
+      
+      // Reset all navigation buttons
+      [nav1, nav2, nav3].forEach(btn => {
+        if (btn) {
+          btn.classList.remove('text-blue-600', 'text-blue-800', 'font-semibold');
+          btn.classList.add('text-gray-600');
+        }
+      });
+      
       if (name === 'create') {
         createTab.classList.remove('hidden');
         docsTab.classList.add('hidden');
-        if (t2) {
-          t2.classList.add('bg-blue-100');
-          t2.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
-          t2.style.borderBottom = '2px solid var(--color-regal-navy)';
-        }
-        if (t1) {
-          t1.classList.remove('bg-blue-100');
-          t1.style.backgroundColor = '';
-          t1.style.borderBottom = '';
+        if (monTab) monTab.classList.add('hidden');
+        if (nav2) {
+          nav2.classList.remove('text-gray-600');
+          nav2.classList.add('text-blue-600', 'font-semibold');
         }
         // Reflect in URL so we can return to Create tab after redirects
         try {
@@ -2181,18 +2588,26 @@
           url.searchParams.set('tab', 'create');
           window.history.replaceState({}, '', url);
         } catch(e) {}
+      } else if (name === 'monitor') {
+        docsTab.classList.add('hidden');
+        createTab.classList.add('hidden');
+        if (monTab) monTab.classList.remove('hidden');
+        if (nav3) {
+          nav3.classList.remove('text-gray-600');
+          nav3.classList.add('text-blue-600', 'font-semibold');
+        }
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'monitor');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
       } else {
         docsTab.classList.remove('hidden');
         createTab.classList.add('hidden');
-        if (t1) {
-          t1.classList.add('bg-blue-100');
-          t1.style.backgroundColor = 'color-mix(in srgb, var(--color-regal-navy), white 80%)';
-          t1.style.borderBottom = '2px solid var(--color-regal-navy)';
-        }
-        if (t2) {
-          t2.classList.remove('bg-blue-100');
-          t2.style.backgroundColor = '';
-          t2.style.borderBottom = '';
+        if (monTab) monTab.classList.add('hidden');
+        if (nav1) {
+          nav1.classList.remove('text-gray-600');
+          nav1.classList.add('text-blue-800', 'font-semibold');
         }
         // Reflect in URL
         try {
@@ -2213,10 +2628,260 @@
         if (tabParam === 'create' || hashTab === 'create') {
           // Defer to ensure DOM is ready
           setTimeout(() => showLegalTab('create'), 0);
+        } else if (tabParam === 'monitor' || hashTab === 'monitor') {
+          setTimeout(() => showLegalTab('monitor'), 0);
         }
       } catch(e) {}
     })();
+
+    // Approve document function
+    function approveDocument(documentId) {
+      // Create approval modal
+      const modal = document.createElement('div');
+      modal.className = 'modal modal-open';
+      modal.innerHTML = `
+        <div class="modal-box">
+          <h3 class="font-bold text-lg text-green-600">Approve Document</h3>
+          <p class="py-4">Are you sure you want to approve this document?</p>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Approval Notes (Optional)</span>
+            </label>
+            <textarea id="approvalNotes" class="textarea textarea-bordered" placeholder="Add approval notes..."></textarea>
+          </div>
+          <div class="modal-action">
+            <button class="btn" onclick="closeApprovalModal()">Cancel</button>
+            <button class="btn btn-success" onclick="confirmApproval(${documentId})">
+              <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+              Approve
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    function closeApprovalModal() {
+      const modal = document.querySelector('.modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    function confirmApproval(documentId) {
+      const notes = document.getElementById('approvalNotes').value;
+      
+      fetch(`/legal/documents/${documentId}/approve-doc`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          notes: notes
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          closeApprovalModal();
+          showToast('Document approved successfully!', 'success');
+          location.reload();
+        } else {
+          showToast('Error: ' + data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while approving the document.', 'error');
+      });
+    }
+
+    // Decline document function
+    function declineDocument(documentId) {
+      // Create decline modal
+      const modal = document.createElement('div');
+      modal.className = 'modal modal-open';
+      modal.innerHTML = `
+        <div class="modal-box">
+          <h3 class="font-bold text-lg text-red-600">Decline Document</h3>
+          <p class="py-4">Please provide a reason for declining this document:</p>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Decline Reason *</span>
+            </label>
+            <textarea id="declineReason" class="textarea textarea-bordered" placeholder="Enter reason for declining..." required></textarea>
+          </div>
+          <div class="modal-action">
+            <button class="btn" onclick="closeDeclineModal()">Cancel</button>
+            <button class="btn btn-error" onclick="confirmDecline(${documentId})">
+              <i data-lucide="x" class="w-4 h-4 mr-2"></i>
+              Decline
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    function closeDeclineModal() {
+      const modal = document.querySelector('.modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    function confirmDecline(documentId) {
+      const reason = document.getElementById('declineReason').value.trim();
+      
+      if (!reason) {
+        showToast('Please provide a reason for declining the document.', 'error');
+        return;
+      }
+      
+      fetch(`/legal/documents/${documentId}/decline-doc`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reason: reason
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          closeDeclineModal();
+          showToast('Document declined successfully!', 'success');
+          location.reload();
+        } else {
+          showToast('Error: ' + data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while declining the document.', 'error');
+      });
+    }
+
+    // Mobile sidebar toggle function
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      const menuButton = event.target.closest('[onclick="toggleSidebar()"]');
+      
+      if (window.innerWidth < 1024 && !sidebar.contains(event.target) && !menuButton) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      
+      if (window.innerWidth >= 1024) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.add('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+      }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `alert alert-${type} fixed top-4 right-4 max-w-sm z-50`;
+      toast.innerHTML = `
+        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(toast);
+      lucide.createIcons();
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 3000);
+    }
+
   </script>
+
+  <!-- Mobile Responsive Styles -->
+  <style>
+    /* Improve touch targets for mobile */
+    @media (max-width: 1023px) {
+      .btn, button {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      
+      /* Improve card spacing on mobile */
+      .card-body {
+        padding: 1rem;
+      }
+      
+      /* Better text sizing for mobile */
+      .text-xs {
+        font-size: 0.75rem;
+        line-height: 1rem;
+      }
+      
+      /* Improve table card layout */
+      .lg\:hidden .space-y-4 > div {
+        margin-bottom: 1rem;
+      }
+      
+      /* Better button spacing in mobile cards */
+      .flex.flex-wrap.gap-2 button {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+    
+    /* Line clamp utility for text truncation */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* Touch manipulation for better mobile interaction */
+    .touch-manipulation {
+      touch-action: manipulation;
+    }
+    
+    /* Improve sidebar transition on mobile */
+    @media (max-width: 1023px) {
+      #sidebar {
+        transition: transform 0.3s ease-in-out;
+      }
+    }
+  </style>
 </body>
 </html>
 

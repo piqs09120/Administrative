@@ -34,12 +34,18 @@ class VisitorController extends Controller
         $this->workflowService = $workflowService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $visitors = Visitor::with('facility')->latest()->get();
         $facilities = Facility::all();
         $users = User::all();
-        return view('visitor.index', compact('visitors', 'facilities', 'users'));
+        
+        // Get active tab from request parameter
+        $validTabs = ['current', 'scheduled', 'monitoring'];
+        $tabParam = $request->get('tab');
+        $activeTab = in_array($tabParam, $validTabs) ? $tabParam : 'current';
+        
+        return view('visitor.index', compact('visitors', 'facilities', 'users', 'activeTab'));
     }
 
     public function create()

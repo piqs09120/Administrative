@@ -350,7 +350,7 @@
           <!-- Quick Stats Cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Total Visitors Today -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="avatar placeholder">
@@ -368,7 +368,7 @@
             </div>
 
             <!-- Currently In Building -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="avatar placeholder">
@@ -386,7 +386,7 @@
             </div>
 
             <!-- Average Visit Duration -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="avatar placeholder">
@@ -404,7 +404,7 @@
             </div>
 
             <!-- Peak Hours -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-info">
+            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="avatar placeholder">
@@ -426,20 +426,18 @@
 
         <!-- Main Content Tabs -->
         <div class="bg-white rounded-xl shadow-lg">
-          <!-- Tab Navigation -->
-          <div class="border-b border-gray-200">
-            <nav class="flex flex-wrap space-x-2 sm:space-x-8 px-4 sm:px-6" aria-label="Tabs">
-              <button onclick="showTab('logs')" class="tab-btn active py-3 sm:py-4 px-1 border-b-2 border-blue-500 font-medium text-xs sm:text-sm text-blue-600" id="logs-tab">
-                <i data-lucide="list" class="w-4 h-4 mr-1 sm:mr-2"></i>
-                <span class="hidden sm:inline">Detailed Logs</span>
-                <span class="sm:hidden">Logs</span>
+          <!-- Clickable Breadcrumb Navigation -->
+          <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+            <nav class="flex items-center space-x-2 text-sm">
+              <button id="nav-logs" class="text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='logs' ? 'text-blue-800 font-semibold' : '' }}" onclick="showTab('logs')">
+                <i data-lucide="list" class="w-4 h-4 mr-1"></i>
+                Detailed Logs
               </button>
-              <button onclick="showTab('reports')" class="tab-btn py-3 sm:py-4 px-1 border-b-2 border-transparent font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" id="reports-tab">
-                <i data-lucide="bar-chart-3" class="w-4 h-4 mr-1 sm:mr-2"></i>
-                <span class="hidden sm:inline">Reports & Analytics</span>
-                <span class="sm:hidden">Reports</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+              <button id="nav-reports" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 {{ $activeTab==='reports' ? 'text-blue-600 font-semibold' : '' }}" onclick="showTab('reports')">
+                <i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-1"></i>
+                Reports & Analytics
               </button>
-
             </nav>
           </div>
 
@@ -928,19 +926,40 @@
         content.classList.add('hidden');
       });
       
-      // Remove active class from all tab buttons
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
-        btn.classList.add('border-transparent', 'text-gray-500');
+      // Reset all navigation buttons
+      const nav1 = document.getElementById('nav-logs');
+      const nav2 = document.getElementById('nav-reports');
+      
+      [nav1, nav2].forEach(btn => {
+        if (btn) {
+          btn.classList.remove('text-blue-600', 'text-blue-800', 'font-semibold');
+          btn.classList.add('text-gray-600');
+        }
       });
       
       // Show selected tab content
       document.getElementById(tabName + '-content').classList.remove('hidden');
       
-      // Add active class to selected tab button
-      const activeTab = document.getElementById(tabName + '-tab');
-      activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
-      activeTab.classList.remove('border-transparent', 'text-gray-500');
+      // Update active navigation button
+      if (tabName === 'logs' && nav1) {
+        nav1.classList.remove('text-gray-600');
+        nav1.classList.add('text-blue-800', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tab');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      } else if (tabName === 'reports' && nav2) {
+        nav2.classList.remove('text-gray-600');
+        nav2.classList.add('text-blue-600', 'font-semibold');
+        // Reflect in URL
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', 'reports');
+          window.history.replaceState({}, '', url);
+        } catch(e) {}
+      }
       
       // Load data for the selected tab
       loadTabData(tabName);

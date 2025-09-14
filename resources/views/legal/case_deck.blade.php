@@ -151,30 +151,28 @@
           </div>
         @endif
 
-        <!-- Page Header with Stats -->
-        <div class="mb-8">
-          <div class="mb-6">
-            <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-3xl font-bold text-gray-800 mb-2">Legal Cases</h1>
-              <p class="text-gray-600">Manage and track all legal cases and proceedings</p>
-              </div>
-              @if(auth()->user()->role === 'Administrator')
-              <button onclick="openAddCaseModal()" class="btn btn-primary">
-                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                Add New Case
-              </button>
-              @endif
-            </div>
-          </div>
+        <!-- Legal Cases Content -->
+        <div class="pb-5 border-b border-base-300 animate-fadeIn">
+          <h1 class="text-2xl font-semibold bg-white bg-clip-text text-[#191970]" style="color: var(--color-charcoal-ink);">Violation & Compliance Cases</h1>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex justify-end mt-6 mb-8">
+          @if(auth()->user()->role === 'Administrator')
+          <button onclick="openAddCaseModal()" class="btn btn-primary">
+            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+            Report Violation
+          </button>
+          @endif
+        </div>
           
 
 
         <!-- Status Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Total Cases -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
-            <div class="card-body p-6">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+              <div class="card-body p-4">
               <div class="flex items-center justify-between mb-4">
                 <div class="avatar placeholder">
                   <div class="bg-primary text-primary-content rounded-full w-12 h-12">
@@ -191,8 +189,8 @@
           </div>
 
           <!-- Approved Cases -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
-            <div class="card-body p-6">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
+              <div class="card-body p-4">
               <div class="flex items-center justify-between mb-4">
                 <div class="avatar placeholder">
                   <div class="bg-success text-success-content rounded-full w-12 h-12">
@@ -209,8 +207,8 @@
           </div>
 
           <!-- Pending Cases -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
-            <div class="card-body p-6">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
+              <div class="card-body p-4">
               <div class="flex items-center justify-between mb-4">
                 <div class="avatar placeholder">
                   <div class="bg-warning text-warning-content rounded-full w-12 h-12">
@@ -227,8 +225,8 @@
           </div>
 
           <!-- Declined Cases -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-error">
-            <div class="card-body p-6">
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
+              <div class="card-body p-4">
               <div class="flex items-center justify-between mb-4">
                 <div class="avatar placeholder">
                   <div class="bg-error text-error-content rounded-full w-12 h-12">
@@ -258,84 +256,198 @@
                 Showing {{ $cases->count() ?? 0 }} of {{ $stats['total_cases'] ?? 0 }} cases
               </div>
             </div>
+            
+            <!-- Proper HTML Table -->
             <div class="overflow-x-auto">
-              <table class="table w-full">
+              <table class="table table-zebra w-full">
                 <thead>
-                  <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="px-6 py-4 text-left font-semibold text-gray-700">Case Details</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Type</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Date</th>
-                    <th class="px-6 py-4 text-center font-semibold text-gray-700">Actions</th>
+                  <tr class="bg-gray-50">
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700 w-16">#</th>
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Case Information</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700 w-32">Type</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700 w-40">Employee Involved</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700 w-32">Incident Date</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700 w-32">Status</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700 w-24">Priority</th>
+                    <th class="text-center py-4 px-4 font-semibold text-gray-700 w-32">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @forelse($cases ?? [] as $case)
-                    <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
-                      <td class="px-6 py-4">
-                        <div>
-                          <h4 class="font-semibold text-gray-900 mb-1">{{ $case->case_title ?? 'Untitled Case' }}</h4>
-                          <p class="text-sm text-gray-600 mb-2">{{ Str::limit($case->case_description ?? 'No description', 80) }}</p>
-                          <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">#{{ $case->case_number ?? 'N/A' }}</span>
+                  @forelse($cases ?? collect() as $index => $case)
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                      <!-- ID Column -->
+                      <td class="py-4 px-4">
+                        <div class="text-sm font-medium text-gray-500">
+                          #{{ $index + 1 }}
+                        </div>
+                      </td>
+                      
+                      <!-- Case Information Column -->
+                      <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                          <!-- Avatar -->
+                          <div class="avatar placeholder">
+                            <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center">
+                              <span class="text-sm font-semibold">
+                                {{ substr($case->case_title ?? 'UC', 0, 2) }}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <!-- Case Title -->
+                          <div>
+                            <h4 class="font-semibold text-gray-900">{{ $case->case_title ?? 'Untitled Case' }}</h4>
+                            <p class="text-sm text-gray-500">#{{ $case->case_number ?? 'LC-2025-0000' }}</p>
                           </div>
                         </div>
                       </td>
-                      <td class="px-6 py-4 text-center">
+                      
+                      <!-- Type Column -->
+                      <td class="py-4 px-4 text-center">
                         @if($case->case_type)
-                          <span class="badge badge-outline badge-sm">{{ ucfirst($case->case_type) }}</span>
+                          @php
+                            $violationTypes = [
+                              'theft' => 'Theft',
+                              'hr_policy_violation' => 'HR Policy',
+                              'hr_policy' => 'HR Policy',
+                              'workplace_harassment' => 'Harassment',
+                              'harassment' => 'Harassment',
+                              'fraud' => 'Fraud',
+                              'safety_violation' => 'Safety',
+                              'safety' => 'Safety',
+                              'insubordination' => 'Insubordination',
+                              'attendance_violation' => 'Attendance',
+                              'attendance' => 'Attendance',
+                              'confidentiality_breach' => 'Confidentiality',
+                              'confidentiality' => 'Confidentiality',
+                              'property_damage' => 'Property Damage',
+                              'property' => 'Property Damage',
+                              'guest_complaint' => 'Guest Complaint',
+                              'complaint' => 'Guest Complaint',
+                              'regulatory_violation' => 'Regulatory',
+                              'regulatory' => 'Regulatory',
+                              'violation' => 'Policy Violation',
+                              'other' => 'Other'
+                            ];
+                            $displayType = $violationTypes[$case->case_type] ?? ucfirst(str_replace('_', ' ', $case->case_type));
+                          @endphp
+                          <span class="text-sm font-medium text-gray-700">{{ $displayType }}</span>
                         @else
-                          <span class="text-gray-400 text-sm">N/A</span>
+                          <span class="text-sm text-gray-400">Not specified</span>
                         @endif
                       </td>
-                      <td class="px-6 py-4 text-center">
-                        <div class="text-sm text-gray-600">
-                          {{ $case->created_at ? $case->created_at->format('M d, Y') : 'N/A' }}
+                      
+                      <!-- Employee Involved Column -->
+                      <td class="py-4 px-4 text-center">
+                        @if($case->employee_involved)
+                          <span class="text-sm font-medium text-gray-700">{{ $case->employee_involved }}</span>
+                        @else
+                          <span class="text-sm text-gray-400">Not specified</span>
+                        @endif
+                      </td>
+                      
+                      <!-- Incident Date Column -->
+                      <td class="py-4 px-4 text-center">
+                        @if($case->incident_date)
+                          <span class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($case->incident_date)->format('M d, Y') }}</span>
+                        @else
+                          <span class="text-sm text-gray-400">Not specified</span>
+                        @endif
+                      </td>
+                      
+                      <!-- Status Column -->
+                      <td class="py-4 px-4 text-center">
+                        @php
+                          $statusConfig = [
+                            'pending' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'clock', 'text' => 'Pending'],
+                            'ongoing' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'play-circle', 'text' => 'Ongoing'],
+                            'completed' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle', 'text' => 'Completed'],
+                            'rejected' => ['class' => 'bg-red-100 text-red-800', 'icon' => 'x-circle', 'text' => 'Rejected'],
+                            'active' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'play-circle', 'text' => 'Active'],
+                            'on_hold' => ['class' => 'bg-orange-100 text-orange-800', 'icon' => 'pause-circle', 'text' => 'On Hold'],
+                            'escalated' => ['class' => 'bg-purple-100 text-purple-800', 'icon' => 'arrow-up-circle', 'text' => 'Escalated']
+                          ];
+                          $status = $statusConfig[$case->status] ?? ['class' => 'bg-gray-100 text-gray-800', 'icon' => 'help-circle', 'text' => ucfirst($case->status)];
+                        @endphp
+                        <div class="flex items-center justify-center space-x-1">
+                          <i data-lucide="{{ $status['icon'] }}" class="w-4 h-4"></i>
+                          <span class="text-sm font-medium {{ $status['class'] }} px-2 py-1 rounded-full">{{ $status['text'] }}</span>
                         </div>
                       </td>
-                      <td class="px-6 py-4 text-center">
-                        <div class="flex items-center justify-center gap-2">
+                      
+                      <!-- Priority Column -->
+                      <td class="py-4 px-4 text-center">
+                        @php
+                          $priority = $case->priority ?? 'medium';
+                          $priorityConfig = [
+                            'urgent' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Urgent'],
+                            'high' => ['class' => 'bg-orange-100 text-orange-800', 'text' => 'High'],
+                            'medium' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Medium'],
+                            'low' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Low']
+                          ];
+                          $priorityInfo = $priorityConfig[$priority] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => ucfirst($priority)];
+                        @endphp
+                        <span class="text-xs font-medium {{ $priorityInfo['class'] }} px-2 py-1 rounded-full">{{ $priorityInfo['text'] }}</span>
+                      </td>
+                      
+                      <!-- Actions Column -->
+                      <td class="py-4 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                          <!-- Review Button -->
+                          <a href="{{ route('legal.cases.review', $case->id ?? 1) }}" 
+                             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200" 
+                             title="Review Case">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                          </a>
+                          
                           @if($case->status === 'pending')
+                            <!-- Approve Button -->
                             <button onclick="approveCase({{ $case->id ?? 1 }})" 
-                                    class="btn btn-success btn-xs tooltip" 
-                                    data-tip="Approve Case">
-                              <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                                    class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200" 
+                                    title="Approve Case">
+                              <i data-lucide="check" class="w-4 h-4"></i>
                             </button>
+                            
+                            <!-- Decline Button -->
                             <button onclick="declineCase({{ $case->id ?? 1 }})" 
-                                    class="btn btn-error btn-xs tooltip" 
-                                    data-tip="Decline Case">
-                              <i data-lucide="x" class="w-4 h-4 text-white"></i>
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200" 
+                                    title="Decline Case">
+                              <i data-lucide="x" class="w-4 h-4"></i>
                             </button>
                           @endif
+                          
+                          <!-- Delete Button -->
                           <button onclick="deleteCase({{ $case->id ?? 1 }})" 
-                                  class="btn btn-error btn-xs tooltip" 
-                                  data-tip="Delete Case">
-                            <i data-lucide="trash-2" class="w-4 h-4 text-white"></i>
+                                  class="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200" 
+                                  title="Delete Case">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                           </button>
                         </div>
                       </td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="4" class="text-center py-12">
-                        <div class="flex flex-col items-center">
+                      <td colspan="8" class="py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
                           <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <i data-lucide="briefcase" class="w-10 h-10 text-gray-400"></i>
-                  </div>
-                          <h3 class="text-lg font-semibold text-gray-600 mb-2">No Legal Cases Found</h3>
-                          <p class="text-gray-500 text-sm mb-4">Get started by creating your first legal case</p>
+                            <i data-lucide="shield-alert" class="w-10 h-10 text-gray-400"></i>
+                          </div>
+                          <h3 class="text-lg font-semibold text-gray-600 mb-2">No Violation Cases Found</h3>
+                          <p class="text-gray-500 text-sm mb-4">Track employee violations, compliance issues, and legal actions</p>
                           @if(auth()->user()->role === 'Administrator')
                           <button onclick="openAddCaseModal()" class="btn btn-primary">
                             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                            Add New Case
+                            Report Violation
                           </button>
                           @endif
-                  </div>
+                        </div>
                       </td>
                     </tr>
                   @endforelse
                 </tbody>
               </table>
-                  </div>
+            </div>
+            
             <!-- Pagination -->
             @if(isset($cases) && $cases->hasPages())
               <div class="flex justify-center p-6 border-t border-gray-200">
@@ -350,172 +462,238 @@
 
   <!-- Add New Case Modal -->
   <div id="addCaseModal" class="modal">
-    <div class="modal-box w-11/12 max-w-6xl bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
+    <div class="modal-box w-11/12 max-w-5xl bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Add New Legal Case</h2>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+            <i data-lucide="shield-alert" class="w-6 h-6 text-red-600"></i>
+          </div>
+          <div>
+        <h2 class="text-2xl font-bold text-gray-800" style="color: var(--color-charcoal-ink);">Report Violation / Compliance Issue</h2>
+            <p class="text-sm text-gray-500">Submit a new legal case for review and investigation</p>
+          </div>
+        </div>
         <button onclick="closeAddCaseModal()" class="btn btn-sm btn-circle btn-ghost">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form action="{{ route('legal.store') }}" method="POST" enctype="multipart/form-data" id="addCaseForm">
+      <form action="{{ route('legal.store') }}" method="POST" id="addCaseForm">
         @csrf
         
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Left Column: Form Fields -->
-          <div class="space-y-6">
-            <!-- Case Title -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                Case Title*
-              </label>
-              <input type="text" name="case_title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                     value="{{ old('case_title') }}" placeholder="Enter case title" required 
-                     style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                Enter a descriptive title for the legal case
-              </p>
+        <!-- Form Sections -->
+        <div class="space-y-8">
+          <!-- Basic Information Section -->
+          <div class="bg-gray-50 rounded-lg p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+              <h3 class="text-lg font-semibold text-gray-800">Basic Information</h3>
             </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Case Title -->
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Case Title*
+                </label>
+                <input type="text" name="case_title" id="caseTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                       value="{{ old('case_title') }}" placeholder="Enter case title" required>
+                <p class="mt-1 text-sm text-gray-500">
+                  Enter a descriptive title for the legal case
+                </p>
+              </div>
 
-            <!-- Case Description -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                Case Description
-              </label>
-              <textarea name="case_description" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" 
-                        rows="4" placeholder="Brief description of the legal case..." 
-                        style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">{{ old('case_description') }}</textarea>
-              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                Provide a brief description of the case
-              </p>
-            </div>
+              <!-- Violation Template -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Violation Template
+                </label>
+                <select id="violationTemplate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">Select a template (optional)</option>
+                  <option value="theft_template">Theft / Stealing Template</option>
+                  <option value="hr_policy_template">HR Policy Violation Template</option>
+                  <option value="harassment_template">Workplace Harassment Template</option>
+                  <option value="safety_template">Safety Violation Template</option>
+                  <option value="attendance_template">Attendance Violation Template</option>
+                  <option value="confidentiality_template">Confidentiality Breach Template</option>
+                  <option value="property_damage_template">Property Damage Template</option>
+                  <option value="guest_complaint_template">Guest Complaint Template</option>
+                </select>
+                <p class="mt-1 text-sm text-gray-500">
+                  Choose a template to auto-fill violation details
+                </p>
+              </div>
 
-            <!-- Case Type -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                Case Type*
-              </label>
-              <select name="case_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required
-                      style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-                <option value="">Select case type</option>
-                <option value="contract_dispute" {{ old('case_type') == 'contract_dispute' ? 'selected' : '' }}>Contract Dispute</option>
-                <option value="employment_law" {{ old('case_type') == 'employment_law' ? 'selected' : '' }}>Employment Law</option>
-                <option value="intellectual_property" {{ old('case_type') == 'intellectual_property' ? 'selected' : '' }}>Intellectual Property</option>
-                <option value="regulatory_compliance" {{ old('case_type') == 'regulatory_compliance' ? 'selected' : '' }}>Regulatory Compliance</option>
-                <option value="litigation" {{ old('case_type') == 'litigation' ? 'selected' : '' }}>Litigation</option>
-                <option value="other" {{ old('case_type') == 'other' ? 'selected' : '' }}>Other</option>
-              </select>
-              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                Select the type of legal case
-              </p>
-            </div>
+              <!-- Violation Type -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Violation Type*
+                </label>
+                <select name="case_type" id="caseType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                  <option value="">Select violation type</option>
+                  <option value="theft" {{ old('case_type') == 'theft' ? 'selected' : '' }}>Theft / Stealing</option>
+                  <option value="hr_policy_violation" {{ old('case_type') == 'hr_policy_violation' ? 'selected' : '' }}>HR Policy Violation</option>
+                  <option value="workplace_harassment" {{ old('case_type') == 'workplace_harassment' ? 'selected' : '' }}>Workplace Harassment</option>
+                  <option value="fraud" {{ old('case_type') == 'fraud' ? 'selected' : '' }}>Fraud / Misrepresentation</option>
+                  <option value="safety_violation" {{ old('case_type') == 'safety_violation' ? 'selected' : '' }}>Safety Violation</option>
+                  <option value="insubordination" {{ old('case_type') == 'insubordination' ? 'selected' : '' }}>Insubordination</option>
+                  <option value="attendance_violation" {{ old('case_type') == 'attendance_violation' ? 'selected' : '' }}>Attendance Violation</option>
+                  <option value="confidentiality_breach" {{ old('case_type') == 'confidentiality_breach' ? 'selected' : '' }}>Confidentiality Breach</option>
+                  <option value="property_damage" {{ old('case_type') == 'property_damage' ? 'selected' : '' }}>Property Damage</option>
+                  <option value="guest_complaint" {{ old('case_type') == 'guest_complaint' ? 'selected' : '' }}>Guest Complaint</option>
+                  <option value="regulatory_violation" {{ old('case_type') == 'regulatory_violation' ? 'selected' : '' }}>Regulatory Violation</option>
+                  <option value="other" {{ old('case_type') == 'other' ? 'selected' : '' }}>Other Violation</option>
+                </select>
+                <p class="mt-1 text-sm text-gray-500">
+                  Select the type of violation or compliance issue
+                </p>
+              </div>
 
-            <!-- Priority -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                Priority*
-              </label>
-              <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required
-                      style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-                <option value="">Select priority</option>
-                <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
-                <option value="normal" {{ old('priority') == 'normal' ? 'selected' : '' }}>Normal</option>
-                <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
-                <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-              </select>
-              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                Set the priority level for this case
-              </p>
-            </div>
-
-            <!-- Assigned To -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                Assigned To
-              </label>
-              <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style="color: var(--color-charcoal-ink); background-color: var(--color-white); border-color: var(--color-snow-mist);">
-                <option value="">Select assignee</option>
-                <option value="legal_team" {{ old('assigned_to') == 'legal_team' ? 'selected' : '' }}>Legal Team</option>
-                <option value="senior_counsel" {{ old('assigned_to') == 'senior_counsel' ? 'selected' : '' }}>Senior Counsel</option>
-                <option value="external_counsel" {{ old('assigned_to') == 'external_counsel' ? 'selected' : '' }}>External Counsel</option>
-              </select>
-              <p class="mt-1 text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                Assign the case to a team member
-              </p>
+              <!-- Priority -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Priority*
+                </label>
+                <select name="priority" id="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                  <option value="">Select priority</option>
+                  <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                  <option value="medium" {{ old('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
+                  <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
+                  <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                </select>
+                <p class="mt-1 text-sm text-gray-500">
+                  Set the priority level for this case
+                </p>
+              </div>
             </div>
           </div>
 
-          <!-- Right Column: Document Upload & AI Analysis -->
-          <div class="space-y-6">
-            <!-- Document File Section -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" style="color: var(--color-charcoal-ink);">
-                Document File
-              </label>
-              <p class="text-sm text-gray-500 mb-3" style="color: var(--color-charcoal-ink); opacity: 0.7;">
-                PDF, Word, Excel, PPT, Text files (Max: 10MB)
-              </p>
-              
-              <!-- File Upload Zone -->
-              <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center transition-colors cursor-pointer bg-blue-50 hover:bg-blue-100"
-                   onclick="document.getElementById('legal_document').click()" 
-                   ondrop="handleDrop(event)" 
-                   ondragover="handleDragOver(event)" 
-                   ondragleave="handleDragLeave(event)"
-                   id="uploadZone">
-                
-                <input type="file" name="legal_document" id="legal_document" class="hidden" 
-                       accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" required>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-center">
-                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100">
-                      <i data-lucide="cloud-arrow-up" class="w-8 h-8 text-blue-600"></i>
-                    </div>
-                  </div>
-                  <div>
-                    <p class="text-lg font-medium text-gray-700" style="color: var(--color-charcoal-ink);">Click to select or drag file</p>
-                    <p class="text-sm text-gray-500" style="color: var(--color-charcoal-ink); opacity: 0.7;">Max file size: 10MB</p>
-                  </div>
-                  <p class="text-sm text-blue-600 font-medium">AI will automatically analyze and classify your document</p>
-                </div>
-              </div>
-              
-              <!-- File Preview -->
-              <div id="filePreview" class="mt-4 hidden">
-                <div class="rounded-lg p-4 border border-green-300 bg-green-50">
-                  <div class="flex items-center gap-3">
-                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
-                    <div class="flex-1">
-                      <p class="font-medium text-green-800" id="fileName"></p>
-                      <p class="text-sm text-green-600" id="fileSize"></p>
-                    </div>
-                    <button type="button" onclick="removeFile()" class="text-green-600 hover:text-green-800">
-                      <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                  </div>
-                </div>
+          <!-- Violation Details Section -->
+          <div class="bg-gray-50 rounded-lg p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-600"></i>
+              <h3 class="text-lg font-semibold text-gray-800">Violation Details</h3>
+            </div>
+            
+            <div class="space-y-6">
+              <!-- Violation Description -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Violation Description*
+                </label>
+                <textarea name="case_description" id="caseDescription" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" 
+                          rows="4" placeholder="Describe the violation in detail..." required>{{ old('case_description') }}</textarea>
+                <p class="mt-1 text-sm text-gray-500">
+                  Provide detailed description of the violation, including what happened, when, where, and who was involved
+                </p>
               </div>
             </div>
+          </div>
 
-            <!-- AI Analysis Complete Section -->
-            <div id="aiAnalysis" class="hidden"></div>
+          <!-- Incident Information Section -->
+          <div class="bg-gray-50 rounded-lg p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i>
+              <h3 class="text-lg font-semibold text-gray-800">Incident Information</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Employee Involved -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Employee Involved
+                </label>
+                <input type="text" name="employee_involved" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                       value="{{ old('employee_involved') }}" placeholder="Enter employee name or ID">
+                <p class="mt-1 text-sm text-gray-500">
+                  Name or employee ID of the person involved in the violation
+                </p>
+              </div>
+
+              <!-- Incident Date -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Incident Date
+                </label>
+                <input type="datetime-local" name="incident_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                       value="{{ old('incident_date') }}">
+                <p class="mt-1 text-sm text-gray-500">
+                  When did the violation occur?
+                </p>
+              </div>
+
+              <!-- Location -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Location
+                </label>
+                <input type="text" name="incident_location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                       value="{{ old('incident_location') }}" placeholder="e.g., Hotel Lobby, Restaurant, Room 205">
+                <p class="mt-1 text-sm text-gray-500">
+                  Where did the violation occur?
+                </p>
+              </div>
+
+              <!-- Assigned To -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Assigned To
+                </label>
+                <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">Select assignee</option>
+                  <option value="legal_team" {{ old('assigned_to') == 'legal_team' ? 'selected' : '' }}>Legal Team</option>
+                  <option value="hr_team" {{ old('assigned_to') == 'hr_team' ? 'selected' : '' }}>HR Team</option>
+                  <option value="security_team" {{ old('assigned_to') == 'security_team' ? 'selected' : '' }}>Security Team</option>
+                  <option value="management" {{ old('assigned_to') == 'management' ? 'selected' : '' }}>Management</option>
+                  <option value="external_counsel" {{ old('assigned_to') == 'external_counsel' ? 'selected' : '' }}>External Counsel</option>
+                </select>
+                <p class="mt-1 text-sm text-gray-500">
+                  Assign the case to the appropriate team
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
+              
         <!-- Submit Button -->
         <div class="mt-8 pt-6 border-t border-gray-200">
-          <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-            <i data-lucide="upload" class="w-5 h-5"></i>
-            ADD CASE
-          </button>
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+              <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+              All required fields must be completed before submission
+            </div>
+            <div class="flex gap-3">
+              <button type="button" onclick="closeAddCaseModal()" class="btn btn-ghost">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary bg-red-600 hover:bg-red-700 text-white">
+                <i data-lucide="shield-alert" class="w-5 h-5 mr-2"></i>
+                Report Violation
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </div>
   </div>
 
+
   @include('partials.soliera_js')
+  
+  <style>
+    /* Ensure modal is properly centered */
+    .modal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-box {
+      margin: auto;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+  </style>
   
   <script>
     // Initialize Lucide icons
@@ -964,8 +1142,74 @@
       });
     }
 
+    // Violation Templates
+    const violationTemplates = {
+      theft_template: {
+        title: 'Theft Incident Report',
+        description: 'INCIDENT REPORT - THEFT\n\nDate of Incident: [DATE]\nTime of Incident: [TIME]\nLocation: [LOCATION]\n\nDescription:\nA theft incident was reported involving [EMPLOYEE_NAME]. The incident occurred when [DETAILED_DESCRIPTION].\n\nItems Stolen:\n- [ITEM_1]\n- [ITEM_2]\n\nWitnesses:\n- [WITNESS_1]\n- [WITNESS_2]\n\nAction Taken:\n- Security was notified immediately\n- CCTV footage was reviewed\n- Police report filed (if applicable)\n\nRecommendations:\n- [RECOMMENDATION_1]\n- [RECOMMENDATION_2]',
+        type: 'theft',
+        priority: 'high'
+      },
+      hr_policy_template: {
+        title: 'HR Policy Violation Report',
+        description: 'HR POLICY VIOLATION REPORT\n\nEmployee: [EMPLOYEE_NAME]\nDepartment: [DEPARTMENT]\nPosition: [POSITION]\n\nViolation Details:\nThe employee has violated the following HR policy: [POLICY_NAME]\n\nSpecific Violation:\n[VIOLATION_DETAILS]\n\nPolicy Reference:\n[POLICY_REFERENCE]\n\nPrevious Violations:\n- [PREVIOUS_VIOLATION_1]\n- [PREVIOUS_VIOLATION_2]\n\nRecommended Action:\n- [ACTION_1]\n- [ACTION_2]\n\nHR Representative: [HR_REP_NAME]\nDate: [DATE]',
+        type: 'hr_policy_violation',
+        priority: 'normal'
+      },
+      harassment_template: {
+        title: 'Workplace Harassment Complaint',
+        description: 'WORKPLACE HARASSMENT COMPLAINT\n\nComplainant: [COMPLAINANT_NAME]\nAccused: [ACCUSED_NAME]\nDate of Incident: [DATE]\nLocation: [LOCATION]\n\nNature of Harassment:\n[DESCRIPTION_OF_HARASSMENT]\n\nWitnesses:\n- [WITNESS_1]\n- [WITNESS_2]\n\nEvidence:\n- [EVIDENCE_1]\n- [EVIDENCE_2]\n\nImmediate Actions Taken:\n- [ACTION_1]\n- [ACTION_2]\n\nInvestigation Required: YES/NO\n\nHR Representative: [HR_REP_NAME]\nDate: [DATE]',
+        type: 'workplace_harassment',
+        priority: 'urgent'
+      },
+      safety_template: {
+        title: 'Safety Violation Report',
+        description: 'SAFETY VIOLATION REPORT\n\nEmployee: [EMPLOYEE_NAME]\nDepartment: [DEPARTMENT]\nDate: [DATE]\nTime: [TIME]\nLocation: [LOCATION]\n\nSafety Violation:\n[VIOLATION_DESCRIPTION]\n\nPotential Hazards:\n- [HAZARD_1]\n- [HAZARD_2]\n\nImmediate Actions Taken:\n- [ACTION_1]\n- [ACTION_2]\n\nCorrective Measures:\n- [MEASURE_1]\n- [MEASURE_2]\n\nSafety Officer: [SAFETY_OFFICER]\nDate: [DATE]',
+        type: 'safety_violation',
+        priority: 'high'
+      },
+      attendance_template: {
+        title: 'Attendance Violation Report',
+        description: 'ATTENDANCE VIOLATION REPORT\n\nEmployee: [EMPLOYEE_NAME]\nEmployee ID: [EMPLOYEE_ID]\nDepartment: [DEPARTMENT]\n\nViolation Type:\n- [ ] Late arrival\n- [ ] Early departure\n- [ ] Unauthorized absence\n- [ ] Excessive breaks\n\nDetails:\n[VIOLATION_DETAILS]\n\nPrevious Violations:\n- [PREVIOUS_1]\n- [PREVIOUS_2]\n\nCorrective Action:\n- [ACTION_1]\n- [ACTION_2]\n\nSupervisor: [SUPERVISOR_NAME]\nDate: [DATE]',
+        type: 'attendance_violation',
+        priority: 'normal'
+      },
+      confidentiality_template: {
+        title: 'Confidentiality Breach Report',
+        description: 'CONFIDENTIALITY BREACH REPORT\n\nEmployee: [EMPLOYEE_NAME]\nDepartment: [DEPARTMENT]\nDate: [DATE]\n\nBreach Details:\n[BREACH_DESCRIPTION]\n\nConfidential Information Involved:\n- [INFO_1]\n- [INFO_2]\n\nPotential Impact:\n[IMPACT_ASSESSMENT]\n\nImmediate Actions:\n- [ACTION_1]\n- [ACTION_2]\n\nPrevention Measures:\n- [MEASURE_1]\n- [MEASURE_2]\n\nHR Representative: [HR_REP_NAME]\nDate: [DATE]',
+        type: 'confidentiality_breach',
+        priority: 'high'
+      },
+      property_damage_template: {
+        title: 'Property Damage Report',
+        description: 'PROPERTY DAMAGE REPORT\n\nDate: [DATE]\nTime: [TIME]\nLocation: [LOCATION]\n\nDamage Description:\n[DAMAGE_DESCRIPTION]\n\nEstimated Cost: [COST]\n\nCause:\n- [ ] Accidental\n- [ ] Intentional\n- [ ] Negligence\n- [ ] Other: [OTHER_CAUSE]\n\nWitnesses:\n- [WITNESS_1]\n- [WITNESS_2]\n\nActions Taken:\n- [ACTION_1]\n- [ACTION_2]\n\nInsurance Claim: YES/NO\n\nReported by: [REPORTER_NAME]\nDate: [DATE]',
+        type: 'property_damage',
+        priority: 'normal'
+      },
+      guest_complaint_template: {
+        title: 'Guest Complaint - Legal Action Required',
+        description: 'GUEST COMPLAINT - LEGAL ACTION REQUIRED\n\nGuest Name: [GUEST_NAME]\nRoom Number: [ROOM_NUMBER]\nCheck-in Date: [CHECKIN_DATE]\nCheck-out Date: [CHECKOUT_DATE]\n\nComplaint Details:\n[COMPLAINT_DESCRIPTION]\n\nStaff Involved:\n- [STAFF_1]\n- [STAFF_2]\n\nEvidence:\n- [EVIDENCE_1]\n- [EVIDENCE_2]\n\nGuest Demands:\n[GUEST_DEMANDS]\n\nLegal Implications:\n[LEGAL_IMPLICATIONS]\n\nRecommended Action:\n- [ACTION_1]\n- [ACTION_2]\n\nManager: [MANAGER_NAME]\nDate: [DATE]',
+        type: 'guest_complaint',
+        priority: 'high'
+      }
+    };
+
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
+      // Violation template handler
+      const templateSelect = document.getElementById('violationTemplate');
+      if (templateSelect) {
+        templateSelect.addEventListener('change', function() {
+          const template = violationTemplates[this.value];
+          if (template) {
+            document.getElementById('caseTitle').value = template.title;
+            document.getElementById('caseDescription').value = template.description;
+            document.getElementById('caseType').value = template.type;
+            document.getElementById('priority').value = template.priority;
+          }
+        });
+      }
+
       // Search and filter event listeners
       const caseSearch = document.getElementById('caseSearch');
       const priorityFilter = document.getElementById('priorityFilter');
@@ -1033,6 +1277,7 @@
         submitBtn.disabled = false;
       });
     }
+
     
     // Enhanced toast notification function
     function showEnhancedToast(title, type = 'info', icon = 'info', description = '') {
@@ -1131,166 +1376,69 @@
       document.getElementById('aiAnalysis').classList.add('hidden');
     }
 
-    // File upload handling functions
-    function handleDrop(e) {
-      e.preventDefault();
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        document.getElementById('legal_document').files = files;
-        updateFilePreview(files[0]);
-        analyzeDocument(files[0]);
-      }
-    }
 
-    function handleDragOver(e) {
-      e.preventDefault();
-    }
 
-    function handleDragLeave(e) {
-      e.preventDefault();
-    }
 
-    function updateFilePreview(file) {
-      const preview = document.getElementById('filePreview');
-      const fileName = document.getElementById('fileName');
-      const fileSize = document.getElementById('fileSize');
+    // Form validation and submission
+    function handleFormSubmission() {
+      const form = document.getElementById('addCaseForm');
+      const formData = new FormData(form);
+      const requiredFields = ['case_title', 'case_type', 'priority', 'case_description'];
       
-      fileName.textContent = file.name;
-      fileSize.textContent = formatFileSize(file.size);
-      preview.classList.remove('hidden');
-    }
-
-    function removeFile() {
-      document.getElementById('legal_document').value = '';
-      document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('aiAnalysis').classList.add('hidden');
-    }
-
-    function formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // AI Document Analysis
-    function analyzeDocument(file) {
-      const formData = new FormData();
-      formData.append('document_file', file);
-      formData.append('_token', '{{ csrf_token() }}');
-
+      // Validate required fields
+      let isValid = true;
+      requiredFields.forEach(fieldName => {
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.add('border-red-500');
+          isValid = false;
+        } else if (field) {
+          field.classList.remove('border-red-500');
+        }
+      });
+      
+      if (!isValid) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+      
       // Show loading state
-      const aiAnalysisPanel = document.getElementById('aiAnalysis');
-      aiAnalysisPanel.classList.remove('hidden');
-      aiAnalysisPanel.innerHTML = `
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-center gap-3 mb-3">
-            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-blue-500"></i>
-            <h3 class="font-medium text-blue-800">Analyzing Document...</h3>
-          </div>
-          <p class="text-sm text-blue-600">AI is processing your document</p>
-        </div>
-      `;
-
-      fetch('{{ route("document.analyzeUpload") }}', {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="loading loading-spinner"></i> Submitting...';
+      submitBtn.disabled = true;
+      
+      // Submit form
+      fetch(form.action, {
         method: 'POST',
         body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-      .then(async response => {
-        const contentType = response.headers.get('content-type') || '';
-        if (!response.ok) {
-          const fallback = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Server error' };
-          return fallback;
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
         }
-        if (!contentType.includes('application/json')) {
-          return { success: false, message: 'Unexpected response from server' };
-        }
-        return response.json();
       })
+      .then(response => response.json())
       .then(data => {
         if (data.success) {
-          // Update AI analysis results
-          const categoryDisplayNames = {
-            'memorandum': 'Memorandum',
-            'contract': 'Contract',
-            'subpoena': 'Subpoena',
-            'affidavit': 'Affidavit',
-            'cease_desist': 'Cease & Desist',
-            'legal_notice': 'Legal Notice',
-            'policy': 'Policy',
-            'legal_brief': 'Legal Brief',
-            'financial': 'Financial Document',
-            'compliance': 'Compliance Document',
-            'report': 'Report',
-            'general': 'Legal General'
-          };
-
-          const displayCategory = categoryDisplayNames[data.analysis.category] || 'Legal General';
-          
-          const summary = data.analysis.summary || '—';
-          const compliance = data.analysis.compliance_status || 'review_required';
-          const tags = data.analysis.tags ? (Array.isArray(data.analysis.tags) ? data.analysis.tags.join(', ') : data.analysis.tags) : '—';
-          const risk = data.analysis.legal_risk_score || 'Low';
-          const needsReview = (data.analysis.requires_legal_review ? 'Yes' : 'No');
-
-          aiAnalysisPanel.innerHTML = `
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                <h3 class="font-medium text-green-800">AI Analysis Complete</h3>
-              </div>
-              <div class="space-y-2 text-sm">
-                <div><strong>Category:</strong> <span class="font-semibold text-green-700">${displayCategory}</span></div>
-                <div><strong>Summary:</strong> <span class="text-green-700">${summary}</span></div>
-                <div><strong>Compliance:</strong> <span class="text-green-700">${compliance}</span></div>
-                <div><strong>Tags:</strong> <span class="text-green-700">${tags}</span></div>
-                <div><strong>Legal Risk:</strong> <span class="text-green-700">${risk}</span></div>
-                <div><strong>Legal Review Required:</strong> <span class="text-green-700">${needsReview}</span></div>
-              </div>
-            </div>
-          `;
-          lucide.createIcons();
+          showToast('Violation report submitted successfully!', 'success');
+          closeAddCaseModal();
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          // Show error state
-          aiAnalysisPanel.innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-                <h3 class="font-medium text-red-800">Analysis Failed</h3>
-              </div>
-              <p class="text-sm text-red-600">${data.message || 'Unable to analyze document'}</p>
-            </div>
-          `;
+          throw new Error(data.message || 'Failed to submit report');
         }
       })
       .catch(error => {
-        // Show error state
-        aiAnalysisPanel.innerHTML = `
-          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div class="flex items-center gap-3 mb-3">
-              <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-              <h3 class="font-medium text-red-800">Analysis Failed</h3>
-            </div>
-            <p class="text-sm text-red-600">Network or server error</p>
-          </div>
-        `;
+        console.error('Error:', error);
+        showToast('Error submitting report: ' + error.message, 'error');
+      })
+      .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
       });
     }
 
     // Event listeners for modal
     document.addEventListener('DOMContentLoaded', function() {
-      // File input change event listener
-      const fileInput = document.getElementById('legal_document');
-      if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-          if (e.target.files.length > 0) {
-            updateFilePreview(e.target.files[0]);
-            analyzeDocument(e.target.files[0]);
-          }
-        });
-      }
       
       // Form submission handler
       const addCaseForm = document.getElementById('addCaseForm');
@@ -1300,6 +1448,7 @@
           handleFormSubmission();
         });
       }
+
 
       // Close modal when clicking outside
       const modal = document.getElementById('addCaseModal');

@@ -40,301 +40,141 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-gray-800 mb-2">Documents</h1>
-          <p class="text-gray-600">Manage and organize your document library</p>
+          <div class="pb-5 border-b border-base-300 mb-6">
+            <h1 class="text-2xl font-semibold bg-white bg-clip-text text-[#191970]" style="color: var(--color-charcoal-ink);">Document Management</h1>
+            <p class="text-gray-600 mt-2">Manage and organize your document library</p>
+          </div>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <!-- Total Documents -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-primary cursor-pointer group">
-            <div class="card-body p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
-                  <div class="bg-primary text-primary-content rounded-full w-12 h-12">
-                    <i data-lucide="file-text" class="w-6 h-6"></i>
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-10 h-10">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
                   </div>
                 </div>
-                <div class="badge badge-primary badge-outline group-hover:badge-primary transition-colors duration-300">Documents</div>
+                <div class="badge badge-primary badge-outline text-xs">Total</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2 group-hover:text-primary-focus transition-colors duration-300">{{ $documents->count() }}</h2>
-                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Total Documents</p>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1">{{ $documents->count() }}</h2>
+                <p class="text-sm text-base-content/70">Documents</p>
               </div>
             </div>
           </div>
 
           <!-- Received Today -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-success cursor-pointer group">
-            <div class="card-body p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
-                  <div class="bg-success text-success-content rounded-full w-12 h-12">
-                    <i data-lucide="calendar-plus" class="w-6 h-6"></i>
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-success text-success-content rounded-full w-10 h-10">
+                    <i data-lucide="calendar-plus" class="w-5 h-5"></i>
                   </div>
                 </div>
-                <div class="badge badge-success badge-outline group-hover:badge-success transition-colors duration-300">Today</div>
+                <div class="badge badge-success badge-outline text-xs">Today</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2 group-hover:text-success-focus transition-colors duration-300">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</h2>
-                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Received Today</p>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</h2>
+                <p class="text-sm text-base-content/70">Received Today</p>
               </div>
             </div>
           </div>
 
           <!-- Released Documents -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-info cursor-pointer group">
-            <div class="card-body p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
-                  <div class="bg-info text-info-content rounded-full w-12 h-12">
-                    <i data-lucide="send" class="w-6 h-6"></i>
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-info text-info-content rounded-full w-10 h-10">
+                    <i data-lucide="send" class="w-5 h-5"></i>
                   </div>
                 </div>
-                <div class="badge badge-info badge-outline group-hover:badge-info transition-colors duration-300">Released</div>
+                <div class="badge badge-info badge-outline text-xs">Released</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-info justify-center mb-2 group-hover:text-info-focus transition-colors duration-300">{{ $documents->where('status', 'released')->count() }}</h2>
-                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Released Documents</p>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1">{{ $documents->where('status', 'released')->count() }}</h2>
+                <p class="text-sm text-base-content/70">Released Documents</p>
               </div>
             </div>
           </div>
 
           <!-- Archived Documents -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-neutral cursor-pointer group" onclick="window.location.href='{{ route('document.archived') }}'" title="View Archived Documents" role="button">
-            <div class="card-body p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder group-hover:scale-110 transition-transform duration-300">
-                  <div class="bg-neutral text-neutral-content rounded-full w-12 h-12">
-                    <i data-lucide="archive" class="w-6 h-6"></i>
+          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-neutral cursor-pointer" onclick="window.location.href='{{ route('document.archived') }}'" title="View Archived Documents" role="button">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-neutral text-neutral-content rounded-full w-10 h-10">
+                    <i data-lucide="archive" class="w-5 h-5"></i>
                   </div>
                 </div>
-                <div class="badge badge-neutral badge-outline group-hover:badge-neutral transition-colors duration-300">Archived</div>
+                <div class="badge badge-neutral badge-outline text-xs">Archived</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-neutral justify-center mb-2 group-hover:text-neutral-focus transition-colors duration-300">{{ $documents->where('status', 'archived')->count() }}</h2>
-                <p class="text-base-content/70 group-hover:text-base-content transition-colors duration-300">Archived Documents</p>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-neutral justify-center mb-1">{{ $documents->where('status', 'archived')->count() }}</h2>
+                <p class="text-sm text-base-content/70">Archived Documents</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Document Library -->
-        <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200">
-          <div class="p-6">
-            <!-- Top Controls Section -->
-            <div class="flex items-center justify-between mb-6">
-              <!-- Left Side: Search and Filters -->
-              <div class="flex items-center gap-4">
-                <!-- Search Bar -->
-                <div class="relative">
-                  <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                  <input type="text" 
-                         id="documentSearchInput"
-                         placeholder="Search documents..." 
-                         class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
-                </div>
-                
-                <!-- Status Filter -->
-                <div class="flex items-center gap-2">
-                  <label class="text-sm font-medium text-gray-700">Filter by Status:</label>
-                  <select id="statusFilter" class="select select-bordered select-sm w-32">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="pending_review">Pending Review</option>
-                    <option value="archived">Archived</option>
-                    <option value="draft">Draft</option>
-                  </select>
-                </div>
-              </div>
-              
-              <!-- Right Side: Upload Button - Only for Administrator -->
-              @if(auth()->user()->role === 'Administrator')
-                <button onclick="openUploadModal()" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
-                  <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
-                  UPLOAD
-                </button>
-              @endif
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center">
+              <i data-lucide="folder-open" class="w-6 h-6 text-blue-500 mr-3"></i>
+              Document Library
+            </h3>
+            <div class="flex items-center space-x-2">
+              <span class="text-sm text-gray-500">Total: {{ $documents->where('status', '!=', 'archived')->count() }} documents</span>
             </div>
-
-            <!-- Document Library Header -->
-            <div class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <i data-lucide="folder-open" class="w-5 h-5 text-blue-600"></i>
-                </div>
-                <h2 class="text-xl font-bold text-gray-800">Document Library ({{ $documents->where('status', '!=', 'archived')->count() }})</h2>
-              </div>
-
-            </div>
-
-            @if($documents->where('status', '!=', 'archived')->count() > 0)
-              <!-- Documents Table -->
-              <div class="overflow-x-auto">
-                <table class="table w-full">
-                  <thead>
-                    <tr class="bg-gray-50 border-b border-gray-200">
-                      <th class="text-left py-4 px-6 font-semibold text-gray-700">Document</th>
-                      <th class="text-left py-4 px-6 font-semibold text-gray-700">Details</th>
-                      <th class="text-center py-4 px-6 font-semibold text-gray-700">Status</th>
-                      <th class="text-center py-4 px-6 font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach($documents->where('status', '!=', 'archived') as $document)
-                      <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100" data-document-id="{{ $document->id }}">
-                        <!-- Document Column -->
-                        <td class="py-4 px-6">
-                          <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                              @php
-                                $fileExtension = pathinfo($document->file_path ?? '', PATHINFO_EXTENSION);
-                                $iconColor = 'text-blue-600';
-                                
-                                switch(strtolower($fileExtension)) {
-                                  case 'pdf':
-                                    $iconColor = 'text-red-600';
-                                    break;
-                                  case 'doc':
-                                  case 'docx':
-                                    $iconColor = 'text-blue-600';
-                                    break;
-                                  case 'xls':
-                                  case 'xlsx':
-                                    $iconColor = 'text-green-600';
-                                    break;
-                                  case 'ppt':
-                                  case 'pptx':
-                                    $iconColor = 'text-orange-600';
-                                    break;
-                                  default:
-                                    $iconColor = 'text-gray-600';
-                                }
-                              @endphp
-                              <i data-lucide="file-text" class="w-6 h-6 {{ $iconColor }}"></i>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                              <div class="font-medium text-gray-900 truncate">{{ $document->title }}</div>
-                              <div class="text-sm text-gray-500">
-                                @if($document->file_path)
-                                  @php
-                                    $fileSize = 0;
-                                    if (Storage::exists($document->file_path)) {
-                                      $fileSize = Storage::size($document->file_path);
-                                    }
-                                    $sizeFormatted = $fileSize > 0 ? number_format($fileSize / 1024, 1) . ' KB' : 'Unknown size';
-                                  @endphp
-                                  {{ strtoupper($fileExtension) }} • {{ $sizeFormatted }}
-                                @else
-                                  No file attached
-                                @endif
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        
-                        <!-- Details Column -->
-                        <td class="py-4 px-6">
-                          <div class="text-sm">
-                            <div class="font-medium text-gray-900">{{ $document->uploader_name }}</div>
-                            <div class="text-gray-500">{{ $document->created_at->format('M d, Y g:i A') }}</div>
-                          </div>
-                        </td>
-                        
-                        <!-- Status Column -->
-                        <td class="py-4 px-6 text-center">
-                          @php
-                            $statusConfig = [
-                              'active' => ['icon' => 'check-circle', 'color' => 'text-success'],
-                              'pending_review' => ['icon' => 'clock', 'color' => 'text-warning'],
-                              'draft' => ['icon' => 'edit-3', 'color' => 'text-info'],
-                              'legal' => ['icon' => 'gavel', 'color' => 'text-primary'],
-                              'visitor' => ['icon' => 'users', 'color' => 'text-secondary'],
-                              'high_risk' => ['icon' => 'alert-triangle', 'color' => 'text-error'],
-                              'general' => ['icon' => 'file-text', 'color' => 'text-neutral']
-                            ];
-                            $status = $document->status ?? 'active';
-                            $config = $statusConfig[$status] ?? $statusConfig['active'];
-                          @endphp
-                          <div class="flex justify-center">
-                            <i data-lucide="{{ $config['icon'] }}" class="w-5 h-5 {{ $config['color'] }}"></i>
-                          </div>
-                        </td>
-                        
-                        <!-- Actions Column -->
-                        <td class="py-4 px-6 text-center">
-                          <div class="relative" x-data="{ open: false }">
-                            <!-- 3-Dot Menu Button -->
-                            <button @click="open = !open" 
-                                    @click.away="open = false"
-                                    class="btn btn-ghost btn-sm btn-circle hover:bg-gray-200 transition-colors"
-                                    aria-label="Document actions menu">
-                              <i data-lucide="more-horizontal" class="w-5 h-5 text-gray-600"></i>
-                            </button>
-                            
-                            <!-- Dropdown Menu (opens upward to avoid being cut off) -->
-                            <div x-show="open" 
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-150"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 bottom-full mb-2 w-48 max-h-64 overflow-auto bg-white rounded-lg shadow-lg border border-gray-200 z-[100]"
-                                 style="display: none;">
-                              
-                             
-                              
-                              <!-- Archive Option - Only for Administrator -->
-                              @if(auth()->user()->role === 'Administrator')
-                                <button onclick="archiveDocument({{ $document->id }})" 
-                                        class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors">
-                                  <i data-lucide="archive" class="w-4 h-4 text-amber-600"></i>
-                                  <span>Archive</span>
-                                </button>
-                              @endif
-                              
-                              <!-- Divider -->
-                              <div class="border-t border-gray-200"></div>
-                              
-                              <!-- Delete Option - Only for Administrator -->
-                              @if(auth()->user()->role === 'Administrator')
-                                <button onclick="deleteDocument({{ $document->id }})" 
-                                        class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
-                                  <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
-                                  <span>Delete</span>
-                                </button>
-                              @endif
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    @endforeach
-                  </tbody>
-                </table>
-              </div>
-            @else
-              <!-- Empty State - Centered and Minimal -->
-              <div class="text-center py-16">
-                <!-- Large Icon -->
-                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <i data-lucide="folder" class="w-10 h-10 text-gray-400"></i>
-                </div>
-                
-                <!-- Empty State Text -->
-                <h3 class="text-xl font-semibold text-gray-700 mb-3">No Active Documents Found</h3>
-                <p class="text-gray-500 mb-8">Upload your first document to get started.</p>
-                
-                <!-- Primary Call-to-Action - Only for Administrator -->
-                @if(auth()->user()->role === 'Administrator')
-                  <button onclick="openUploadModal()" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
-                    <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
-                    UPLOAD DOCUMENT
-                  </button>
-                @endif
-              </div>
-            @endif
           </div>
+
+          <!-- Search/Filter/Upload removed when there is no content -->
+          @if($documents->where('status', '!=', 'archived')->count() > 0)
+            <div class="flex items-center gap-4 mb-6">
+              <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                <input type="text" id="documentSearchInput" placeholder="Search documents..." class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700">Filter by Status:</label>
+                <select id="statusFilter" class="select select-bordered select-sm w-32">
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="pending_review">Pending Review</option>
+                  <option value="archived">Archived</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </div>
+              <a href="{{ route('document.receive') }}" class="btn btn-outline btn-sm">
+                <i data-lucide="inbox" class="w-4 h-4 mr-2"></i>
+                Receive
+              </a>
+              <a href="{{ route('document.reports') }}" class="btn btn-outline btn-sm">
+                <i data-lucide="bar-chart" class="w-4 h-4 mr-2"></i>
+                Reports
+              </a>
+              <button onclick="openMonitoringModal()" class="btn btn-primary btn-sm">
+                <i data-lucide="activity" class="w-4 h-4 mr-2"></i>
+                Monitoring
+              </button>
+            </div>
+          @endif
+
+        <!-- Empty Content Area -->
+        <div class="card bg-white shadow-xl">
+          <div class="card-body text-center py-20">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i data-lucide="file-text" class="w-10 h-10 text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">Table Content Removed</h3>
+            <p class="text-gray-500 text-sm">The documents table has been removed as requested.</p>
+          </div>
+        </div>
         </div>
       </main>
     </div>
@@ -422,7 +262,41 @@
               </div>
             </div>
 
-            
+            <!-- Confidentiality -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Confidentiality</span>
+              </label>
+              <select name="confidentiality" class="select select-bordered w-full">
+                <option value="internal" selected>Internal</option>
+                <option value="public">Public</option>
+                <option value="restricted">Restricted</option>
+              </select>
+            </div>
+
+            <!-- Retention Policy -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Retention Policy</span>
+              </label>
+              <select name="retention_policy" id="retentionPolicy" class="select select-bordered w-full">
+                <option value="none">None</option>
+                <option value="30_days">30 Days</option>
+                <option value="6_months">6 Months</option>
+                <option value="1_year">1 Year</option>
+                <option value="3_years">3 Years</option>
+                <option value="custom">Custom Date</option>
+              </select>
+            </div>
+
+            <!-- Retention Until (custom) -->
+            <div class="form-control" id="retentionUntilRow" style="display:none;">
+              <label class="label">
+                <span class="label-text font-semibold">Retention Until</span>
+              </label>
+              <input type="datetime-local" name="retention_until" class="input input-bordered w-full">
+            </div>
+
           </div>
 
           <!-- Right Column: File Upload Area -->
@@ -522,6 +396,28 @@
   </div>
 
   @include('partials.soliera_js')
+  
+  <!-- Monitoring Modal -->
+  <div id="monitoringModal" class="modal">
+    <div class="modal-box w-11/12 max-w-6xl">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <i data-lucide="activity" class="w-6 h-6 text-blue-500"></i>
+          Document Management System - Monitoring Dashboard
+        </h3>
+        <button id="closeMonitoringModal" class="btn btn-sm btn-circle btn-ghost">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="monitoringContent">
+        <div class="flex items-center justify-center py-8">
+          <div class="loading loading-spinner loading-lg"></div>
+          <span class="ml-3">Loading monitoring data...</span>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <style>
     /* Performance-optimized CSS - No lag, smooth scrolling */
@@ -1259,6 +1155,15 @@
         }
       });
       
+      // Retention policy toggle
+      const rp = document.getElementById('retentionPolicy');
+      const ru = document.getElementById('retentionUntilRow');
+      if (rp && ru) {
+        rp.addEventListener('change', function(){
+          ru.style.display = (this.value === 'custom') ? '' : 'none';
+        });
+      }
+      
       // Close archive modal with Escape key
       document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
@@ -1268,6 +1173,132 @@
       
       console.log('Document management page initialized');
     });
+
+    // Monitoring Modal Functions
+    function openMonitoringModal() {
+      document.getElementById('monitoringModal').classList.add('modal-open');
+      loadMonitoringData();
+    }
+
+    function refreshTable() {
+      location.reload();
+    }
+
+    function processDocument(id) {
+      alert('Document processing feature coming soon!');
+    }
+
+    function closeMonitoringModal() {
+      document.getElementById('monitoringModal').classList.remove('modal-open');
+    }
+
+    function loadMonitoringData() {
+      const content = document.getElementById('monitoringContent');
+      
+      // Show loading
+      content.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+          <div class="loading loading-spinner loading-lg"></div>
+          <span class="ml-3">Loading monitoring data...</span>
+        </div>
+      `;
+
+      // Fetch monitoring data
+      fetch('/document/monitoring/summary')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            displayMonitoringData(data.data);
+          } else {
+            content.innerHTML = '<div class="alert alert-error">Failed to load monitoring data</div>';
+          }
+        })
+        .catch(error => {
+          console.error('Error loading monitoring data:', error);
+          content.innerHTML = '<div class="alert alert-error">Error loading monitoring data</div>';
+        });
+    }
+
+    function displayMonitoringData(data) {
+      const content = document.getElementById('monitoringContent');
+      
+      content.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="card bg-white shadow-xl">
+            <div class="card-body text-center">
+              <div class="text-3xl font-bold text-blue-600">${data.total}</div>
+              <div class="text-sm text-gray-600">Total Documents</div>
+            </div>
+          </div>
+          <div class="card bg-white shadow-xl">
+            <div class="card-body text-center">
+              <div class="text-3xl font-bold text-green-600">${data.active}</div>
+              <div class="text-sm text-gray-600">Active Documents</div>
+            </div>
+          </div>
+          <div class="card bg-white shadow-xl">
+            <div class="card-body text-center">
+              <div class="text-3xl font-bold text-yellow-600">${data.pendingReview}</div>
+              <div class="text-sm text-gray-600">Pending Review</div>
+            </div>
+          </div>
+          <div class="card bg-white shadow-xl">
+            <div class="card-body text-center">
+              <div class="text-3xl font-bold text-red-600">${data.expiring}</div>
+              <div class="text-sm text-gray-600">Expiring Soon</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card bg-white shadow-xl">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Document Status Overview</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h5 class="font-semibold mb-3">Active Documents</h5>
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center p-2 bg-green-50 rounded">
+                    <span>Active</span>
+                    <span class="badge badge-success">${data.active}</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-yellow-50 rounded">
+                    <span>Pending Review</span>
+                    <span class="badge badge-warning">${data.pendingReview}</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span>Archived</span>
+                    <span class="badge badge-neutral">${data.archived}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h5 class="font-semibold mb-3">Retention Status</h5>
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center p-2 bg-red-50 rounded">
+                    <span>Expiring Soon (60 days)</span>
+                    <span class="badge badge-error">${data.expiring}</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-blue-50 rounded">
+                    <span>Total Documents</span>
+                    <span class="badge badge-info">${data.total}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('monitoringModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeMonitoringModal();
+      }
+    });
+
+    // Close modal with button
+    document.getElementById('closeMonitoringModal').addEventListener('click', closeMonitoringModal);
   </script>
 </body>
 </html> 

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class VisitorLogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Get basic statistics
         $stats = $this->getBasicStats();
@@ -26,7 +26,12 @@ class VisitorLogController extends Controller
         // Get facilities for filters
         $facilities = Facility::all();
         
-        return view('visitor.logs', compact('stats', 'visitors', 'facilities'));
+        // Get active tab from request parameter
+        $validTabs = ['logs', 'reports'];
+        $tabParam = $request->get('tab');
+        $activeTab = in_array($tabParam, $validTabs) ? $tabParam : 'logs';
+        
+        return view('visitor.logs', compact('stats', 'visitors', 'facilities', 'activeTab'));
     }
 
     public function getAnalytics(Request $request): JsonResponse

@@ -74,6 +74,41 @@ Route::get('/test-access-logs', function () {
     }
 });
 
+// Test route for legal case review (temporary - remove in production)
+Route::get('/test-legal-case-review', function () {
+    try {
+        $case = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])->first();
+        
+        if (!$case) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No legal cases found in database'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'case' => [
+                'id' => $case->id,
+                'case_title' => $case->case_title,
+                'case_number' => $case->case_number,
+                'status' => $case->status,
+                'documents_count' => $case->documents->count(),
+                'assigned_to' => $case->assignedTo ? $case->assignedTo->employee_name : 'Not assigned',
+                'created_by' => $case->createdBy ? $case->createdBy->employee_name : 'Unknown'
+            ],
+            'message' => 'Legal case review test successful'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+    }
+});
+
 // Authentication Routes (single, non-conflicting)
 Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login');
 Route::post('/loginuser', [App\Http\Controllers\userController::class, 'login'])->name('user.login');
@@ -92,6 +127,8 @@ Route::post('/guest/login', [App\Http\Controllers\userController::class, 'guestl
 // Legal Documents - accessible to Legal Officers, Administrators, and Super Admins
 Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
     Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
+    // Legal Cases - accessible to all legal roles
+    Route::get('/legal/cases', [LegalController::class, 'caseDeck'])->name('legal.legal_cases');
     // Internal legal document creation (draft/publish)
     Route::get('/legal/documents/create', [LegalController::class, 'createInternalDocument'])->name('legal.documents.create');
     Route::post('/legal/documents', [LegalController::class, 'storeInternalDocument'])->name('legal.documents.store');
@@ -106,6 +143,12 @@ Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->gro
     Route::post('/legal/documents/{id}/request-revision', [LegalController::class, 'requestRevisionDocument'])->name('legal.documents.request_revision');
     // Archiving & retention
     Route::post('/legal/documents/{id}/archive', [LegalController::class, 'archiveDocument'])->name('legal.documents.archive');
+    // Monitoring API
+    Route::get('/legal/monitoring/summary', [LegalController::class, 'monitoringSummary'])->name('legal.monitoring.summary');
+    Route::get('/legal/monitoring/list', [LegalController::class, 'monitoringList'])->name('legal.monitoring.list');
+    // E-signature actions
+    Route::post('/legal/documents/{id}/send-esign', [LegalController::class, 'sendForESign'])->name('legal.documents.send_esign');
+    Route::post('/legal/esign/webhook', [LegalController::class, 'esignWebhook'])->name('legal.esign.webhook');
     // Department submission flow
     Route::get('/legal/documents/submit', [LegalController::class, 'submitForm'])->name('legal.documents.submit_form');
     Route::post('/legal/documents/submit', [LegalController::class, 'storeSubmission'])->name('legal.documents.store_submission');
@@ -314,12 +357,60 @@ Route::middleware(['auth'])->group(function () {
     
     // Profile
     
+    // AI Document Builder - Must be before resource route to avoid conflicts
+    Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::get('/legal/ai-builder', [LegalController::class, 'aiDocumentBuilder'])->name('legal.ai_builder');
+        Route::post('/legal/ai-generate-section', [LegalController::class, 'aiGenerateSection'])->name('legal.ai_generate_section');
+        Route::post('/legal/ai-generate-document', [LegalController::class, 'aiGenerateDocument'])->name('legal.ai_generate_document');
+        Route::post('/legal/save-ai-document', [LegalController::class, 'saveAiDocument'])->name('legal.save_ai_document');
+        Route::post('/legal/submit-ai-document', [LegalController::class, 'submitAiDocument'])->name('legal.submit_ai_document');
+    });
+    
     Route::resource('legal', LegalController::class);
     
     // Legal Management Sub-modules - Administrator and Super Admin only
     Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
         Route::get('/legal', [LegalController::class, 'caseDeck'])->name('legal.case_deck');
-        Route::get('/legal/cases', [LegalController::class, 'caseDeck'])->name('legal.legal_cases');
+        
+        // Legal Documents Management
+        Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
+        Route::get('/legal/documents/create', [LegalController::class, 'createInternalDocument'])->name('legal.documents.create');
+        Route::post('/legal/documents', [LegalController::class, 'storeInternalDocument'])->name('legal.store_internal_document');
+        Route::get('/legal/submit', [LegalController::class, 'submitForm'])->name('legal.submit_form');
+        Route::post('/legal/submit', [LegalController::class, 'storeSubmission'])->name('legal.documents.store_submission');
+        
+        // Document Actions
+        Route::post('/legal/documents/{id}/approve', [LegalController::class, 'approveDocument'])->name('legal.documents.approve');
+        Route::post('/legal/documents/{id}/reject', [LegalController::class, 'rejectDocument'])->name('legal.documents.reject');
+        Route::post('/legal/documents/{id}/revision', [LegalController::class, 'requestRevisionDocument'])->name('legal.documents.revision');
+        Route::post('/legal/documents/{id}/archive', [LegalController::class, 'archiveDocument'])->name('legal.documents.archive');
+        Route::post('/legal/documents/{id}/signed', [LegalController::class, 'markSigned'])->name('legal.documents.signed');
+        Route::post('/legal/documents/{id}/renewal', [LegalController::class, 'setRenewal'])->name('legal.documents.renewal');
+        Route::post('/legal/documents/{id}/signature', [LegalController::class, 'requestSignature'])->name('legal.documents.signature');
+        Route::post('/legal/documents/{id}/remind', [LegalController::class, 'remindSignature'])->name('legal.documents.remind');
+        Route::post('/legal/documents/{id}/cancel-signature', [LegalController::class, 'cancelSignature'])->name('legal.documents.cancel_signature');
+        Route::get('/legal/documents/{id}/export', [LegalController::class, 'exportDocument'])->name('legal.documents.export');
+        Route::post('/legal/documents/{id}/esign', [LegalController::class, 'sendForESign'])->name('legal.documents.esign');
+        Route::post('/legal/documents/esign-webhook', [LegalController::class, 'esignWebhook'])->name('legal.documents.esign_webhook');
+        
+        // Legal Document Management Routes
+        Route::get('/legal/documents/{id}', [DocumentController::class, 'showLegalDocument'])->name('legal.documents.show');
+        Route::get('/legal/documents/{id}/edit', [DocumentController::class, 'editLegalDocument'])->name('legal.documents.edit');
+        Route::put('/legal/documents/{id}', [DocumentController::class, 'updateLegalDocument'])->name('legal.documents.update');
+        Route::delete('/legal/documents/{id}', [DocumentController::class, 'deleteLegalDocument'])->name('legal.documents.delete');
+        Route::get('/legal/documents/{id}/download', [DocumentController::class, 'downloadLegalDocument'])->name('legal.documents.download');
+        Route::post('/legal/documents/{id}/archive', [DocumentController::class, 'archive'])->name('legal.documents.archive_doc');
+        Route::post('/legal/documents/{id}/approve-doc', [DocumentController::class, 'approveLegalDocument'])->name('legal.documents.approve_doc');
+        Route::post('/legal/documents/{id}/decline-doc', [DocumentController::class, 'declineLegalDocument'])->name('legal.documents.decline_doc');
+        
+        // Document Drafting
+        Route::get('/legal/documents/draft', [LegalController::class, 'draftingWorkspace'])->name('legal.documents.draft');
+        Route::post('/legal/documents/draft/save', [LegalController::class, 'saveDraft'])->name('legal.documents.save_draft');
+        Route::post('/legal/documents/draft/submit', [LegalController::class, 'submitForReview'])->name('legal.documents.submit_draft');
+        
+        // General Document Routes
+        Route::post('/documents', [LegalController::class, 'store'])->name('document.store');
+        Route::post('/documents/bulk-upload', [LegalController::class, 'bulkUpload'])->name('document.bulkUpload');
     });
     
     // Legal Documents route is now properly protected above
@@ -336,6 +427,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Document Management - Administrator, Super Admin only
     Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::get('/document/view', [DocumentController::class, 'view'])->name('document.view');
         Route::resource('document', DocumentController::class)->where(['document' => '[0-9]+']);
         Route::resource('facilities', FacilitiesController::class);
         Route::get('/facilities/{id}/ajax', [FacilitiesController::class, 'showAjax'])->name('facilities.showAjax');
@@ -530,6 +622,33 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeAjax'])->name('document.analyzeAjax');
     // Use a unique name for the upload analysis endpoint to avoid name collisions
     Route::post('/document/analyze-upload', [DocumentController::class, 'analyzeUpload'])->name('document.analyzeUpload');
+    // DMS: simple monitoring & reports (document module only)
+    Route::get('/document/monitoring/summary', function(\Illuminate\Http\Request $request){
+        $q = \App\Models\Document::query()->whereNotIn('source',["legal_management","legal_submission","ai_builder"]);
+        if ($dept = $request->get('department')) { $q->where('department',$dept); }
+        if ($status = $request->get('status')) { $q->where('status',$status); }
+        $now = now();
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total' => (clone $q)->count(),
+                'active' => (clone $q)->where('status','active')->count(),
+                'archived' => (clone $q)->where('status','archived')->count(),
+                'expiring' => (clone $q)->whereNotNull('retention_until')->whereBetween('retention_until',[$now,$now->copy()->addDays(60)])->count(),
+            ]
+        ]);
+    })->name('document.monitoring.summary');
+    Route::get('/document/reports/basic', function(){
+        $docs = \App\Models\Document::whereNotIn('source',["legal_management","legal_submission","ai_builder"]) ->get();
+        $byDept = $docs->groupBy('department')->map->count();
+        $byStatus = $docs->groupBy('status')->map->count();
+        return response()->json(['success'=>true,'by_department'=>$byDept,'by_status'=>$byStatus]);
+    })->name('document.reports.basic');
+
+    // DMS reports page (view only)
+    Route::get('/document/reports', [DocumentController::class, 'reports'])->name('document.reports');
+    // Document receiving interface
+    Route::get('/document/receive', [DocumentController::class, 'receive'])->name('document.receive');
     // OCR test route for debugging document analysis
     Route::post('/document/test-ocr', [DocumentController::class, 'testOcrExtraction'])->name('document.testOcr');
     // OCR test page for debugging
@@ -544,6 +663,28 @@ Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeA
     Route::post('/document/{id}/unarchive', [DocumentController::class, 'unarchive'])->name('document.unarchive');
     Route::get('/document/archived', [DocumentController::class, 'archived'])->name('document.archived');
 
+    // Document Disposal Routes
+    Route::get('/document/disposal', [DocumentController::class, 'disposal'])->name('document.disposal');
+    Route::post('/document/{id}/dispose', [DocumentController::class, 'dispose'])->name('document.dispose');
+    
+    // Disposal History Routes
+    Route::get('/disposal', [App\Http\Controllers\DisposalController::class, 'index'])->name('disposal.index');
+    Route::get('/disposal/{id}', [App\Http\Controllers\DisposalController::class, 'show'])->name('disposal.show');
+    Route::get('/disposal/export/csv', [App\Http\Controllers\DisposalController::class, 'export'])->name('disposal.export');
+    
+    
+    // Document Access Control and Analytics Routes
+    Route::get('/document/analytics', [App\Http\Controllers\DocumentAnalyticsController::class, 'index'])->name('document.analytics');
+    Route::get('/document/{id}/access-analytics', [App\Http\Controllers\DocumentAnalyticsController::class, 'documentAccess'])->name('document.access_analytics');
+    Route::get('/document/analytics/department-stats', [App\Http\Controllers\DocumentAnalyticsController::class, 'departmentStats'])->name('document.department_stats');
+    Route::get('/document/analytics/confidentiality-stats', [App\Http\Controllers\DocumentAnalyticsController::class, 'confidentialityStats'])->name('document.confidentiality_stats');
+    Route::get('/document/analytics/access-trends', [App\Http\Controllers\DocumentAnalyticsController::class, 'accessTrends'])->name('document.access_trends');
+    
+    // Document Access Control Routes
+    Route::post('/document/{id}/track-access', [App\Http\Controllers\DocumentAccessController::class, 'trackAccess'])->name('document.track_access');
+    Route::get('/document/{id}/download-secure', [App\Http\Controllers\DocumentAccessController::class, 'download'])->name('document.download_secure');
+    Route::get('/document/{id}/access-analytics', [App\Http\Controllers\DocumentAccessController::class, 'getAccessAnalytics'])->name('document.get_access_analytics');
+
     // Legal Approval Routes
     Route::post('/legal/{id}/approve', [LegalController::class, 'approveRequest'])->name('legal.approve');
     Route::post('/legal/{id}/deny', [LegalController::class, 'denyRequest'])->name('legal.deny');
@@ -553,8 +694,15 @@ Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeA
     
     // Legal Case Approval Routes - Administrator and Super Admin only
     Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
+        Route::get('/legal/cases/{id}/review', [LegalController::class, 'reviewCase'])->name('legal.cases.review');
+        Route::get('/legal/cases/{id}/compliance', [LegalController::class, 'complianceAssessment'])->name('legal.cases.compliance');
         Route::post('/legal/cases/{id}/approve', [LegalController::class, 'approveCase'])->name('legal.cases.approve');
         Route::post('/legal/cases/{id}/decline', [LegalController::class, 'declineCase'])->name('legal.cases.decline');
+        Route::post('/legal/cases/{id}/escalate', [LegalController::class, 'escalateCase'])->name('legal.cases.escalate');
+        Route::post('/legal/cases/{id}/hold', [LegalController::class, 'holdCase'])->name('legal.cases.hold');
+        Route::post('/legal/cases/{id}/investigate', [LegalController::class, 'startInvestigation'])->name('legal.cases.investigate');
+        Route::post('/legal/cases/{id}/evidence', [LegalController::class, 'addEvidence'])->name('legal.cases.evidence');
+        Route::post('/legal/cases/{id}/notes', [LegalController::class, 'addNotes'])->name('legal.cases.notes');
     });
 
 // Super Admin Routes

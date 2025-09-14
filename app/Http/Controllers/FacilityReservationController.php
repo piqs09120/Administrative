@@ -59,12 +59,17 @@ class FacilityReservationController extends Controller
         return view('facility_reservations.index', compact('reservations', 'facilities'));
     }
 
-    public function newRequest()
+    public function newRequest(Request $request)
     {
         $facilities = Facility::all();
         $requests = \App\Models\FacilityRequest::with(['facility', 'assignedTo'])->latest()->get();
         
-        return view('facility_reservations.new_request', compact('facilities', 'requests'));
+        // Get active tab from request parameter
+        $validTabs = ['reservation', 'maintenance', 'equipment_request'];
+        $tabParam = $request->get('tab');
+        $activeTab = in_array($tabParam, $validTabs) ? $tabParam : 'reservation';
+        
+        return view('facility_reservations.new_request', compact('facilities', 'requests', 'activeTab'));
     }
 
     // Monitoring Summary API for Facilities module

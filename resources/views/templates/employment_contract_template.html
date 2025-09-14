@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Employment Contract</title>
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 12pt; line-height: 1.5; color: #000; }
+    h1 { text-align: center; font-size: 18pt; letter-spacing: 0.5px; margin-bottom: 6px; }
+    h2 { font-size: 13pt; margin-top: 16px; margin-bottom: 6px; }
+    p { margin: 6px 0; }
+    ul { margin: 6px 0 6px 18px; }
+    .muted { color: #333; }
+    .small { font-size: 10pt; }
+    .section { page-break-inside: avoid; }
+    .signature-table { width: 100%; margin-top: 24px; }
+    .signature-cell { width: 50%; vertical-align: top; padding: 8px; }
+    .sig-line { border-top: 1px solid #000; width: 260px; margin-top: 36px; }
+  </style>
+  <!--
+    Placeholders you should replace before sending to HR1:
+    [[EMPLOYER_LEGAL_NAME]], [[EMPLOYER_ADDRESS]], [[EMPLOYER_REP_NAME]], [[EMPLOYER_REP_TITLE]]
+    [[EMPLOYEE_FULL_NAME]], [[EMPLOYEE_ADDRESS]], [[POSITION_TITLE]], [[DEPARTMENT]]
+    [[START_DATE]], [[PROBATIONARY_MONTHS]], [[EMPLOYMENT_STATUS]] (Probationary/Regular/Contractual)
+    [[BASE_SALARY]], [[PAY_FREQUENCY]] (e.g., monthly), [[ALLOWANCES]] (or N/A)
+    [[WORK_SCHEDULE]] (e.g., Mon–Fri, 9:00–18:00), [[PLACE_OF_WORK]]
+    [[BENEFITS_SUMMARY]] (or reference handbook), [[SUPERVISOR_NAME]]
+    [[CONFIDENTIALITY_YEARS]], [[NOTICE_PERIOD_DAYS]], [[GOVERNING_LAW]], [[EFFECTIVE_DATE]]
+  -->
+</head>
+<body>
+  <h1>EMPLOYMENT CONTRACT</h1>
+  <p class="muted small" style="text-align:center;">This Employment Contract (the "Agreement") is made effective as of [[EFFECTIVE_DATE]].</p>
+
+  <div class="section">
+    <h2>1. Parties</h2>
+    <p>
+      [[EMPLOYER_LEGAL_NAME]], with principal address at [[EMPLOYER_ADDRESS]] (the "Employer"),
+      and [[EMPLOYEE_FULL_NAME]], residing at [[EMPLOYEE_ADDRESS]] (the "Employee").
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>2. Position and Start Date</h2>
+    <p>
+      The Employer appoints the Employee as <strong>[[POSITION_TITLE]]</strong> under the
+      <strong>[[DEPARTMENT]]</strong> department. Employment shall commence on <strong>[[START_DATE]]</strong>
+      with status <strong>[[EMPLOYMENT_STATUS]]</strong> and a probationary period of
+      <strong>[[PROBATIONARY_MONTHS]]</strong> month(s), unless otherwise confirmed or extended in
+      accordance with applicable law and Company policy.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>3. Compensation</h2>
+    <p>
+      Base Salary: <strong>[[BASE_SALARY]]</strong> (paid [[PAY_FREQUENCY]]). Any supplemental allowances or fixed
+      benefits, if applicable, are as follows: <strong>[[ALLOWANCES]]</strong>.
+    </p>
+    <p>
+      All compensation is subject to statutory deductions, taxes, and withholdings required by law.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>4. Work Schedule and Location</h2>
+    <p>
+      Regular work schedule: <strong>[[WORK_SCHEDULE]]</strong>. Primary place of work: <strong>[[PLACE_OF_WORK]]</strong>.
+      The Employee may be assigned to other locations as reasonably required by business needs.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>5. Duties and Performance</h2>
+    <p>
+      The Employee shall diligently perform the duties of the position and such other duties as may
+      reasonably be assigned by the Employee’s supervisor (<strong>[[SUPERVISOR_NAME]]</strong>) or management, and shall
+      comply with all Company policies, procedures, and lawful directives.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>6. Benefits</h2>
+    <p>
+      The Employee will be eligible for Company benefits in accordance with applicable policies and
+      plan documents. Summary/Notes: <strong>[[BENEFITS_SUMMARY]]</strong>. The Employer reserves the right to amend
+      or terminate benefits per policy and law.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>7. Confidentiality and IP</h2>
+    <p>
+      The Employee acknowledges a continuing obligation to keep confidential all non‑public information of the
+      Employer and its clients, during employment and for <strong>[[CONFIDENTIALITY_YEARS]]</strong> year(s) thereafter, and to
+      assign to the Employer any intellectual property created within the scope of employment, subject to
+      applicable law.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>8. Company Policies and Code of Conduct</h2>
+    <p>
+      The Employee agrees to follow the Employer’s handbook, policies, and codes (as amended from time to time),
+      which form part of this Agreement by reference.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>9. Term and Termination</h2>
+    <p>
+      Employment is at will or otherwise governed by applicable law and Company policy. Either party may terminate
+      employment subject to required notice under law or policy, typically <strong>[[NOTICE_PERIOD_DAYS]]</strong> days unless
+      a different period applies. The Employer may terminate for just or authorized cause in line with law.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>10. Entire Agreement; Amendments</h2>
+    <p>
+      This Agreement, together with incorporated policies, constitutes the entire understanding between the parties
+      and supersedes prior discussions. Any amendment must be in writing and signed by both parties.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>11. Governing Law</h2>
+    <p>
+      This Agreement shall be governed by and construed in accordance with the laws of <strong>[[GOVERNING_LAW]]</strong>.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>12. Acceptance and Signatures</h2>
+    <p>
+      IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+    </p>
+    <table class="signature-table">
+      <tr>
+        <td class="signature-cell">
+          <div class="sig-line"></div>
+          <div><strong>[[EMPLOYER_REP_NAME]]</strong></div>
+          <div>[[EMPLOYER_REP_TITLE]]</div>
+          <div>For: <strong>[[EMPLOYER_LEGAL_NAME]]</strong></div>
+          <div class="small">Date: __________________________</div>
+        </td>
+        <td class="signature-cell">
+          <div class="sig-line"></div>
+          <div><strong>[[EMPLOYEE_FULL_NAME]]</strong></div>
+          <div>Employee</div>
+          <div class="small">Date: __________________________</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <p class="small muted" style="margin-top: 24px;">
+    Note: This template is provided for internal use. Ensure all placeholders are completed and the document is
+    reviewed by Legal prior to release for signature.
+  </p>
+</body>
+</html>
+
+

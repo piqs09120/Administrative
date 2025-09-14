@@ -35,14 +35,15 @@
         @endif
 
         <!-- Page Header -->
-        <div class="mb-8">
+        <div class="pb-5 mb-6 animate-fadeIn">
+          <div class="border-b-2 border-gray-500 w-full"></div>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-4">
               <a href="{{ route('facilities.index') }}" class="btn btn-ghost btn-sm" title="Back to Facilities">
                 <i data-lucide="arrow-left" class="w-5 h-5"></i>
               </a>
               <div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">Facility Reservations</h1>
+                <h1 class="text-2xl font-semibold bg-white bg-clip-text text-[#191970]" style="color: var(--color-charcoal-ink);">Facility Reservations</h1>
                 <p class="text-gray-600">Manage and track facility reservation requests</p>
               </div>
             </div>
@@ -61,7 +62,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-8">
           <!-- Total Reservations -->
           <div class="card bg-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-4 border-l-primary cursor-pointer group">
             <div class="card-body p-6">
