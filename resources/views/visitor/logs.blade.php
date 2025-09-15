@@ -342,10 +342,12 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <div class="mb-6">
+          <div class="mb-4">
             <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Visitor Logs & Analytics</h1>
             <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Comprehensive visitor tracking, analytics, and reporting</p>
           </div>
+          <!-- underline divider (matches other modules) -->
+          <div class="border-b border-gray-200 mb-6"></div>
 
           <!-- Quick Stats Cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

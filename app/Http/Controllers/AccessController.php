@@ -229,8 +229,32 @@ class AccessController extends Controller
     public static function logAction($userId, $action, $description = '', $ipAddress = null)
     {
         try {
+            // If userId is an employee_id, find the corresponding Dept_no
+            $deptNo = $userId;
+            if (is_string($userId) && !is_numeric($userId)) {
+                // This might be an employee_id, try to find the Dept_no
+                $deptAccount = \App\Models\DeptAccount::where('employee_id', $userId)->first();
+                if ($deptAccount) {
+                    $deptNo = $deptAccount->Dept_no;
+                } else {
+                    // If no DeptAccount found, create a temporary one
+                    $currentUser = \Illuminate\Support\Facades\Auth::user();
+                    $deptAccount = \App\Models\DeptAccount::create([
+                        'Dept_id' => 'TEMP_' . time(),
+                        'dept_name' => $currentUser->department ?? 'Administrative',
+                        'employee_name' => $currentUser->name ?? 'Unknown User',
+                        'employee_id' => $userId,
+                        'role' => $currentUser->role ?? 'No role',
+                        'email' => $currentUser->email ?? '',
+                        'status' => 'active',
+                        'password' => bcrypt('temp')
+                    ]);
+                    $deptNo = $deptAccount->Dept_no;
+                }
+            }
+            
             AccessLog::create([
-                'user_id' => $userId,
+                'user_id' => $deptNo,
                 'action' => $action,
                 'description' => $description,
                 'ip_address' => $ipAddress ?? request()->ip()

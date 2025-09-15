@@ -38,14 +38,37 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <div class="mb-6">
+          <div class="mb-4">
             <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Audit Trail & Transaction</h1>
             <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track all system activities and user actions</p>
           </div>
+          <!-- underline divider (matches Visitor Management style) -->
+          <div class="border-b border-gray-200 mb-6"></div>
 
           <!-- Record Count -->
+          @php
+            // Exclude auth events; keep all other logs. Compute current user's department name for fallback display.
+            $currentDeptName = null;
+            try {
+              $empId = session('emp_id');
+              if ($empId) {
+                $currentDeptName = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->dept_name;
+              }
+              if (!$currentDeptName && auth()->check()) {
+                $email = auth()->user()->email ?? '';
+                $empFromEmail = strstr($email, '@', true);
+                if ($empFromEmail) {
+                  $currentDeptName = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->dept_name;
+                }
+              }
+            } catch (\Throwable $e) { $currentDeptName = null; }
+
+            $auditLogs = $logs->filter(function($log) {
+              return !in_array(strtolower($log->action), ['login','logout','otp']);
+            });
+          @endphp
           <div class="text-sm text-gray-500 mb-6">
-            Total {{ $logs->count() }} records
+            Total {{ $auditLogs->count() }} records
           </div>
         </div>
 
@@ -100,8 +123,6 @@
                 <select id="actionFilter" class="select select-bordered select-sm w-40">
                   <option value="">All Actions</option>
                   <option value="Table added">Table added</option>
-                  <option value="Login">Login</option>
-                  <option value="Logout">Logout</option>
                   <option value="Document_uploaded">Document uploaded</option>
                   <option value="Access_control_check">Access control check</option>
                   <option value="Profile_updated">Profile updated</option>
@@ -131,20 +152,20 @@
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DEPARTMENT</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">EMPLOYEE</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">MODULES</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">ACTION</th>
+                  
                   <th class="text-left py-3 px-4 font-medium text-gray-700">ACTIVITY</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DATE</th>
                 </tr>
               </thead>
               <tbody>
-                @forelse($logs as $log)
+                @forelse($auditLogs as $log)
                   <tr class="hover:bg-gray-50 transition-colors">
                     <td class="py-3 px-4">
                       <span class="font-mono text-sm text-gray-600">#{{ $log->id }}</span>
                     </td>
                     <td class="py-3 px-4">
                       <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">{{ $log->user->dept_name ?? 'Soliera Restaurant' }}</span>
+                        <span class="text-sm text-gray-600">{{ $log->user->dept_name ?? ($currentDeptName ?? 'Unknown') }}</span>
                         <span class="text-xs text-gray-400">ID: {{ $log->user->Dept_no ?? '0' }}</span>
                       </div>
                     </td>
@@ -163,8 +184,6 @@
                       @php
                         $moduleMap = [
                           'Table added' => 'Table Management',
-                          'Login' => 'Authentication',
-                          'Logout' => 'Authentication',
                           'Document_uploaded' => 'Document Management',
                           'Access_control_check' => 'Security',
                           'Profile_updated' => 'User Management'
@@ -172,12 +191,6 @@
                         $module = $moduleMap[$log->action] ?? 'System';
                       @endphp
                       <span class="badge badge-primary badge-sm">{{ $module }}</span>
-                    </td>
-                    <td class="py-3 px-4">
-                      <div class="flex items-center gap-2">
-                        <i data-lucide="trending-up" class="w-4 h-4 text-gray-500"></i>
-                        <span class="text-sm text-gray-600">{{ $log->action }}</span>
-                      </div>
                     </td>
                     <td class="py-3 px-4">
                       <span class="text-sm text-gray-600">{{ $log->description }}</span>

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Models\AccessLog;
 
 class AuthController extends Controller
 {
@@ -192,6 +193,59 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        try {
+            // Get current user info before logout
+            $currentUser = Auth::user();
+            $userName = 'Unknown User';
+            $userRole = 'No role';
+            $deptNo = null;
+            
+            if ($currentUser) {
+                $userName = $currentUser->name ?? $currentUser->employee_name ?? 'Unknown User';
+                $userRole = $currentUser->role ?? 'No role';
+                
+                // Try to find DeptAccount record
+                $empId = Session::get('emp_id') ?? $currentUser->employee_id;
+                if ($empId) {
+                    $deptAccount = \App\Models\DeptAccount::where('employee_id', $empId)->first();
+                    if ($deptAccount) {
+                        $deptNo = $deptAccount->Dept_no;
+                        $userName = $deptAccount->employee_name;
+                        $userRole = $deptAccount->role;
+                    }
+                }
+                
+                // If still no DeptAccount, try to create one or use a fallback
+                if (!$deptAccount) {
+                    // Create a temporary DeptAccount entry for audit logging
+                    $deptAccount = \App\Models\DeptAccount::create([
+                        'Dept_id' => 'TEMP_' . time(),
+                        'dept_name' => $currentUser->department ?? 'Administrative',
+                        'employee_name' => $userName,
+                        'employee_id' => $empId ?? 'temp_' . time(),
+                        'role' => $userRole,
+                        'email' => $currentUser->email,
+                        'status' => 'active',
+                        'password' => bcrypt('temp')
+                    ]);
+                    $deptNo = $deptAccount->Dept_no;
+                }
+            }
+            
+            // Log the logout action
+            if ($deptNo) {
+                AccessLog::create([
+                    'user_id' => $deptNo,
+                    'action' => 'Logout',
+                    'description' => 'User logged out successfully',
+                    'ip_address' => $request->ip(),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Error logging logout: ' . $e->getMessage());
+            // Silent fail for logging; do not block logout
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -36,22 +36,20 @@
         @endif
 
         <!-- Page Header -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div>
-            <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+            <h2 class="text-2xl font-bold text-gray-800">Access Control</h2>
             <p class="text-gray-600">Manage user accounts, roles, and access permissions</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="addUserModal.showModal()" class="btn btn-primary">
-              <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-              Add New User
-            </button>
             <a href="{{ route('access.users.export', request()->query()) }}" class="btn btn-outline">
               <i data-lucide="download" class="w-4 h-4 mr-2"></i>
               Export Users
             </a>
           </div>
         </div>
+        <!-- underline divider (matches Visitor Management style) -->
+        <div class="border-b border-gray-200 mb-6"></div>
 
         <!-- Search and Filters -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -112,105 +110,13 @@
             <table class="table table-zebra w-full">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Role</th>
-                  <th>Department</th>
-                  <th>Status</th>
-                  <th>Last Login</th>
-                  <th>Actions</th>
+                  <th>Employee Code</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Email</th>
                 </tr>
               </thead>
-              <tbody>
-                @foreach($users as $user)
-                <tr class="hover">
-                  <td>
-                    <div class="flex items-center gap-3">
-                      <div class="avatar">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span class="text-blue-600 font-medium">
-                            {{ substr($user['name'], 0, 1) }}{{ substr(explode(' ', $user['name'])[1] ?? '', 0, 1) }}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <div class="font-bold">{{ $user['name'] }}</div>
-                        <div class="text-sm text-gray-600">{{ $user['email'] }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      @if($user['role'] == 'Administrator')
-                        <i data-lucide="crown" class="w-4 h-4 text-yellow-500"></i>
-                      @elseif(str_contains($user['role'], 'Manager'))
-                        <i data-lucide="user-check" class="w-4 h-4 text-blue-500"></i>
-                      @else
-                        <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
-                      @endif
-                      {{ $user['role'] }}
-                    </div>
-                  </td>
-                  <td>{{ $user['department'] }}</td>
-                  <td>
-                    @if($user['status'] == 'Active')
-                      <div class="badge badge-success">Active</div>
-                    @else
-                      <div class="badge badge-error">Inactive</div>
-                    @endif
-                  </td>
-                  <td>
-                    <div class="text-sm">
-                      {{ date('M j, Y', strtotime($user['last_login'])) }}
-                      <br>
-                      <span class="text-gray-600">{{ date('H:i', strtotime($user['last_login'])) }}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="dropdown dropdown-end">
-                      <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
-                        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-                      </div>
-                      <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-white rounded-lg w-52 border border-gray-200">
-                        <li>
-                          <a href="{{ route('access.users.show', $user['id']) }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                            <i data-lucide="eye" class="w-4 h-4"></i> View Profile
-                          </a>
-                        </li>
-                        <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                          <i data-lucide="edit" class="w-4 h-4"></i> Edit User
-                        </a></li>
-                        <li>
-                          @if(!empty($user['laravel_user_id']))
-                          <a href="{{ route('access.users.editRole', $user['laravel_user_id']) }}" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                          <i data-lucide="user-check" class="w-4 h-4"></i> Edit Role
-                          </a>
-                          @else
-                          <span class="flex items-center gap-3 px-3 py-2 text-gray-400 cursor-not-allowed">
-                            <i data-lucide="user-check" class="w-4 h-4"></i> Edit Role
-                          </span>
-                          @endif
-                        </li>
-                        <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                          <i data-lucide="key" class="w-4 h-4"></i> Reset Password
-                        </a></li>
-                        <li><a class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                          <i data-lucide="activity" class="w-4 h-4"></i> View Activity
-                        </a></li>
-                        <li><hr class="my-1"></li>
-                        @if($user['status'] == 'Active')
-                          <li><a class="flex items-center gap-3 px-3 py-2 text-yellow-600 hover:bg-yellow-50 rounded-md transition-colors">
-                            <i data-lucide="pause" class="w-4 h-4"></i> Suspend User
-                          </a></li>
-                        @else
-                          <li><a class="flex items-center gap-3 px-3 py-2 text-green-600 hover:bg-green-50 rounded-md transition-colors">
-                            <i data-lucide="play" class="w-4 h-4"></i> Activate User
-                          </a></li>
-                        @endif
-                      </ul>
-                    </div>
-                  </td>
-                </tr>
-                @endforeach
+              <tbody id="externalUsersBody">
               </tbody>
             </table>
           </div>
@@ -412,6 +318,34 @@
         window.location.assign(url.toString());
       };
       input.addEventListener('input', debounce(submitWithQuery, 250));
+    })();
+
+    // Load external accounts into Access Control table
+    (function(){
+      const tbody = document.getElementById('externalUsersBody');
+      if (!tbody) return;
+      const endpoint = 'https://hr1.soliera-hotel-restaurant.com/api/accounts';
+      fetch(endpoint, { headers: { 'Accept': 'application/json' }})
+        .then(r => r.json())
+        .then(data => {
+          const rows = Array.isArray(data) ? data : [];
+          if (rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500">No records from API</td></tr>';
+            return;
+          }
+          const html = rows.map(r => `
+            <tr>
+              <td>${r.employee_code ?? ''}</td>
+              <td>${r.first_name ?? ''}</td>
+              <td>${r.last_name ?? ''}</td>
+              <td>${r.email ?? ''}</td>
+            </tr>
+          `).join('');
+          tbody.innerHTML = html;
+        })
+        .catch(() => {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center text-error">Failed to load API data</td></tr>';
+        });
     })();
 
     // Dark mode functionality

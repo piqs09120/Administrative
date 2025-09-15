@@ -5,12 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Reservation;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        \Log::info('DashboardController: index method called');
+        \Log::info('User authenticated: ' . (Auth::check() ? 'YES' : 'NO'));
+        \Log::info('User ID: ' . (Auth::id() ?? 'NULL'));
+        \Log::info('Session user_role: ' . Session::get('user_role', 'NOT_SET'));
+        
         // Get key metrics for dashboard
         $totalRooms = 150; // This would come from Room::count() in real implementation
         $occupiedRooms = 128; // This would come from Room::where('status', 'occupied')->count()
@@ -74,5 +81,59 @@ class DashboardController extends Controller
             'activeUsers',
             'inventoryAlerts'
         ));
+    }
+
+    /** Facility Reservations stats for dashboard charts */
+    public function facilityStats(Request $request)
+    {
+        // Last 6 months reservations count
+        $months = collect(range(5, 0))->map(function($i){ return now()->subMonths($i)->startOfMonth(); });
+        $labels = $months->map(fn($d) => $d->format('M Y'));
+        $data = $months->map(function($start){
+            $end = (clone $start)->copy()->endOfMonth();
+            return (int) \App\Models\FacilityReservation::whereBetween('created_at', [$start, $end])->count();
+        });
+
+        // Status breakdown current month
+        $cm = now();
+        $status = [
+            'approved' => (int) \App\Models\FacilityReservation::whereMonth('created_at', $cm->month)->where('status','approved')->count(),
+            'pending' => (int) \App\Models\FacilityReservation::whereMonth('created_at', $cm->month)->where('status','pending')->count(),
+            'denied' => (int) \App\Models\FacilityReservation::whereMonth('created_at', $cm->month)->where('status','denied')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'labels' => $labels,
+            'data' => $data,
+            'status' => $status,
+        ]);
+    }
+
+    /** User Management stats for dashboard charts */
+    public function userMgmtStats(Request $request)
+    {
+        // Count department accounts by role (top 6)
+        $byRole = \App\Models\DeptAccount::query()
+            ->select('role', \DB::raw('COUNT(*) as count'))
+            ->groupBy('role')
+            ->orderByDesc('count')
+            ->limit(6)
+            ->get();
+
+        // New users per month (last 6 months)
+        $months = collect(range(5, 0))->map(function($i){ return now()->subMonths($i)->startOfMonth(); });
+        $labels = $months->map(fn($d) => $d->format('M'));
+        $registrations = $months->map(function($start){
+            $end = (clone $start)->copy()->endOfMonth();
+            return (int) \App\Models\DeptAccount::whereBetween('created_at', [$start, $end])->count();
+        });
+
+        return response()->json([
+            'success' => true,
+            'roles' => $byRole,
+            'labels' => $labels,
+            'registrations' => $registrations,
+        ]);
     }
 }

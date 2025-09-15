@@ -33,6 +33,33 @@
           </div>
         @endif
         
+        <!-- Alert Section -->
+        @if($pendingExitVisitors->count() > 0 || $approachingTimeoutVisitors->count() > 0)
+        <div class="mt-8 space-y-4">
+          <!-- Pending Exit Alert -->
+          @if($pendingExitVisitors->count() > 0)
+          <div class="alert alert-error shadow-lg animate-pulse">
+            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            <div>
+              <h3 class="font-bold">⚠️ URGENT: {{ $pendingExitVisitors->count() }} Visitor(s) Overdue</h3>
+              <div class="text-sm">These visitors have exceeded their expected checkout time and are marked as PENDING EXIT.</div>
+            </div>
+          </div>
+          @endif
+          
+          <!-- Approaching Timeout Alert -->
+          @if($approachingTimeoutVisitors->count() > 0)
+          <div class="alert alert-warning shadow-lg">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+            <div>
+              <h3 class="font-bold">⏰ {{ $approachingTimeoutVisitors->count() }} Visitor(s) Approaching Timeout</h3>
+              <div class="text-sm">These visitors are within 10 minutes of their expected checkout time.</div>
+            </div>
+          </div>
+          @endif
+        </div>
+        @endif
+
         <!-- Stats Cards (DaisyUI, same as Visitor Logs) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           <!-- Total Visitors -->
@@ -311,6 +338,122 @@
                 </div>
               </div>
 
+              <!-- Pending Exit Visitors Section -->
+              @if($pendingExitVisitors->count() > 0)
+              <div class="mb-6">
+                <div class="alert alert-error shadow-lg">
+                  <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                  <div>
+                    <h3 class="font-bold">🚨 OVERDUE VISITORS ({{ $pendingExitVisitors->count() }})</h3>
+                    <div class="text-sm">These visitors have exceeded their expected checkout time and require immediate attention.</div>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  @foreach($pendingExitVisitors as $visitor)
+                  <div class="card bg-error/10 border border-error/30 shadow-lg">
+                    <div class="card-body p-4">
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="avatar placeholder">
+                          <div class="bg-error text-error-content rounded-full w-10 h-10">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                          </div>
+                        </div>
+                        <div class="badge badge-error badge-outline text-xs animate-pulse">OVERDUE</div>
+                      </div>
+                      
+                      <h3 class="font-bold text-lg text-error mb-2">{{ $visitor->name }}</h3>
+                      <p class="text-sm text-base-content/70 mb-2">{{ $visitor->company ?? 'No Company' }}</p>
+                      
+                      <div class="space-y-1 text-sm">
+                        <div class="flex justify-between">
+                          <span class="text-base-content/60">Expected Out:</span>
+                          <span class="font-medium">{{ $visitor->expected_time_out }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-base-content/60">Overdue Since:</span>
+                          <span class="font-medium text-error">{{ $visitor->pending_exit_at ? $visitor->pending_exit_at->diffForHumans() : 'Unknown' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-base-content/60">Host:</span>
+                          <span class="font-medium">{{ $visitor->host_employee ?? 'N/A' }}</span>
+                        </div>
+                      </div>
+                      
+                      <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-error btn-sm" onclick="checkOutVisitor({{ $visitor->id }})">
+                          <i data-lucide="log-out" class="w-4 h-4"></i>
+                          Check Out
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  @endforeach
+                </div>
+              </div>
+              @endif
+
+              <!-- Approaching Timeout Visitors Section -->
+              @if($approachingTimeoutVisitors->count() > 0)
+              <div class="mb-6">
+                <div class="alert alert-warning shadow-lg">
+                  <i data-lucide="clock" class="w-6 h-6"></i>
+                  <div>
+                    <h3 class="font-bold">⏰ APPROACHING TIMEOUT ({{ $approachingTimeoutVisitors->count() }})</h3>
+                    <div class="text-sm">These visitors are within 10 minutes of their expected checkout time.</div>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  @foreach($approachingTimeoutVisitors as $visitor)
+                  <div class="card bg-warning/10 border border-warning/30 shadow-lg">
+                    <div class="card-body p-4">
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="avatar placeholder">
+                          <div class="bg-warning text-warning-content rounded-full w-10 h-10">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                          </div>
+                        </div>
+                        <div class="badge badge-warning badge-outline text-xs">APPROACHING</div>
+                      </div>
+                      
+                      <h3 class="font-bold text-lg text-warning mb-2">{{ $visitor->name }}</h3>
+                      <p class="text-sm text-base-content/70 mb-2">{{ $visitor->company ?? 'No Company' }}</p>
+                      
+                      <div class="space-y-1 text-sm">
+                        <div class="flex justify-between">
+                          <span class="text-base-content/60">Expected Out:</span>
+                          <span class="font-medium">{{ $visitor->expected_time_out }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-base-content/60">Time Remaining:</span>
+                          <span class="font-medium text-warning">
+                            @php
+                              $now = \Carbon\Carbon::now();
+                              $expectedCheckout = \Carbon\Carbon::parse($visitor->expected_time_out);
+                              $minutesRemaining = $now->diffInMinutes($expectedCheckout, false);
+                            @endphp
+                            {{ $minutesRemaining > 0 ? $minutesRemaining . ' minutes' : 'Overdue' }}
+                          </span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-base-content/60">Host:</span>
+                          <span class="font-medium">{{ $visitor->host_employee ?? 'N/A' }}</span>
+                        </div>
+                      </div>
+                      
+                      <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-warning btn-sm" onclick="checkOutVisitor({{ $visitor->id }})">
+                          <i data-lucide="log-out" class="w-4 h-4"></i>
+                          Check Out
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  @endforeach
+                </div>
+              </div>
+              @endif
 
               <!-- Visitor Cards Grid -->
               <div id="monitoring-visitors-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1082,6 +1225,35 @@
         width: 100%;
       }
     }
+    
+    /* Modal improvements */
+    #visitorDetailsModal .modal-box {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    #visitorDetailsModal .modal-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #visitorDetailsModal .modal-box::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    #visitorDetailsModal .modal-box::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    #visitorDetailsModal .modal-box::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* Ensure cards fit properly */
+    .visitor-detail-card {
+      min-height: fit-content;
+    }
   </style>
   
   <script>
@@ -1288,17 +1460,27 @@
         console.log('Visitor:', visitor.name, 'Status:', status, 'Original status:', visitor.status);
         console.log('Check in time:', visitor.check_in_time, 'Expected time out:', visitor.expected_time_out);
         console.log('Actual check in time:', visitor.actual_check_in_time);
+        console.log('Actual check out time:', visitor.actual_check_out_time);
+        console.log('Raw time_in:', visitor.time_in, 'Raw time_out:', visitor.time_out);
         console.log('Current time:', new Date().toLocaleString());
+        console.log('Pending exit:', visitor.pending_exit);
         
         const statusConfig = getStatusConfig(status);
-        // Calculate duration from actual check-in to now (since expected_time_out is just time, not datetime)
-        const duration = calculateDuration(visitor.actual_check_in_time, null);
+        // Calculate duration from actual check-in to checkout time or now
+        // For completed visitors, use time_out; for active visitors, use null (current time)
+        const duration = calculateDuration(visitor.time_in, visitor.time_out);
         console.log('Calculated duration:', duration);
         
+        // Add real-time duration update for active visitors
+        let durationElement = null;
+        if (!visitor.time_out && visitor.time_in) {
+          durationElement = `data-duration-start="${visitor.time_in}"`;
+        }
+        
         // Additional debug for duration calculation
-        if (visitor.actual_check_in_time && visitor.actual_check_in_time !== 'N/A') {
-          const start = new Date(visitor.actual_check_in_time);
-          const end = new Date();
+        if (visitor.time_in) {
+          const start = new Date(visitor.time_in);
+          const end = visitor.time_out ? new Date(visitor.time_out) : new Date();
           const diffMs = end - start;
           console.log('Start time:', start.toLocaleString());
           console.log('End time:', end.toLocaleString());
@@ -1316,7 +1498,7 @@
                 <h3 class="text-lg font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">${visitor.name}</h3>
                 <p class="text-sm text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">${visitor.company || 'No Company'}</p>
               </div>
-              <span class="badge ${statusConfig.badgeClass} text-xs font-semibold px-2 py-1" style="background-color: ${statusConfig.color}; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <span class="badge ${statusConfig.badgeClass} text-xs font-semibold px-2 py-1" style="background-color: ${statusConfig.color}; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" data-field="status">
                 ${statusConfig.label}
               </span>
             </div>
@@ -1392,6 +1574,12 @@
                 <div class="flex justify-between items-center text-xs">
                   <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Actual In:</span>
                   <span class="font-semibold text-green-600" style="color: #16a34a;" data-field="actual-check-in">${visitor.actual_check_in_time}</span>
+                </div>
+                ` : ''}
+                ${visitor.actual_check_out_time && visitor.actual_check_out_time !== 'N/A' ? `
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Actual Out:</span>
+                  <span class="font-semibold text-red-600" style="color: #dc2626;" data-field="actual-check-out">${visitor.actual_check_out_time}</span>
                 </div>
                 ` : ''}
                 ${duration ? `
@@ -1470,32 +1658,51 @@
       
       // Start real-time duration updates
       startDurationUpdates();
+      
+      // Also update durations immediately
+      updateAllDurations();
     }
 
     // Start real-time duration updates
     function startDurationUpdates() {
-      // Update durations every minute
+      // Update durations every 30 seconds for real-time display
       setInterval(() => {
         updateAllDurations();
-      }, 60000); // 60 seconds
+      }, 30000); // 30 seconds
     }
 
     // Update all duration displays
     function updateAllDurations() {
       const cards = document.querySelectorAll('.monitoring-visitor-card');
+      console.log('Updating durations for', cards.length, 'cards');
+      
       cards.forEach(card => {
         const actualCheckInEl = card.querySelector('[data-field="actual-check-in"]');
+        const actualCheckOutEl = card.querySelector('[data-field="actual-check-out"]');
         const durationEl = card.querySelector('[data-field="duration"]');
+        const statusEl = card.querySelector('[data-field="status"]');
         
         if (actualCheckInEl && durationEl) {
           const actualCheckIn = actualCheckInEl.textContent;
+          const actualCheckOut = actualCheckOutEl ? actualCheckOutEl.textContent : null;
+          const status = statusEl ? statusEl.textContent : '';
+          
+          console.log('Found check-in time:', actualCheckIn);
+          console.log('Found check-out time:', actualCheckOut);
+          console.log('Status:', status);
           
           if (actualCheckIn && actualCheckIn !== 'N/A') {
-            // Calculate duration from actual check-in to now
-            const duration = calculateDuration(actualCheckIn, null);
-            if (duration) {
-              durationEl.textContent = duration;
+            // Only update duration for active visitors (not completed)
+            if (status !== 'Completed' && !actualCheckOut) {
+              // Calculate duration from actual check-in to now (for active visitors)
+              const duration = calculateDuration(actualCheckIn, null);
+              console.log('Calculated duration for active visitor:', duration);
+              if (duration) {
+                durationEl.textContent = duration;
+              }
             }
+            // For completed visitors, duration should already be calculated and static
+            // No need to update it
           }
         }
       });
@@ -2144,6 +2351,12 @@
             color: '#dc2626',
             badgeClass: 'badge-error'
           };
+        case 'pending_exit':
+          return {
+            label: 'Pending Exit',
+            color: '#ef4444',
+            badgeClass: 'badge-error'
+          };
         default:
           return {
             label: 'Unknown',
@@ -2526,7 +2739,12 @@
           purpose: data.visitor?.purpose || formData.get('purpose') || 'N/A',
           pass_id: data.visitor?.pass_id || 'VMS-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
           time_in: data.visitor?.time_in || null, // Keep null for registered visitors
-          pass_data: data.pass_data || null
+          pass_data: data.pass_data || null,
+          expected_date_out: data.visitor?.expected_date_out || formData.get('expected_date_out') || null,
+          expected_time_out: data.visitor?.expected_time_out || formData.get('expected_time_out') || null,
+          arrival_date: data.visitor?.arrival_date || formData.get('arrival_date') || null,
+          arrival_time: data.visitor?.arrival_time || formData.get('arrival_time') || null,
+          validity_period: data.validity_info?.validity_period || null
         };
         
         console.log('Form data extracted:', {
@@ -2626,6 +2844,60 @@
     // ===== SUCCESS MODAL FUNCTIONS =====
     
     // Show success modal with visitor data
+    // Function to calculate validity period based on expected departure time
+    function calculateValidityPeriod(visitor) {
+      console.log('Calculating validity period for visitor:', visitor);
+      
+      if (visitor.expected_date_out && visitor.expected_time_out) {
+        console.log('Using expected_date_out and expected_time_out');
+        // Combine expected date and time
+        const expectedDateTime = new Date(visitor.expected_date_out + ' ' + visitor.expected_time_out);
+        const now = new Date();
+        
+        console.log('Expected datetime:', expectedDateTime);
+        console.log('Current datetime:', now);
+        
+        // Calculate difference in hours
+        const diffMs = expectedDateTime - now;
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        
+        console.log('Difference in hours:', diffHours);
+        
+        if (diffHours <= 0) {
+          return 'Expired';
+        } else if (diffHours < 24) {
+          return `${diffHours} Hour${diffHours > 1 ? 's' : ''}`;
+        } else {
+          const diffDays = Math.floor(diffHours / 24);
+          const remainingHours = diffHours % 24;
+          if (remainingHours === 0) {
+            return `${diffDays} Day${diffDays > 1 ? 's' : ''}`;
+          } else {
+            return `${diffDays} Day${diffDays > 1 ? 's' : ''} ${remainingHours} Hour${remainingHours > 1 ? 's' : ''}`;
+          }
+        }
+      } else if (visitor.expected_time_out) {
+        console.log('Using only expected_time_out');
+        // If only time is provided, assume today
+        const today = new Date().toISOString().split('T')[0];
+        const expectedDateTime = new Date(today + ' ' + visitor.expected_time_out);
+        const now = new Date();
+        
+        const diffMs = expectedDateTime - now;
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        
+        if (diffHours <= 0) {
+          return 'Expired';
+        } else {
+          return `${diffHours} Hour${diffHours > 1 ? 's' : ''}`;
+        }
+      }
+      
+      console.log('No expected departure time found, using default');
+      // Default fallback
+      return '24 Hours';
+    }
+
     function showSuccessModal(visitor) {
       console.log('=== SHOW SUCCESS MODAL FUNCTION CALLED ===');
       console.log('Visitor data:', visitor);
@@ -2695,6 +2967,23 @@
           if (expectedTimeOutValueEl) expectedTimeOutValueEl.textContent = visitor.expected_time_out;
         } else {
           if (expectedTimeOutEl) expectedTimeOutEl.style.display = 'none';
+        }
+
+        // Update validity period - use backend calculation if available, otherwise calculate frontend
+        console.log('Updating validity period...');
+        console.log('Visitor validity_period:', visitor.validity_period);
+        console.log('Visitor expected_date_out:', visitor.expected_date_out);
+        console.log('Visitor expected_time_out:', visitor.expected_time_out);
+        
+        const validityPeriod = visitor.validity_period || calculateValidityPeriod(visitor);
+        console.log('Calculated validity period:', validityPeriod);
+        
+        const validityEl = document.getElementById('validity-period');
+        if (validityEl) {
+          validityEl.textContent = validityPeriod;
+          console.log('Updated validity element with:', validityPeriod);
+        } else {
+          console.error('Validity element not found!');
         }
 
         // Render QR image using same URL stored in pass_data
@@ -2830,11 +3119,6 @@ Generated on: ${new Date().toLocaleString()}
       showNotification('Visitor pass downloaded successfully!', 'success');
     }
 
-    // Register another visitor function
-    function registerAnotherVisitor() {
-      closeSuccessModal();
-      openVisitorModal();
-    }
 
 
     // Test View Pass modal function
@@ -3025,19 +3309,205 @@ Generated on: ${new Date().toLocaleString()}
       });
     }
 
-    // View visitor details (placeholder function)
+    // View visitor details
     function viewVisitorDetails(visitorId) {
-      // For now, just show a notification
-      // In a real implementation, this could open a modal or redirect to a details page
-      showNotification('Visitor details feature coming soon!', 'info');
+      console.log('Opening visitor details for ID:', visitorId);
       
-      // You could also fetch and display visitor details here
-      // fetch(`{{ route('visitor.details', '') }}/${visitorId}`)
-      //   .then(response => response.json())
-      //   .then(visitor => {
-      //     // Display visitor details in a modal or alert
-      //     console.log('Visitor details:', visitor);
-      //   });
+      // Show modal and loading state
+      const modal = document.getElementById('visitorDetailsModal');
+      const loading = document.getElementById('visitorDetailsLoading');
+      const content = document.getElementById('visitorDetailsContent');
+      
+      modal.classList.add('modal-open');
+      loading.classList.remove('hidden');
+      content.classList.add('hidden');
+      
+      // Fetch visitor details
+      const url = `{{ route('visitor.details', '') }}/${visitorId}`;
+      console.log('Fetching visitor details from:', url);
+      
+      fetch(url)
+        .then(response => {
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: Failed to fetch visitor details`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Response data:', data);
+          
+          if (data.success && data.visitor) {
+            console.log('Visitor data received:', data.visitor);
+            populateVisitorDetails(data.visitor);
+            loading.classList.add('hidden');
+            content.classList.remove('hidden');
+          } else {
+            console.error('Invalid response format:', data);
+            throw new Error('Invalid response format');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching visitor details:', error);
+          
+          // Try to get visitor data from current page data as fallback
+          const fallbackData = extractVisitorDataFromPage(visitorId);
+          if (fallbackData) {
+            console.log('Using fallback data from page');
+            populateVisitorDetails(fallbackData);
+            loading.classList.add('hidden');
+            content.classList.remove('hidden');
+            showNotification('Using cached data - some information may be outdated', 'warning');
+          } else {
+            showNotification('Failed to load visitor details', 'error');
+            closeVisitorDetailsModal();
+          }
+        });
+    }
+
+    // Extract visitor data from the current page data
+    function extractVisitorDataFromPage(visitorId) {
+      // Try to find visitor in current monitoring data
+      if (window.currentVisitors) {
+        const visitor = window.currentVisitors.find(v => v.id == visitorId);
+        if (visitor) {
+          return visitor;
+        }
+      }
+      
+      // Try to find visitor in scheduled visits
+      if (window.scheduledVisitors) {
+        const visitor = window.scheduledVisitors.find(v => v.id == visitorId);
+        if (visitor) {
+          return visitor;
+        }
+      }
+      
+      // Try to find visitor in completed visits
+      if (window.completedVisitors) {
+        const visitor = window.completedVisitors.find(v => v.id == visitorId);
+        if (visitor) {
+          return visitor;
+        }
+      }
+      
+      return null;
+    }
+
+    // Populate visitor details in the modal
+    function populateVisitorDetails(visitor) {
+      console.log('Populating visitor details:', visitor);
+      
+      // Header information
+      document.getElementById('detailVisitorName').textContent = visitor.name || 'Unknown';
+      document.getElementById('detailVisitorCompany').textContent = visitor.company || 'No Company';
+      document.getElementById('detailVisitorPassId').textContent = visitor.pass_id || 'N/A';
+      
+      // Status badge - use the status from backend
+      const statusEl = document.getElementById('detailVisitorStatus');
+      const status = visitor.status || 'Pending';
+      statusEl.textContent = status;
+      
+      // Apply appropriate badge class based on status
+      let badgeClass = 'badge-warning'; // default
+      if (status === 'Active') {
+        badgeClass = 'badge-success';
+      } else if (status === 'Completed') {
+        badgeClass = 'badge-info';
+      } else if (status === 'Pending Exit') {
+        badgeClass = 'badge-error';
+      }
+      
+      statusEl.className = 'badge ' + badgeClass;
+      
+      // Duration
+      const duration = calculateDuration(visitor.time_in, visitor.time_out);
+      document.getElementById('detailVisitorDuration').textContent = duration;
+      
+      // Personal Information
+      document.getElementById('detailName').textContent = visitor.name || '-';
+      document.getElementById('detailCompany').textContent = visitor.company || '-';
+      document.getElementById('detailEmail').textContent = visitor.email || '-';
+      document.getElementById('detailContact').textContent = visitor.contact || '-';
+      document.getElementById('detailIdType').textContent = visitor.id_type || '-';
+      document.getElementById('detailIdNumber').textContent = visitor.id_number || '-';
+      
+      // Visit Information
+      document.getElementById('detailPurpose').textContent = visitor.purpose || '-';
+      document.getElementById('detailHost').textContent = visitor.host_employee || '-';
+      document.getElementById('detailDepartment').textContent = visitor.department || '-';
+      document.getElementById('detailFacility').textContent = visitor.facility?.name || '-';
+      document.getElementById('detailVehicle').textContent = visitor.vehicle_plate || '-';
+      
+      // Time Information
+      document.getElementById('detailExpectedIn').textContent = formatDateTime(visitor.arrival_date, visitor.arrival_time) || '-';
+      document.getElementById('detailActualIn').textContent = formatDateTime(visitor.time_in) || '-';
+      document.getElementById('detailExpectedOut').textContent = formatDateTime(visitor.expected_date_out, visitor.expected_time_out) || '-';
+      document.getElementById('detailActualOut').textContent = formatDateTime(visitor.time_out) || '-';
+      document.getElementById('detailDuration').textContent = duration;
+      
+      // Pass Information
+      document.getElementById('detailPassId').textContent = visitor.pass_id || '-';
+      document.getElementById('detailPassType').textContent = visitor.pass_type ? visitor.pass_type.replace('_', ' ').toUpperCase() : '-';
+      document.getElementById('detailAccessLevel').textContent = visitor.access_level ? visitor.access_level.replace('_', ' ').toUpperCase() : '-';
+      document.getElementById('detailValidFrom').textContent = formatDateTime(visitor.pass_valid_from) || '-';
+      document.getElementById('detailValidUntil').textContent = formatDateTime(visitor.pass_valid_until) || '-';
+      document.getElementById('detailEscortRequired').textContent = visitor.escort_required ? visitor.escort_required.toUpperCase() : 'NO';
+      
+      // Store current visitor ID for actions
+      window.currentDetailVisitorId = visitor.id;
+    }
+
+    // Calculate duration between two times
+    function calculateDuration(timeIn, timeOut) {
+      if (!timeIn) return 'Not checked in';
+      
+      const start = new Date(timeIn);
+      const end = timeOut ? new Date(timeOut) : new Date();
+      const diffMs = end - start;
+      
+      if (diffMs < 0) return '0m';
+      
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+      } else {
+        return `${minutes}m`;
+      }
+    }
+
+    // Format date and time
+    function formatDateTime(date, time) {
+      if (!date) return null;
+      
+      let dateTime;
+      if (time) {
+        dateTime = new Date(date + ' ' + time);
+      } else {
+        dateTime = new Date(date);
+      }
+      
+      if (isNaN(dateTime.getTime())) return null;
+      
+      return dateTime.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    // Close visitor details modal
+    function closeVisitorDetailsModal() {
+      const modal = document.getElementById('visitorDetailsModal');
+      modal.classList.remove('modal-open');
+      window.currentDetailVisitorId = null;
     }
   </script>
 
@@ -3213,6 +3683,191 @@ Generated on: ${new Date().toLocaleString()}
     </div>
   </div>
 
+  <!-- Visitor Details Modal -->
+  <div id="visitorDetailsModal" class="modal" onclick="closeVisitorDetailsModal()">
+    <div class="modal-box w-11/12 max-w-6xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-center mb-6 sticky top-0 bg-white z-10 pb-4 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+          <i data-lucide="user" class="w-6 h-6 text-blue-500 mr-3"></i>
+          Visitor Details
+        </h2>
+      </div>
+
+      <!-- Loading State -->
+      <div id="visitorDetailsLoading" class="text-center py-8">
+        <div class="loading loading-spinner loading-lg text-blue-500"></div>
+        <p class="text-gray-600 mt-4">Loading visitor details...</p>
+      </div>
+
+      <!-- Visitor Details Content -->
+      <div id="visitorDetailsContent" class="hidden">
+        <!-- Visitor Info Header -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                <i data-lucide="user" class="w-8 h-8 text-white"></i>
+              </div>
+              <div>
+                <h3 id="detailVisitorName" class="text-2xl font-bold text-gray-800">Visitor Name</h3>
+                <p id="detailVisitorCompany" class="text-gray-600">Company Name</p>
+                <div class="flex items-center space-x-4 mt-2">
+                  <span id="detailVisitorStatus" class="badge badge-primary">Status</span>
+                  <span id="detailVisitorPassId" class="text-sm text-gray-500">Pass ID</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-500">Visit Duration</p>
+              <p id="detailVisitorDuration" class="text-lg font-semibold text-blue-600">0h 0m</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Personal Information -->
+          <div class="card bg-white shadow-sm h-fit">
+            <div class="card-body p-6">
+              <h4 class="card-title text-lg mb-4 flex items-center">
+                <i data-lucide="user-circle" class="w-5 h-5 text-green-500 mr-2"></i>
+                Personal Information
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Full Name:</span>
+                  <span id="detailName" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Company:</span>
+                  <span id="detailCompany" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Email:</span>
+                  <span id="detailEmail" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Contact:</span>
+                  <span id="detailContact" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">ID Type:</span>
+                  <span id="detailIdType" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">ID Number:</span>
+                  <span id="detailIdNumber" class="font-medium">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visit Information -->
+          <div class="card bg-white shadow-sm h-fit">
+            <div class="card-body p-6">
+              <h4 class="card-title text-lg mb-4 flex items-center">
+                <i data-lucide="calendar" class="w-5 h-5 text-purple-500 mr-2"></i>
+                Visit Information
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Purpose:</span>
+                  <span id="detailPurpose" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Host Employee:</span>
+                  <span id="detailHost" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Department:</span>
+                  <span id="detailDepartment" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Facility:</span>
+                  <span id="detailFacility" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Vehicle Plate:</span>
+                  <span id="detailVehicle" class="font-medium">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Information -->
+          <div class="card bg-white shadow-sm h-fit">
+            <div class="card-body p-6">
+              <h4 class="card-title text-lg mb-4 flex items-center">
+                <i data-lucide="clock" class="w-5 h-5 text-orange-500 mr-2"></i>
+                Time Information
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Expected In:</span>
+                  <span id="detailExpectedIn" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Actual In:</span>
+                  <span id="detailActualIn" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Expected Out:</span>
+                  <span id="detailExpectedOut" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Actual Out:</span>
+                  <span id="detailActualOut" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Duration:</span>
+                  <span id="detailDuration" class="font-medium text-blue-600">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pass Information -->
+          <div class="card bg-white shadow-sm h-fit">
+            <div class="card-body p-6">
+              <h4 class="card-title text-lg mb-4 flex items-center">
+                <i data-lucide="id-card" class="w-5 h-5 text-blue-500 mr-2"></i>
+                Pass Information
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Pass ID:</span>
+                  <span id="detailPassId" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Pass Type:</span>
+                  <span id="detailPassType" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Access Level:</span>
+                  <span id="detailAccessLevel" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Valid From:</span>
+                  <span id="detailValidFrom" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Valid Until:</span>
+                  <span id="detailValidUntil" class="font-medium">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Escort Required:</span>
+                  <span id="detailEscortRequired" class="font-medium">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- Visitor Registration Success Modal -->
   <div id="visitorSuccessModal" class="modal" onclick="closeSuccessModal()">
     <div class="modal-box success-modal" onclick="event.stopPropagation()">
@@ -3301,7 +3956,7 @@ Generated on: ${new Date().toLocaleString()}
                   <i data-lucide="clock" class="w-6 h-6 text-green-500"></i>
                   <div>
                     <p class="pass-info-label">Valid For</p>
-                    <p class="pass-info-value">24 Hours</p>
+                    <p class="pass-info-value" id="validity-period">24 Hours</p>
                   </div>
                 </div>
                 <div class="mt-4 flex items-center justify-center">
@@ -3319,9 +3974,6 @@ Generated on: ${new Date().toLocaleString()}
           <button type="button" onclick="downloadPass()" class="btn btn-primary">
             <i data-lucide="download" class="btn-icon"></i>
             Download Pass
-          </button>
-          <button type="button" onclick="registerAnotherVisitor()" class="btn btn-secondary">
-            Register Another Visitor
           </button>
         </div>
       </div>

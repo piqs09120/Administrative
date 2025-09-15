@@ -384,7 +384,10 @@ class RolePermissionService
         $userRole = $this->getUserRole();
         \Log::info('RolePermissionService: getSidebarModules called', [
             'user_role' => $userRole,
-            'has_role' => $userRole ? true : false
+            'has_role' => $userRole ? true : false,
+            'auth_check' => Auth::check(),
+            'session_user_role' => Session::get('user_role'),
+            'user_id' => Auth::id()
         ]);
         
         if (!$userRole) {

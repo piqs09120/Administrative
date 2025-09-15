@@ -35,7 +35,7 @@
           </div>
         @endif
 
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             <a href="{{ route('visitor.index') }}" class="btn btn-ghost btn-sm">
               <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back
@@ -43,6 +43,8 @@
             <h1 class="text-xl font-semibold">New Visitors (Pending Review)</h1>
           </div>
         </div>
+        <!-- underline divider (matches other modules) -->
+        <div class="border-b border-gray-200 mb-6"></div>
 
         <div class="card bg-white shadow-xl">
           <div class="card-body">

@@ -38,15 +38,17 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <div class="mb-6">
+          <div class="mb-4">
             <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Department Accounts</h1>
             <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Manage and monitor department user accounts across the organization</p>
           </div>
+          <!-- underline divider (matches Visitor Management style) -->
+          <div class="border-b border-gray-200 mb-6"></div>
 
           <!-- Statistics Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Total Accounts -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-primary">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-primary">
               <div class="card-body p-6">
                 <div class="flex items-center justify-between mb-4">
                   <div class="avatar placeholder">
@@ -64,7 +66,7 @@
             </div>
 
             <!-- Active Accounts -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-success">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-success">
               <div class="card-body p-6">
                 <div class="flex items-center justify-between mb-4">
                   <div class="avatar placeholder">
@@ -82,7 +84,7 @@
             </div>
 
             <!-- Inactive Accounts -->
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-warning">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-warning">
               <div class="card-body p-6">
                 <div class="flex items-center justify-between mb-4">
                   <div class="avatar placeholder">
@@ -120,7 +122,6 @@
                   <th class="text-left py-3 px-4 font-medium text-gray-700">Department</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">Role</th>
                   <th class="text-center py-3 px-4 font-medium text-gray-700">Status</th>
-                  <th class="text-center py-3 px-4 font-medium text-gray-700">Last Login</th>
                   <th class="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -157,9 +158,6 @@
                         <span class="badge {{ $config['badge'] }} badge-sm">{{ ucfirst($status) }}</span>
                       </div>
                     </td>
-                    <td class="py-3 px-4 text-center text-sm text-gray-600">
-                      {{ $account->last_login ? \Carbon\Carbon::parse($account->last_login)->format('M d, Y H:i') : 'Never' }}
-                    </td>
                     <td class="py-3 px-4 text-center">
                       <div class="flex items-center justify-center gap-1">
                         <button onclick="viewAccount({{ $account->Dept_no }})" class="btn btn-ghost btn-xs tooltip" data-tip="View Details">
@@ -169,16 +167,13 @@
                           <button onclick="openEditModal({{ $account->Dept_no }})" class="btn btn-ghost btn-xs tooltip" data-tip="Edit Account">
                             <i data-lucide="edit" class="w-4 h-4 text-green-600"></i>
                           </button>
-                          <button onclick="openToggleModal({{ $account->Dept_no }}, '{{ $account->status }}', '{{ addslashes($account->employee_name) }}')" class="btn btn-ghost btn-xs tooltip" data-tip="Toggle Status">
-                            <i data-lucide="toggle-left" class="w-4 h-4 text-orange-600"></i>
-                          </button>
                         @endif
                       </div>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="6" class="text-center py-12">
+                    <td colspan="5" class="text-center py-12">
                       <div class="flex flex-col items-center">
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <i data-lucide="users" class="w-10 h-10 text-gray-400"></i>
@@ -319,29 +314,6 @@
   </div>
 
 
-  <!-- Toggle Status Confirmation Modal -->
-  <div id="toggleStatusModal" class="modal">
-    <div class="modal-box w-11/12 max-w-md" onclick="event.stopPropagation()">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-gray-800">Confirm Status Toggle</h3>
-        <button onclick="closeToggleModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      <div class="mb-4">
-        <p class="text-gray-700">Are you sure you want to toggle the status for</p>
-        <p class="font-semibold text-gray-900 mt-1" id="toggleEmployeeName">—</p>
-        <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-          <span class="text-sm text-gray-600">Current Status:</span>
-          <span class="badge badge-sm ml-2" id="toggleCurrentStatus">—</span>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button class="btn btn-outline" onclick="closeToggleModal()">Cancel</button>
-        <button id="confirmToggleBtn" class="btn btn-error">Confirm</button>
-      </div>
-    </div>
-  </div>
 
   @include('partials.soliera_js')
   
@@ -351,25 +323,6 @@
     
 
     // Account action functions
-    let pendingToggleAccountId = null;
-    function openToggleModal(accountId, currentStatus, employeeName) {
-      pendingToggleAccountId = accountId;
-      const modal = document.getElementById('toggleStatusModal');
-      const nameEl = document.getElementById('toggleEmployeeName');
-      const statusEl = document.getElementById('toggleCurrentStatus');
-      if (nameEl) nameEl.textContent = employeeName || `Account #${accountId}`;
-      if (statusEl) {
-        statusEl.textContent = (currentStatus || 'inactive').charAt(0).toUpperCase() + (currentStatus || 'inactive').slice(1);
-        statusEl.className = `badge badge-sm ${currentStatus === 'active' ? 'badge-success' : 'badge-warning'}`;
-      }
-      modal.classList.add('modal-open');
-    }
-
-    function closeToggleModal() {
-      const modal = document.getElementById('toggleStatusModal');
-      modal.classList.remove('modal-open');
-      pendingToggleAccountId = null;
-    }
     let currentViewAccountId = null;
     function openViewModalShell() {
       const modal = document.getElementById('viewAccountModal');
@@ -453,49 +406,9 @@
       editingAccountId = null;
     }
 
-    async function toggleAccountStatus(accountId) {
-      try {
-        const res = await fetch(`{{ url('/access/department-accounts') }}/${accountId}/toggle`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message || 'Toggle failed');
-        // Update row status badge inline
-        const row = document.querySelector(`tr[data-account-id="${accountId}"]`);
-        if (row) {
-          const badge = row.querySelector('td:nth-child(4) .badge');
-          if (badge) {
-            badge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-            badge.className = `badge ${data.status === 'active' ? 'badge-success' : 'badge-warning'} badge-sm`;
-          }
-        }
-        closeToggleModal();
-        if (window.__updateDeptCards) window.__updateDeptCards();
-      } catch (e) {
-        alert('Unable to toggle status, please try again.');
-        console.error(e);
-      }
-    }
 
     // Wire confirm button
     document.addEventListener('DOMContentLoaded', function() {
-      const confirmBtn = document.getElementById('confirmToggleBtn');
-      if (confirmBtn) {
-        confirmBtn.addEventListener('click', function() {
-          if (pendingToggleAccountId) {
-            toggleAccountStatus(pendingToggleAccountId);
-          }
-        });
-      }
-      const toggleModal = document.getElementById('toggleStatusModal');
-      if (toggleModal) {
-        toggleModal.addEventListener('click', function(e){ if(e.target === toggleModal) closeToggleModal(); });
-      }
       // Edit submit
       const editForm = document.getElementById('editAccountForm');
       if (editForm) {

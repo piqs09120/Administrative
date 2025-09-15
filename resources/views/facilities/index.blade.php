@@ -440,6 +440,8 @@
             <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
             Facility Reservations
           </h2>
+          <!-- underline divider (matches other modules) -->
+          <div class="border-b border-gray-200 mt-3"></div>
         </div>
 
         <!-- Stats Cards (DaisyUI) -->

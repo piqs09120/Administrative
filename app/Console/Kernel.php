@@ -29,6 +29,12 @@ class Kernel extends ConsoleKernel
         
         // Monitor document expiration daily at 9:00 AM
         $schedule->command('documents:monitor-expiration --days=30')->dailyAt('09:00');
+        
+        // Check visitor checkout times every minute
+        $schedule->job(new \App\Jobs\CheckVisitorCheckoutTimes())->everyMinute();
+        
+        // Clean up expired OTP codes every hour
+        $schedule->command('otp:cleanup')->hourly();
     }
 
     /**

@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\DeptAccount;
 use App\Models\Guest;
+use App\Models\OtpCode;
+use App\Notifications\OtpCodeNotification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
@@ -41,70 +44,28 @@ class userController extends Controller
     }
 
     if ($deptAccount && $validPassword) {
-        // Debug logging for role detection
-        \Log::info('userController: Login successful', [
-            'employee_id' => $deptAccount->employee_id,
-            'employee_name' => $deptAccount->employee_name,
-            'role' => $deptAccount->role,
-            'role_type' => gettype($deptAccount->role),
-            'role_length' => strlen($deptAccount->role ?? '')
-        ]);
-        
-        // Map department account → Laravel users table for the default guard
-        $updateData = [
-            'name' => $deptAccount->employee_name ?? 'User',
-            'password' => Hash::make(Str::random(16)),
-            'email_verified_at' => now(),
-        ];
-
-        // Only include columns that actually exist on users table
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'role')) {
-                $updateData['role'] = $deptAccount->role ?? 'employee';
-            }
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'employee_id')) {
-                $updateData['employee_id'] = $deptAccount->employee_id;
-            }
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'department')) {
-                $updateData['department'] = $deptAccount->dept_name ?? 'general';
-            }
-        } catch (\Throwable $e) { /* proceed with minimal fields */ }
-
-        $laravelUser = \App\Models\User::updateOrCreate(
-            ['email' => $deptAccount->employee_id . '@soliera.local'],
-            $updateData
-        );
-
-        // Login using the standard web guard so middleware('auth') works
-        Auth::login($laravelUser);
-        $request->session()->regenerate();
-
-        // Persist employee_id for UI display (navbar pulls from this)
-        Session::put('emp_id', $deptAccount->employee_id);
-        
-        // Store user role in session for RBAC system
-        Session::put('user_role', $deptAccount->role);
-
-        // Log the successful login
-        \App\Http\Controllers\AccessController::logAction(
-            $deptAccount->Dept_no,
-            'Login',
-            'User logged in successfully',
+        // Generate and send OTP
+        $otp = OtpCode::createForEmployee(
+            $deptAccount->employee_id, 
+            $deptAccount->email, 
             $request->ip()
         );
 
-        // Redirect based on user role
-        $redirectRoute = $this->getRedirectRouteByRole($deptAccount->role);
-        
-        // Log the redirect decision for debugging
-        \Log::info('userController: Redirect decision', [
-            'employee_id' => $deptAccount->employee_id,
-            'original_role' => $deptAccount->role,
-            'redirect_route' => $redirectRoute,
-            'redirect_working' => true
-        ]);
-        
-        return redirect($redirectRoute);
+        // Send OTP email
+        try {
+            $deptAccount->notify(new OtpCodeNotification($otp->otp_code, $deptAccount->employee_name));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send OTP email: ' . $e->getMessage());
+            return back()->withErrors([
+                'employee_id' => 'Failed to send OTP. Please try again.',
+            ])->onlyInput('employee_id');
+        }
+
+        // Store employee data in session for OTP verification
+        session(['otp_employee_id' => $deptAccount->employee_id]);
+        session(['otp_user_data' => $deptAccount->toArray()]);
+
+        return redirect('/verify-otp')->with('success', 'OTP sent to your email address.');
     }
 
     // Log failed login attempt
@@ -193,8 +154,215 @@ public function guestlogout(){
       Auth::guard('guest')->logout();
 
       return redirect('/loginguest');
+}
 
+/**
+ * Show OTP verification form
+ */
+public function showOtpForm()
+{
+    if (!session('otp_employee_id')) {
+        \Log::info('No OTP session found, redirecting to login');
+        return redirect()->route('login')->with('error', 'No active OTP session. Please login first.');
+    }
+    
+    \Log::info('Showing OTP form for employee: ' . session('otp_employee_id'));
+    
+    return view('auth.verify-otp');
+}
 
+/**
+ * Verify OTP code
+ */
+public function verifyOtp(Request $request)
+{
+    \Log::info('=== OTP VERIFICATION START ===');
+    \Log::info('OTP Verification attempt for employee: ' . session('otp_employee_id'));
+    \Log::info('Request data: ' . json_encode($request->all()));
+    \Log::info('Request method: ' . $request->method());
+    \Log::info('Request URL: ' . $request->fullUrl());
+
+    // Check if otp_code is present in request
+    if (!$request->has('otp_code')) {
+        \Log::error('OTP code not found in request data');
+        return back()->withErrors([
+            'otp_code' => 'OTP code is required.',
+        ])->onlyInput('otp_code');
+    }
+
+    $request->validate([
+        'otp_code' => 'required|string|size:6',
+        'employee_id' => 'required'
+    ]);
+    
+    \Log::info('Validation passed. OTP Code: ' . $request->otp_code);
+
+    $employeeId = session('otp_employee_id');
+    $otpCode = $request->otp_code;
+
+    // Check if session data exists
+    if (!$employeeId) {
+        \Log::error('No OTP session found during verification');
+        return redirect()->route('login')->withErrors([
+            'otp_code' => 'Session expired. Please login again.'
+        ]);
+    }
+
+    // Check if user data exists in session
+    $userData = session('otp_user_data');
+    if (!$userData) {
+        \Log::error('No user data found in OTP session');
+        return redirect()->route('login')->withErrors([
+            'otp_code' => 'Session expired. Please login again.'
+        ]);
+    }
+
+    \Log::info('Verifying OTP: ' . $otpCode . ' for employee: ' . $employeeId);
+
+    // Check if OTP exists in database
+    $existingOtp = OtpCode::where('employee_id', $employeeId)
+        ->where('otp_code', $otpCode)
+        ->where('is_used', false)
+        ->first();
+    
+    \Log::info('Existing OTP found: ' . ($existingOtp ? 'Yes' : 'No'));
+    if ($existingOtp) {
+        \Log::info('OTP details: expires_at=' . $existingOtp->expires_at . ', is_used=' . ($existingOtp->is_used ? 'true' : 'false'));
+    }
+
+    // Verify OTP
+    $verificationResult = OtpCode::verify($employeeId, $otpCode);
+    \Log::info('OTP verification result: ' . ($verificationResult ? 'SUCCESS' : 'FAILED'));
+    
+    if ($verificationResult) {
+        \Log::info('OTP verification successful for employee: ' . $employeeId);
+        // Get user data from session
+        $userData = session('otp_user_data');
+        $deptAccount = DeptAccount::find($userData['Dept_no']);
+
+        if ($deptAccount) {
+            // Map department account → Laravel users table for the default guard
+            $updateData = [
+                'name' => $deptAccount->employee_name ?? 'User',
+                'password' => Hash::make(Str::random(16)),
+                'email_verified_at' => now(),
+            ];
+
+            // Only include columns that actually exist on users table
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'role')) {
+                    $updateData['role'] = $deptAccount->role ?? 'employee';
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'employee_id')) {
+                    $updateData['employee_id'] = $deptAccount->employee_id;
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'department')) {
+                    $updateData['department'] = $deptAccount->dept_name ?? 'general';
+                }
+            } catch (\Throwable $e) { /* proceed with minimal fields */ }
+
+            $laravelUser = \App\Models\User::updateOrCreate(
+                ['email' => $deptAccount->employee_id . '@soliera.local'],
+                $updateData
+            );
+
+            // Login using the standard web guard so middleware('auth') works
+            Auth::login($laravelUser);
+            $request->session()->regenerate();
+
+            // Persist employee_id for UI display (navbar pulls from this)
+            Session::put('emp_id', $deptAccount->employee_id);
+            
+            // Store user role in session for RBAC system
+            Session::put('user_role', $deptAccount->role);
+
+            // Log the successful login
+            \App\Http\Controllers\AccessController::logAction(
+                $deptAccount->Dept_no,
+                'Login',
+                'User logged in successfully with OTP',
+                $request->ip()
+            );
+
+            // Clear OTP session data
+            session()->forget(['otp_employee_id', 'otp_user_data']);
+
+            // Redirect based on user role
+            $redirectRoute = $this->getRedirectRouteByRole($deptAccount->role);
+            \Log::info('Redirecting to: ' . $redirectRoute . ' for role: ' . $deptAccount->role);
+            \Log::info('User authenticated: ' . (Auth::check() ? 'YES' : 'NO'));
+            \Log::info('User ID: ' . (Auth::id() ?? 'NULL'));
+            \Log::info('Session user_role: ' . Session::get('user_role', 'NOT_SET'));
+            
+            return redirect($redirectRoute)->with('success', 'Login successful!');
+        } else {
+            \Log::error('DeptAccount not found for user data: ' . json_encode($userData));
+            return back()->withErrors([
+                'otp_code' => 'User account not found. Please login again.',
+            ])->onlyInput('otp_code');
+        }
+    } else {
+        \Log::error('OTP verification failed for employee: ' . $employeeId . ' with code: ' . $otpCode);
+        return back()->withErrors([
+            'otp_code' => 'Invalid or expired OTP code.',
+        ])->onlyInput('otp_code');
+    }
+}
+
+/**
+ * Resend OTP code
+ */
+public function resendOtp(Request $request)
+{
+    \Log::info('Resend OTP requested for employee: ' . session('otp_employee_id'));
+    
+    $employeeId = session('otp_employee_id');
+    
+    if (!$employeeId) {
+        \Log::error('No OTP session found during resend');
+        return response()->json([
+            'success' => false,
+            'message' => 'No active OTP session found.'
+        ], 400);
+    }
+
+    $deptAccount = DeptAccount::where('employee_id', $employeeId)->first();
+    
+    if (!$deptAccount) {
+        \Log::error('DeptAccount not found for employee: ' . $employeeId);
+        return response()->json([
+            'success' => false,
+            'message' => 'User not found.'
+        ], 404);
+    }
+
+    // Generate new OTP
+    $otp = OtpCode::createForEmployee(
+        $deptAccount->employee_id, 
+        $deptAccount->email, 
+        $request->ip()
+    );
+
+    \Log::info('New OTP generated: ' . $otp->otp_code . ' for employee: ' . $employeeId);
+
+    // Send OTP email
+    try {
+        $deptAccount->notify(new OtpCodeNotification($otp->otp_code, $deptAccount->employee_name));
+        
+        \Log::info('OTP email sent successfully to: ' . $deptAccount->email);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'New OTP sent to your email.'
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Failed to resend OTP email: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to send OTP. Please try again.'
+        ], 500);
+    }
 }
 
 public function guestlogin(Request $request){

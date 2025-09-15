@@ -38,14 +38,21 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <div class="mb-6">
+          <div class="mb-4">
             <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Account Logs</h1>
             <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track user account activities and system access</p>
           </div>
+          <!-- underline divider (matches Visitor Management style) -->
+          <div class="border-b border-gray-200 mb-6"></div>
 
           <!-- Log Entry Count -->
+          @php
+            $filteredLogs = $logs->filter(function($log){
+              return in_array(strtolower($log->action), ['login','logout','otp']);
+            });
+          @endphp
           <div class="text-sm text-gray-500 mb-6">
-            Total {{ $logs->count() }} log entries
+            Total {{ $filteredLogs->count() }} log entries
           </div>
         </div>
 
@@ -101,9 +108,7 @@
                   <option value="">All Actions</option>
                   <option value="Login">Login</option>
                   <option value="Logout">Logout</option>
-                  <option value="Document_uploaded">Document uploaded</option>
-                  <option value="Access_control_check">Access control check</option>
-                  <option value="Profile_updated">Profile updated</option>
+                  <option value="OTP">OTP</option>
                 </select>
               </div>
 
@@ -126,7 +131,6 @@
             <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">LOG ID</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">USER</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">ACTION</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DESCRIPTION</th>
@@ -134,11 +138,8 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($logs as $log)
+                @forelse($filteredLogs as $log)
                   <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4">
-                      <span class="font-mono text-sm text-gray-600">#{{ $log->id }}</span>
-                    </td>
                     <td class="py-3 px-4">
                       <div class="flex items-center space-x-3">
                         <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -165,7 +166,7 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="5" class="text-center py-12">
+                    <td colspan="4" class="text-center py-12">
                       <div class="flex flex-col items-center">
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <i data-lucide="activity" class="w-10 h-10 text-gray-400"></i>

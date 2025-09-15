@@ -114,9 +114,88 @@ Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])-
 Route::post('/loginuser', [App\Http\Controllers\userController::class, 'login'])->name('user.login');
 Route::post('/logout', [App\Http\Controllers\userController::class, 'logout'])->name('logout');
 
+// OTP Authentication Routes
+Route::get('/verify-otp', [App\Http\Controllers\userController::class, 'showOtpForm'])->name('otp.verify');
+Route::post('/verify-otp', [App\Http\Controllers\userController::class, 'verifyOtp'])->name('otp.verify.submit');
+Route::post('/resend-otp', [App\Http\Controllers\userController::class, 'resendOtp'])->name('otp.resend');
+
+// Debug route for OTP verification
+Route::post('/debug-verify-otp', function(Request $request) {
+    \Log::info('Debug OTP verification', [
+        'otp_code' => $request->otp_code,
+        'employee_id' => session('otp_employee_id'),
+        'session_data' => session()->all()
+    ]);
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Debug info logged',
+        'otp_code' => $request->otp_code,
+        'employee_id' => session('otp_employee_id')
+    ]);
+});
+
+Route::get('/refresh-csrf', function() {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+
+// Debug route removed for security
+
+// Temporary debug route for OTP testing (REMOVE IN PRODUCTION)
+Route::get('/debug-otp-db', function() {
+    if (app()->environment('local')) {
+        $otps = \App\Models\OtpCode::orderBy('created_at', 'desc')->limit(5)->get();
+        return response()->json([
+            'otps' => $otps->map(function($otp) {
+                return [
+                    'employee_id' => $otp->employee_id,
+                    'otp_code' => $otp->otp_code,
+                    'expires_at' => $otp->expires_at,
+                    'is_used' => $otp->is_used,
+                    'created_at' => $otp->created_at
+                ];
+            })
+        ]);
+    }
+    return response()->json(['error' => 'Not available in production']);
+});
+
+// Debug route for testing OTP verification
+Route::post('/debug-verify-otp', function(\Illuminate\Http\Request $request) {
+    if (app()->environment('local')) {
+        $otpCode = $request->input('otp_code');
+        $employeeId = session('otp_employee_id');
+        
+        \Log::info('Debug OTP verification', [
+            'otp_code' => $otpCode,
+            'employee_id' => $employeeId,
+            'session_data' => session()->all()
+        ]);
+        
+        if (!$employeeId) {
+            return response()->json(['error' => 'No OTP session found']);
+        }
+        
+        $otp = \App\Models\OtpCode::where('employee_id', $employeeId)
+            ->where('otp_code', $otpCode)
+            ->where('is_used', false)
+            ->first();
+            
+        return response()->json([
+            'otp_found' => $otp ? true : false,
+            'otp_details' => $otp ? [
+                'expires_at' => $otp->expires_at,
+                'is_used' => $otp->is_used,
+                'is_expired' => $otp->expires_at < now()
+            ] : null,
+            'verification_result' => \App\Models\OtpCode::verify($employeeId, $otpCode)
+        ]);
+    }
+    return response()->json(['error' => 'Not available in production']);
+});
+
 // (Optional) OTP endpoints retained but with unique URIs if needed in future
 Route::get('/login/otp', [App\Http\Controllers\AuthController::class, 'showOTP'])->name('login.otp');
-Route::post('/verify-otp', [App\Http\Controllers\AuthController::class, 'verifyOTP'])->name('verify.otp');
 
 // Guest routes
 Route::post('/guest/create', [App\Http\Controllers\userController::class, 'create'])->name('guest.create');
@@ -293,6 +372,9 @@ Route::post('/test-analyze', function(Request $request) {
 Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard chart data endpoints (scoped to dashboard only)
+    Route::get('/dashboard/facility-stats', [DashboardController::class, 'facilityStats'])->name('dashboard.facility_stats');
+    Route::get('/dashboard/user-mgmt-stats', [DashboardController::class, 'userMgmtStats'])->name('dashboard.user_mgmt_stats');
     
     // Profile Management
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -548,6 +630,7 @@ Route::middleware(['auth'])->group(function () {
     // Visitor Management - Receptionist, Administrator, Super Admin only
     Route::middleware(['auth', 'role:Receptionist,Administrator,Super Admin'])->group(function () {
         Route::resource('visitor', VisitorController::class);
+        Route::get('/visitor/{id}/details', [App\Http\Controllers\VisitorController::class, 'getDetails'])->name('visitor.details');
         
         // Visitor Logs Routes
         Route::prefix('visitor-logs')->name('visitor.logs.')->group(function () {
@@ -775,6 +858,15 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
     // Workflow Action Routes
     Route::post('/facility_reservations/{id}/availability-check', [App\Http\Controllers\FacilityReservationController::class, 'performAvailabilityCheck'])->name('facility_reservations.availability_check');
     Route::post('/facility_reservations/{id}/conflict-resolution', [App\Http\Controllers\FacilityReservationController::class, 'performConflictResolution'])->name('facility_reservations.conflict_resolution');
+});
+
+// Test route for OTP verification
+Route::get('/test-otp-route', function() {
+    return response()->json([
+        'message' => 'OTP route is working',
+        'session_employee_id' => session('otp_employee_id'),
+        'timestamp' => now()
+    ]);
 });
 
 require __DIR__.'/auth.php';

@@ -36,7 +36,7 @@
         @endif
 
         <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-4">
           <div>
             <h1 class="text-3xl font-bold" style="color: var(--color-charcoal-ink);">Disposal History</h1>
             <p class="text-gray-600 mt-1">View all disposed documents and disposal audit trail</p>
@@ -50,6 +50,8 @@
             </a>
           </div>
         </div>
+        <!-- underline divider (matches other modules) -->
+        <div class="border-b border-gray-200 mb-6"></div>
 
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">

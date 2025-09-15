@@ -31,7 +31,7 @@
             <!-- Header -->
             @include('partials.navbar')
             <!-- Page Content -->
-            <main class="flex-1 p-6">
+            <main class="flex-1 px-6 pt-6 pb-0">
                 @if(session('success'))
                     <div class="alert alert-success mb-4">
                         <i class="fas fa-check-circle"></i>

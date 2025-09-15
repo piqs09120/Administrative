@@ -90,6 +90,8 @@
               </div>
             </div>
           </div>
+          <!-- underline divider (matches other modules) -->
+          <div class="border-b border-gray-200"></div>
         </div>
 
 

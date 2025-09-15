@@ -40,12 +40,29 @@ class VisitorController extends Controller
         $facilities = Facility::all();
         $users = User::all();
         
+        // Get pending exit visitors (overdue)
+        $pendingExitVisitors = Visitor::where('pending_exit', true)
+            ->whereNull('time_out')
+            ->with('facility')
+            ->latest('pending_exit_at')
+            ->get();
+        
+        // Get visitors approaching timeout (within 10 minutes)
+        $approachingTimeoutVisitors = $this->getApproachingTimeoutVisitors();
+        
         // Get active tab from request parameter
         $validTabs = ['current', 'scheduled', 'monitoring'];
         $tabParam = $request->get('tab');
         $activeTab = in_array($tabParam, $validTabs) ? $tabParam : 'current';
         
-        return view('visitor.index', compact('visitors', 'facilities', 'users', 'activeTab'));
+        return view('visitor.index', compact(
+            'visitors', 
+            'facilities', 
+            'users', 
+            'activeTab',
+            'pendingExitVisitors',
+            'approachingTimeoutVisitors'
+        ));
     }
 
     public function create()
@@ -130,7 +147,13 @@ class VisitorController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Visitor registered and pass issued! Please check them in when they arrive.',
-                'visitor' => $visitor->load('facility')
+                'visitor' => $visitor->load('facility'),
+                'pass_data' => $visitor->pass_data,
+                'validity_info' => [
+                    'valid_from' => $visitor->pass_valid_from->format('Y-m-d H:i:s'),
+                    'valid_until' => $visitor->pass_valid_until->format('Y-m-d H:i:s'),
+                    'validity_period' => $this->formatValidityPeriod($visitor->pass_valid_from, $visitor->pass_valid_until)
+                ]
             ]);
         }
         
@@ -217,6 +240,7 @@ class VisitorController extends Controller
         return view('visitor.show', compact('visitor'));
     }
 
+
     public function edit($id)
     {
         $visitor = Visitor::findOrFail($id);
@@ -285,22 +309,33 @@ class VisitorController extends Controller
 
     public function getVisitorDetails($id): JsonResponse
     {
-        $visitor = Visitor::with(['facility', 'facilityReservation'])->findOrFail($id);
-        
-        $digitalPass = null;
-        if ($visitor->facilityReservation && $visitor->facilityReservation->digital_pass_data) {
-            foreach ($visitor->facilityReservation->digital_pass_data as $pass) {
-                if (($pass['visitor_id'] ?? null) == $visitor->id) {
-                    $digitalPass = $pass;
-                    break;
+        try {
+            $visitor = Visitor::with(['facility', 'facilityReservation'])->findOrFail($id);
+            
+            $digitalPass = null;
+            if ($visitor->facilityReservation && $visitor->facilityReservation->digital_pass_data) {
+                foreach ($visitor->facilityReservation->digital_pass_data as $pass) {
+                    if (($pass['visitor_id'] ?? null) == $visitor->id) {
+                        $digitalPass = $pass;
+                        break;
+                    }
                 }
             }
+            
+            $visitorArray = $visitor->toArray();
+            $visitorArray['digital_pass'] = $digitalPass; // Add digital pass data to the response
+            
+            return response()->json([
+                'success' => true,
+                'visitor' => $visitorArray
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Visitor not found',
+                'error' => $e->getMessage()
+            ], 404);
         }
-        
-        $visitorArray = $visitor->toArray();
-        $visitorArray['digital_pass'] = $digitalPass; // Add digital pass data to the response
-        
-        return response()->json($visitorArray);
     }
 
     // Renamed from checkIn to store, as it performs a store operation.
@@ -724,6 +759,30 @@ class VisitorController extends Controller
     }
 
     /**
+     * Format validity period for display
+     */
+    private function formatValidityPeriod($validFrom, $validUntil): string
+    {
+        $now = now();
+        $diffHours = $validUntil->diffInHours($now);
+        
+        if ($diffHours <= 0) {
+            return 'Expired';
+        } elseif ($diffHours < 24) {
+            return $diffHours . ' Hour' . ($diffHours > 1 ? 's' : '');
+        } else {
+            $diffDays = floor($diffHours / 24);
+            $remainingHours = $diffHours % 24;
+            
+            if ($remainingHours === 0) {
+                return $diffDays . ' Day' . ($diffDays > 1 ? 's' : '');
+            } else {
+                return $diffDays . ' Day' . ($diffDays > 1 ? 's' : '') . ' ' . $remainingHours . ' Hour' . ($remainingHours > 1 ? 's' : '');
+            }
+        }
+    }
+
+    /**
      * Log visitor activity (check-in, check-out, registration)
      */
     private function logVisitorActivity(Visitor $visitor, string $action, string $notes = null): void
@@ -831,15 +890,18 @@ class VisitorController extends Controller
             $mappedVisitors = $visitors->map(function ($visitor) {
                     // Determine display status with robust rules:
                     // - If not checked in yet (no time_in), always Pending
-                    // - If checked out, Completed
+                    // - If checked out (has time_out), Completed
+                    // - If pending exit flag is set, Pending Exit
                     // - If explicitly registered/pending_approval, Pending
                     // - If revoked, Revoked
                     // - If expired by validity, Expired
                     // - Else, Active
                     if (is_null($visitor->time_in)) {
                         $status = 'Pending';
-                    } elseif (!is_null($visitor->time_out) || $visitor->status === 'checked_out') {
+                    } elseif (!is_null($visitor->time_out)) {
                         $status = 'Completed';
+                    } elseif ($visitor->pending_exit) {
+                        $status = 'Pending Exit';
                     } elseif (in_array($visitor->status, ['registered', 'pending_approval'])) {
                         $status = 'Pending';
                     } elseif ($visitor->status === 'revoked') {
@@ -849,6 +911,9 @@ class VisitorController extends Controller
                     } else {
                         $status = 'Active';
                     }
+
+                    // Debug logging for status determination
+                    \Log::info("Visitor {$visitor->name} (ID: {$visitor->id}) - time_in: {$visitor->time_in}, time_out: {$visitor->time_out}, status: {$status}");
 
                     return [
                         'id' => $visitor->id,
@@ -863,6 +928,7 @@ class VisitorController extends Controller
                         'department' => $visitor->department ?? 'N/A',
                         'check_in_time' => $visitor->arrival_date && $visitor->arrival_time ? \Carbon\Carbon::parse(\Carbon\Carbon::parse($visitor->arrival_date)->format('Y-m-d') . ' ' . \Carbon\Carbon::parse($visitor->arrival_time)->format('H:i:s'))->format('M j, Y g:i A') : 'N/A',
                         'actual_check_in_time' => $visitor->time_in ? \Carbon\Carbon::parse($visitor->time_in)->format('M j, Y g:i A') : 'N/A',
+                        'actual_check_out_time' => $visitor->time_out ? \Carbon\Carbon::parse($visitor->time_out)->format('M j, Y g:i A') : 'N/A',
                         // Expected date out: separate date field
                         'expected_date_out' => $visitor->expected_date_out ? \Carbon\Carbon::parse($visitor->expected_date_out)->format('M j, Y') : 'N/A',
                         // Expected time out: use the actual expected_time_out field
@@ -870,7 +936,11 @@ class VisitorController extends Controller
                         'vehicle_plate' => $visitor->vehicle_plate ?? 'N/A',
                         'status' => $status,
                         'pass_id' => $visitor->pass_id,
-                        'facility_name' => $visitor->facility ? $visitor->facility->name : 'N/A'
+                        'facility_name' => $visitor->facility ? $visitor->facility->name : 'N/A',
+                        'pending_exit' => $visitor->pending_exit,
+                        'pending_exit_at' => $visitor->pending_exit_at ? \Carbon\Carbon::parse($visitor->pending_exit_at)->format('M j, Y g:i A') : null,
+                        'time_in' => $visitor->time_in,
+                        'time_out' => $visitor->time_out
                     ];
                 });
 
@@ -1059,5 +1129,48 @@ class VisitorController extends Controller
         $this->logVisitorActivity($visitor, 'register', 'Visitor declined');
 
         return redirect()->back()->with('success', 'Visitor declined.');
+    }
+    
+    /**
+     * Get visitors approaching their timeout (within 10 minutes)
+     */
+    private function getApproachingTimeoutVisitors()
+    {
+        $now = \Carbon\Carbon::now();
+        
+        return Visitor::where('time_in', '!=', null)
+            ->where('time_out', null)
+            ->where('expected_time_out', '!=', null)
+            ->where('pending_exit', false)
+            ->with('facility')
+            ->get()
+            ->filter(function ($visitor) use ($now) {
+                try {
+                    $expectedCheckout = $this->parseExpectedCheckoutTime($visitor);
+                    if (!$expectedCheckout) return false;
+                    
+                    $minutesRemaining = $now->diffInMinutes($expectedCheckout, false);
+                    return $minutesRemaining <= 10 && $minutesRemaining > 0;
+                } catch (\Exception $e) {
+                    return false;
+                }
+            })
+            ->values();
+    }
+    
+    /**
+     * Parse expected checkout time for a visitor
+     */
+    private function parseExpectedCheckoutTime($visitor)
+    {
+        try {
+            if (strpos($visitor->expected_time_out, ' ') !== false) {
+                return \Carbon\Carbon::parse($visitor->expected_time_out);
+            } else {
+                return \Carbon\Carbon::parse($visitor->expected_date_out . ' ' . $visitor->expected_time_out);
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 } 

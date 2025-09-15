@@ -469,13 +469,33 @@ class DocumentController extends Controller
         // Step 4: Route document based on AI analysis
         $this->routeDocument($document, $document->ai_analysis);
 
-        // Log successful upload
-        AccessLog::create([
-            'user_id' => $uploadedBy, // Use validated user ID
-            'action' => 'document_uploaded',
-            'description' => 'Document uploaded: ' . $request->title,
-            'ip_address' => request()->ip()
-        ]);
+        // Log successful upload using DeptAccount Dept_no if available
+        try {
+            $deptNo = null;
+            if (!empty($uploadedBy)) {
+                // $uploadedBy may already be Dept_no, try to map if it looks like employee_id
+                if (is_string($uploadedBy) && !is_numeric($uploadedBy)) {
+                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $uploadedBy)->first())->Dept_no;
+                } else {
+                    $deptNo = $uploadedBy;
+                }
+            }
+            if (!$deptNo && auth()->check()) {
+                $email = auth()->user()->email ?? '';
+                $empFromEmail = strstr($email, '@', true);
+                if ($empFromEmail) {
+                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
+                }
+            }
+            AccessLog::create([
+                'user_id' => $deptNo ?? 0,
+                'action' => 'document_uploaded',
+                'description' => 'Document uploaded: ' . $request->title,
+                'ip_address' => request()->ip()
+            ]);
+        } catch (\Throwable $e) {
+            // swallow logging errors
+        }
 
         // Debug logging for successful upload
         \Log::info('Document uploaded successfully', [
@@ -1296,7 +1316,24 @@ class DocumentController extends Controller
     private function logDocumentLifecycleStep($document, $step, $details = [])
     {
         $lifecycleLog = $document->lifecycle_log ?? [];
-        $userId = Auth::id() ?? 'unknown';
+        // Prefer DeptAccount Dept_no over Laravel user id for audit trail
+        $userId = null;
+        try {
+            $empId = session('emp_id');
+            if ($empId) {
+                $userId = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
+            }
+            if (!$userId && Auth::check()) {
+                $email = Auth::user()->email ?? '';
+                $empFromEmail = strstr($email, '@', true);
+                if ($empFromEmail) {
+                    $userId = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
+                }
+            }
+        } catch (\Throwable $e) {
+            $userId = null;
+        }
+        $userId = $userId ?? 'unknown';
         
         // Add OCR quality assessment if this is a text extraction step
         if ($step === 'text_extraction_completed' && isset($details['extracted_text'])) {
@@ -1315,12 +1352,16 @@ class DocumentController extends Controller
         $document->update(['lifecycle_log' => $lifecycleLog]);
         
         // Also log to AccessLog for audit trail
-        AccessLog::create([
-            'user_id' => $userId,
-            'action' => 'document_lifecycle_' . $step,
-            'description' => "Document lifecycle: {$step} for document ID {$document->id}",
-            'ip_address' => request()->ip()
-        ]);
+        try {
+            AccessLog::create([
+                'user_id' => $userId,
+                'action' => 'document_lifecycle_' . $step,
+                'description' => "Document lifecycle: {$step} for document ID {$document->id}",
+                'ip_address' => request()->ip()
+            ]);
+        } catch (\Throwable $e) {
+            // swallow logging errors
+        }
     }
 
     /**
@@ -1425,13 +1466,29 @@ class DocumentController extends Controller
         $document = Document::where('source', 'legal_management')->findOrFail($id);
         $document->update($request->all());
 
-        // Log the update
-        AccessLog::create([
-            'user_id' => Auth::id() ?? 'unknown',
-            'action' => 'legal_document_updated',
-            'description' => "Updated legal document: {$document->title}",
-            'ip_address' => request()->ip()
-        ]);
+        // Log the update (use DeptAccount Dept_no)
+        try {
+            $deptNo = null;
+            $empId = session('emp_id');
+            if ($empId) {
+                $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
+            }
+            if (!$deptNo && Auth::check()) {
+                $email = Auth::user()->email ?? '';
+                $empFromEmail = strstr($email, '@', true);
+                if ($empFromEmail) {
+                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
+                }
+            }
+            AccessLog::create([
+                'user_id' => $deptNo ?? 0,
+                'action' => 'legal_document_updated',
+                'description' => "Updated legal document: {$document->title}",
+                'ip_address' => request()->ip()
+            ]);
+        } catch (\Throwable $e) {
+            // ignore logging errors
+        }
 
         // Check if request is AJAX
         if ($request->ajax()) {
@@ -1457,13 +1514,24 @@ class DocumentController extends Controller
                 Storage::disk('public')->delete($document->file_path);
             }
 
-            // Safe deletion log (non-fatal if logging fails)
+            // Safe deletion log (non-fatal if logging fails) - use DeptAccount Dept_no
             try {
+                $deptNo = null;
+                $empId = session('emp_id');
+                if ($empId) {
+                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
+                }
+                if (!$deptNo && Auth::check()) {
+                    $email = Auth::user()->email ?? '';
+                    $empFromEmail = strstr($email, '@', true);
+                    if ($empFromEmail) {
+                        $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
+                    }
+                }
                 AccessLog::create([
-                    'user_id' => Auth::id() ?? 'unknown',
+                    'user_id' => $deptNo ?? 0,
                     'action' => 'legal_document_deleted',
                     'description' => "Deleted legal document: {$document->title}",
-                    'ip_address' => request()->ip()
                 ]);
             } catch (\Throwable $e) {
                 \Log::warning('Failed to log deletion for legal document', [
@@ -1593,13 +1661,29 @@ class DocumentController extends Controller
                'declined_at' => now()
            ]);
 
-           // Log the decline
-           AccessLog::create([
-               'user_id' => Auth::id() ?? 'unknown',
-               'action' => 'legal_document_declined',
-               'description' => "Declined legal document: {$document->title} - Reason: {$reason}",
-               'ip_address' => request()->ip()
-           ]);
+           // Log the decline (use DeptAccount Dept_no)
+           try {
+               $deptNo = null;
+               $empId = session('emp_id');
+               if ($empId) {
+                   $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
+               }
+               if (!$deptNo && Auth::check()) {
+                   $email = Auth::user()->email ?? '';
+                   $empFromEmail = strstr($email, '@', true);
+                   if ($empFromEmail) {
+                       $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
+                   }
+               }
+               AccessLog::create([
+                   'user_id' => $deptNo ?? 0,
+                   'action' => 'legal_document_declined',
+                   'description' => "Declined legal document: {$document->title} - Reason: {$reason}",
+                   'ip_address' => request()->ip()
+               ]);
+           } catch (\Throwable $e) {
+               // ignore logging errors
+           }
 
            if ($request->ajax()) {
                return response()->json([
@@ -2082,13 +2166,29 @@ class DocumentController extends Controller
                 Storage::disk('public')->delete($document->file_path);
             }
 
-            // Log disposal action
-            AccessLog::create([
-                'user_id' => Auth::id() ?? 'unknown',
-                'action' => 'document_disposed',
-                'description' => "Document '{$document->title}' permanently disposed",
-                'ip_address' => request()->ip()
-            ]);
+            // Log disposal action (use DeptAccount Dept_no)
+            try {
+                $deptNo = null;
+                $empId = session('emp_id');
+                if ($empId) {
+                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
+                }
+                if (!$deptNo && Auth::check()) {
+                    $email = Auth::user()->email ?? '';
+                    $empFromEmail = strstr($email, '@', true);
+                    if ($empFromEmail) {
+                        $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
+                    }
+                }
+                AccessLog::create([
+                    'user_id' => $deptNo ?? 0,
+                    'action' => 'document_disposed',
+                    'description' => "Document '{$document->title}' permanently disposed",
+                    'ip_address' => request()->ip()
+                ]);
+            } catch (\Throwable $e) {
+                // ignore logging errors
+            }
 
             // Log disposal in lifecycle
             $log = $document->lifecycle_log ?? [];

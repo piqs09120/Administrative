@@ -19,7 +19,11 @@
     <div class="flex flex-col flex-1 overflow-hidden">
       @include('partials.navbar')
       <main class="flex-1 overflow-y-auto p-8">
-        <h1 class="text-3xl font-bold mb-6" style="color: var(--color-charcoal-ink);">Archived Documents</h1>
+        <div class="mb-4">
+          <h1 class="text-3xl font-bold" style="color: var(--color-charcoal-ink);">Archived Documents</h1>
+        </div>
+        <!-- underline divider (matches other modules) -->
+        <div class="border-b border-gray-200 mb-6"></div>
 
         <!-- Complete Archived Documents Table -->
         <div class="card bg-white shadow-xl">
