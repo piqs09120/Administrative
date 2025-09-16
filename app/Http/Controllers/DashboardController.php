@@ -83,6 +83,16 @@ class DashboardController extends Controller
         ));
     }
 
+    /** Simple active users count for dashboard metrics */
+    public function activeUsersCount(Request $request)
+    {
+        try {
+            $count = \App\Models\DeptAccount::where('status', 'active')->count();
+            return response()->json(['success' => true, 'active_users' => (int) $count]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'active_users' => 0, 'error' => $e->getMessage()], 200);
+        }
+    }
     /** Facility Reservations stats for dashboard charts */
     public function facilityStats(Request $request)
     {

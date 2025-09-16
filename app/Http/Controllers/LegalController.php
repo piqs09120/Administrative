@@ -1252,29 +1252,13 @@ class LegalController extends Controller
             $document->update(['reference_id' => 'LGL-' . str_pad($document->id, 6, '0', STR_PAD_LEFT)]);
         }
 
-        // Log the action with DeptAccount Dept_no (not Laravel user id)
-        try {
-            $deptNo = null;
-            $empId = session('emp_id');
-            if ($empId) {
-                $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
-            }
-            if (!$deptNo && auth()->check()) {
-                $email = auth()->user()->email ?? '';
-                $empFromEmail = strstr($email, '@', true);
-                if ($empFromEmail) {
-                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
-                }
-            }
-            AccessLog::create([
-                'user_id' => $deptNo ?? 0,
-                'action' => 'save_legal_draft',
-                'description' => "Saved legal document draft: {$document->title}",
-                'ip_address' => $request->ip()
-            ]);
-        } catch (\Throwable $e) {
-            // swallow logging errors
-        }
+        // Log the action
+        AccessLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'save_legal_draft',
+            'description' => "Saved legal document draft: {$document->title}",
+            'ip_address' => $request->ip()
+        ]);
 
         return response()->json([
             'success' => true,
@@ -2324,29 +2308,13 @@ class LegalController extends Controller
 
             $document->update(['reference_id' => 'AI-' . str_pad($document->id, 6, '0', STR_PAD_LEFT)]);
 
-            // Log the action with DeptAccount Dept_no (not Laravel user id)
-            try {
-                $deptNo = null;
-                $empId = session('emp_id');
-                if ($empId) {
-                    $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->Dept_no;
-                }
-                if (!$deptNo && auth()->check()) {
-                    $email = auth()->user()->email ?? '';
-                    $empFromEmail = strstr($email, '@', true);
-                    if ($empFromEmail) {
-                        $deptNo = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->Dept_no;
-                    }
-                }
-                AccessLog::create([
-                    'user_id' => $deptNo ?? 0,
-                    'action' => 'save_ai_document',
-                    'description' => "Saved AI-generated document: {$document->title}",
-                    'ip_address' => $request->ip()
-                ]);
-            } catch (\Throwable $e) {
-                // swallow logging errors
-            }
+            // Log the action
+            AccessLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'save_ai_document',
+                'description' => "Saved AI-generated document: {$document->title}",
+                'ip_address' => $request->ip()
+            ]);
 
             return response()->json([
                 'success' => true,

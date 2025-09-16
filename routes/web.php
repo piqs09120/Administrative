@@ -25,8 +25,9 @@ use Illuminate\Http\Request;
 |
 */
 
-// Landing page routes
-Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+// Landing page routes (kept but root is redirected to login)
+Route::get('/', function () { return redirect()->route('login'); });
+Route::get('/landing', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 Route::get('/visitor-management', [App\Http\Controllers\LandingController::class, 'visitorManagement'])->name('visitor.management.landing');
 Route::get('/facilities-reservation', [App\Http\Controllers\LandingController::class, 'facilitiesReservation'])->name('facilities.reservation.landing');
 // Public endpoint to accept registration from landing page (AJAX)
@@ -41,12 +42,12 @@ Route::get('/api/facilities/monitoring', [App\Http\Controllers\FacilityReservati
 // Equipment details API
 Route::get('/api/facilities/equipment-details', [App\Http\Controllers\FacilityReservationController::class, 'equipmentDetails'])->name('facilities.equipment.details');
 
-// Redirect authenticated users to dashboard
+// Redirect authenticated users to dashboard; unauthenticated to login
 Route::get('/home', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
     }
-    return redirect()->route('landing');
+    return redirect()->route('login');
 })->name('home');
 
 // Test route for debugging access logs (temporary - remove in production)
@@ -375,6 +376,10 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard chart data endpoints (scoped to dashboard only)
     Route::get('/dashboard/facility-stats', [DashboardController::class, 'facilityStats'])->name('dashboard.facility_stats');
     Route::get('/dashboard/user-mgmt-stats', [DashboardController::class, 'userMgmtStats'])->name('dashboard.user_mgmt_stats');
+    Route::get('/dashboard/active-users', [DashboardController::class, 'activeUsersCount'])->name('dashboard.active_users');
+    // Legal monitoring proxies for dashboard (accessible to any authenticated user)
+    Route::get('/dashboard/legal/summary', [LegalController::class, 'monitoringSummary'])->name('dashboard.legal_summary');
+    Route::get('/dashboard/legal/list', [LegalController::class, 'monitoringList'])->name('dashboard.legal_list');
     
     // Profile Management
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
