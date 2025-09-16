@@ -1171,4 +1171,80 @@ class FacilityReservationController extends Controller
             'data' => $reportData
         ]);
     }
+
+    /**
+     * Export facilities monitoring data as PDF
+     */
+    public function exportMonitoringPdf(Request $request)
+    {
+        $now = now();
+        $oneWeekAgo = $now->copy()->subDays(6)->startOfDay();
+
+        $query = \App\Models\FacilityRequest::query();
+
+        $total = (clone $query)->count();
+        $inProgress = (clone $query)->where('status', 'pending')->count();
+        $completed = (clone $query)->where('status', 'completed')->count();
+        $urgent = (clone $query)->where('priority', 'urgent')->count();
+
+        // Weekly counts
+        $weekly = (clone $query)
+            ->whereBetween('created_at', [$oneWeekAgo, $now])
+            ->get()
+            ->groupBy(function ($r) { return $r->created_at->format('D'); })
+            ->map->count();
+
+        $days = collect(range(0,6))->map(function($i) use ($oneWeekAgo){ return $oneWeekAgo->copy()->addDays($i)->format('D'); });
+        $weeklySeries = $days->map(function($d) use ($weekly){ return [ 'day' => $d, 'count' => (int)($weekly[$d] ?? 0) ]; });
+
+        $recent = (clone $query)
+            ->with('facility:id,name')
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(function($r){
+                return [
+                    'id' => $r->id,
+                    'code' => 'REQ-' . str_pad($r->id, 3, '0', STR_PAD_LEFT),
+                    'type' => $r->request_type,
+                    'priority' => $r->priority,
+                    'status' => $r->status,
+                    'title' => ucfirst($r->request_type) . ' - ' . (\Illuminate\Support\Str::limit($r->description, 40) ?: 'Request'),
+                    'department' => $r->department,
+                    'facility' => $r->facility->name ?? null,
+                    'created_at' => $r->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Get facility statistics
+        $facilities = \App\Models\Facility::all();
+        $totalFacilities = $facilities->count();
+        $availableFacilities = $facilities->where('status', 'available')->count();
+        $occupiedFacilities = $facilities->where('status', 'occupied')->count();
+
+        $reportData = [
+            'summary' => [
+                'total_requests' => $total,
+                'in_progress' => $inProgress,
+                'completed' => $completed,
+                'urgent' => $urgent,
+                'total_facilities' => $totalFacilities,
+                'available_facilities' => $availableFacilities,
+                'occupied_facilities' => $occupiedFacilities,
+            ],
+            'weekly_data' => $weeklySeries,
+            'recent_requests' => $recent,
+            'facilities' => $facilities,
+            'generated_at' => now(),
+            'date_range' => [
+                'start' => $oneWeekAgo,
+                'end' => $now
+            ]
+        ];
+
+        $filename = 'facilities_monitoring_report_' . now()->format('Y-m-d_H-i-s');
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('facilities.reports.monitoring_pdf', $reportData);
+        return $pdf->download($filename . '.pdf');
+    }
 }

@@ -167,9 +167,6 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('login') }}" class="text-white hover:text-yellow-400 transition-colors">Login</a>
-                    <a href="{{ route('facility_reservations.index') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        View Reservations
-                    </a>
                 </div>
             </div>
         </div>

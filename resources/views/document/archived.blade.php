@@ -25,6 +25,63 @@
         <!-- underline divider (matches other modules) -->
         <div class="border-b border-gray-200 mb-6"></div>
 
+        <!-- Status Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <!-- Total Documents -->
+          <div class="card bg-base-100 shadow-xl border-l-4 border-l-primary">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-10 h-10">
+                    <i data-lucide="folder" class="w-5 h-5"></i>
+                  </div>
+                </div>
+                <div class="badge badge-primary badge-outline text-xs">Total</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1">{{ $documents->count() }}</h2>
+                <p class="text-sm text-base-content/70">Total Documents</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Received Today -->
+          <div class="card bg-base-100 shadow-xl border-l-4 border-l-info">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-info text-info-content rounded-full w-10 h-10">
+                    <i data-lucide="inbox" class="w-5 h-5"></i>
+                  </div>
+                </div>
+                <div class="badge badge-info badge-outline text-xs">Today</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1">{{ $documents->where('created_at', '>=', now()->startOfDay())->count() }}</h2>
+                <p class="text-sm text-base-content/70">Received Today</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expired Documents -->
+          <div class="card bg-base-100 shadow-xl border-l-4 border-l-error">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="avatar placeholder">
+                  <div class="bg-error text-error-content rounded-full w-10 h-10">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                  </div>
+                </div>
+                <div class="badge badge-error badge-outline text-xs">Expired</div>
+              </div>
+              <div class="text-center">
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-error justify-center mb-1">{{ $documents->where('status', 'expired')->count() }}</h2>
+                <p class="text-sm text-base-content/70">Expired Documents</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Complete Archived Documents Table -->
         <div class="card bg-white shadow-xl">
           <div class="card-body">

@@ -201,22 +201,10 @@
             <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
           </div>
           <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
-            <a href="{{ route('document.view') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('document.view') ? 'bg-blue-700 text-white' : '' }}">
-              <span class="flex items-center gap-2">
-                <i data-lucide="folder-open" class="w-4 h-4 text-[#F7B32B]"></i>
-                View Documents
-              </span>
-            </a>
             <a href="{{ route('document.archived') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('document.archived') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
                 <i data-lucide="archive" class="w-4 h-4 text-[#F7B32B]"></i>
                 Archived Documents
-              </span>
-            </a>
-            <a href="{{ route('disposal.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('disposal.*') ? 'bg-blue-700 text-white' : '' }}">
-              <span class="flex items-center gap-2">
-                <i data-lucide="trash-2" class="w-4 h-4 text-[#F7B32B]"></i>
-                Disposal History
               </span>
             </a>
           </div>

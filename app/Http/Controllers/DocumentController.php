@@ -2143,29 +2143,6 @@ class DocumentController extends Controller
         }
     }
 
-    /**
-     * Show disposal queue for expired documents
-     */
-    public function disposal()
-    {
-        // Get expired documents
-        $documents = Document::where('status', 'expired')
-            ->whereNotNull('retention_until')
-            ->latest()
-            ->paginate(20);
-
-        // Get disposal stats
-        $stats = [
-            'expired' => Document::where('status', 'expired')->count(),
-            'pending_disposal' => Document::where('status', 'expired')
-                ->whereNotNull('retention_until')
-                ->where('retention_until', '<=', now())
-                ->count(),
-            'disposed' => Document::where('status', 'disposed')->count()
-        ];
-
-        return view('document.disposal', compact('documents', 'stats'));
-    }
 
     /**
      * Dispose of a document (permanent deletion)

@@ -91,7 +91,7 @@
           <!-- Status Summary Cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <!-- Total Legal Documents -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary hover:shadow-2xl">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-primary">
               <div class="card-body p-3 sm:p-4">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
@@ -109,7 +109,7 @@
             </div>
 
             <!-- For Review Documents -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning hover:shadow-2xl">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-warning">
               <div class="card-body p-3 sm:p-4">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
@@ -127,7 +127,7 @@
             </div>
 
             <!-- Approved Documents -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success hover:shadow-2xl">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-success">
               <div class="card-body p-3 sm:p-4">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">
@@ -145,7 +145,7 @@
             </div>
 
             <!-- Decline Documents -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error hover:shadow-2xl">
+            <div class="card bg-base-100 shadow-xl border-l-4 border-l-error">
               <div class="card-body p-3 sm:p-4">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                   <div class="avatar placeholder">

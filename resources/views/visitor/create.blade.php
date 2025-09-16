@@ -42,9 +42,6 @@
 
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
-            <a href="{{ route('visitor.index') }}" class="btn btn-ghost btn-sm">
-              <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back
-            </a>
             <h1 class="text-xl font-semibold">New Visitors (Pending Review)</h1>
           </div>
         </div>

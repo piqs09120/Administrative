@@ -38,6 +38,7 @@ Route::get('/facility_reservations/new-request', [App\Http\Controllers\FacilityR
 
 // Facilities Monitoring API (read-only)
 Route::get('/api/facilities/monitoring', [App\Http\Controllers\FacilityReservationController::class, 'monitoringSummary'])->name('facilities.monitoring.summary');
+Route::get('/api/facilities/monitoring/export-pdf', [App\Http\Controllers\FacilityReservationController::class, 'exportMonitoringPdf'])->name('facilities.monitoring.export_pdf');
 
 // Equipment details API
 Route::get('/api/facilities/equipment-details', [App\Http\Controllers\FacilityReservationController::class, 'equipmentDetails'])->name('facilities.equipment.details');
@@ -752,13 +753,7 @@ Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeA
     Route::get('/document/archived', [DocumentController::class, 'archived'])->name('document.archived');
 
     // Document Disposal Routes
-    Route::get('/document/disposal', [DocumentController::class, 'disposal'])->name('document.disposal');
     Route::post('/document/{id}/dispose', [DocumentController::class, 'dispose'])->name('document.dispose');
-    
-    // Disposal History Routes
-    Route::get('/disposal', [App\Http\Controllers\DisposalController::class, 'index'])->name('disposal.index');
-    Route::get('/disposal/{id}', [App\Http\Controllers\DisposalController::class, 'show'])->name('disposal.show');
-    Route::get('/disposal/export/csv', [App\Http\Controllers\DisposalController::class, 'export'])->name('disposal.export');
     
     
     // Document Access Control and Analytics Routes

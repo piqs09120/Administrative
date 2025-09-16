@@ -81,9 +81,6 @@
         <div class="mb-8">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-4">
-              <a href="{{ route('facility_reservations.index') }}" class="btn btn-ghost btn-sm" title="Back to Reservations">
-                <i data-lucide="arrow-left" class="w-5 h-5"></i>
-              </a>
               <div>
                 <h1 class="text-3xl font-bold text-gray-800 mb-2">Facility Requests</h1>
                 <p class="text-gray-600">View and manage facility management requests</p>

@@ -530,18 +530,10 @@
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
             Add New Facility
           </button>
-          <a href="{{ route('facility_reservations.index') }}" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
-            <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
-            View Reservations
-          </a>
           <a href="{{ route('facility_reservations.calendar') }}" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
             <i data-lucide="calendar-days" class="w-4 h-4 mr-2"></i>
             <span>Calendar View</span>
           </a>
-          <button onclick="exportFacilities()" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
-            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
-            Export Data
-          </button>
         </div>
 
         <!-- Calendar View (Hidden by default) -->
@@ -796,6 +788,18 @@
 
         <!-- Monitoring Tab Panel (empty placeholder for now) -->
         <div id="facilitiesMonitoringView" class="bg-white rounded-xl shadow-lg p-6 hidden">
+          <!-- Monitoring Header with Export Button -->
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center">
+              <i data-lucide="activity" class="w-6 h-6 text-blue-500 mr-3"></i>
+              Monitoring Dashboard
+            </h3>
+            <button onclick="exportMonitoringPdf()" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg">
+              <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+              Export Data
+            </button>
+          </div>
+          
           <!-- Stats Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
@@ -1500,6 +1504,33 @@
       window.URL.revokeObjectURL(url);
       
       showToast('Facilities data exported successfully!', 'success');
+    }
+
+    // Export monitoring data as PDF
+    function exportMonitoringPdf() {
+      // Create a form to submit the request
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = '{{ route("facilities.monitoring.export_pdf") }}';
+      form.target = '_blank';
+      
+      // Add any necessary parameters
+      const params = new URLSearchParams();
+      params.append('_token', '{{ csrf_token() }}');
+      
+      // Add form data to the form
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = '_token';
+      input.value = '{{ csrf_token() }}';
+      form.appendChild(input);
+      
+      // Append form to body and submit
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      
+      showToast('Monitoring report is being generated...', 'info');
     }
 
     // Initialize everything when page loads
