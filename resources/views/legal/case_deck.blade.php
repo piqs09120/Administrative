@@ -316,7 +316,7 @@
                 </thead>
                 <tbody>
                   @forelse($cases ?? collect() as $index => $case)
-                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                    <tr class="hover:bg-gray-50 transition-colors duration-200" data-case-id="{{ $case->id }}">
                       <!-- ID Column -->
                       <td class="py-4 px-4">
                         <div class="text-sm font-medium text-gray-500">
@@ -832,6 +832,15 @@
               const row = document.querySelector(`tr[data-case-id="${caseId}"]`);
               if (row) {
                 row.remove();
+              } else {
+                // Fallback: find row by looking for the delete button with the caseId
+                const deleteButton = document.querySelector(`button[onclick="deleteCase(${caseId})"]`);
+                if (deleteButton) {
+                  const tableRow = deleteButton.closest('tr');
+                  if (tableRow) {
+                    tableRow.remove();
+                  }
+                }
               }
             } else {
               showEnhancedToast('Error deleting case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
@@ -883,6 +892,20 @@
                   statusBadge.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Approved';
                   lucide.createIcons();
                 }
+              } else {
+                // Fallback: find row by looking for the approve button with the caseId
+                const approveButton = document.querySelector(`button[onclick="approveCase(${caseId})"]`);
+                if (approveButton) {
+                  const tableRow = approveButton.closest('tr');
+                  if (tableRow) {
+                    const statusBadge = tableRow.querySelector('.status-badge');
+                    if (statusBadge) {
+                      statusBadge.className = 'badge badge-success status-badge';
+                      statusBadge.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Approved';
+                      lucide.createIcons();
+                    }
+                  }
+                }
               }
             } else {
               showEnhancedToast('Error approving case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
@@ -933,6 +956,20 @@
                   statusBadge.className = 'badge badge-error status-badge';
                   statusBadge.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Declined';
                   lucide.createIcons();
+                }
+              } else {
+                // Fallback: find row by looking for the decline button with the caseId
+                const declineButton = document.querySelector(`button[onclick="declineCase(${caseId})"]`);
+                if (declineButton) {
+                  const tableRow = declineButton.closest('tr');
+                  if (tableRow) {
+                    const statusBadge = tableRow.querySelector('.status-badge');
+                    if (statusBadge) {
+                      statusBadge.className = 'badge badge-error status-badge';
+                      statusBadge.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Declined';
+                      lucide.createIcons();
+                    }
+                  }
                 }
               }
             } else {

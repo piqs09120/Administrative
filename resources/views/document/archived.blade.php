@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   @vite(['resources/css/soliera.css'])
   @php
     use Illuminate\Support\Facades\Storage;
@@ -209,8 +210,9 @@
                       <td class="py-4 px-4 text-center">
                         <div class="flex items-center justify-center space-x-2">
                           <button onclick="viewDocument({{ $document->id }})" 
-                                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200" 
-                                  title="View Document">
+                                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 cursor-pointer" 
+                                  title="View Document"
+                                  type="button">
                             <i data-lucide="eye" class="w-4 h-4"></i>
                           </button>
                           <button onclick="downloadDocument({{ $document->id }})" 
@@ -500,7 +502,195 @@
 
     // Document actions
     function viewDocument(documentId) {
-      window.location.href = `/document/${documentId}`;
+      console.log('viewDocument called with ID:', documentId);
+      viewDocumentDetails(documentId);
+    }
+
+    // View document details in modal
+    function viewDocumentDetails(documentId) {
+      // Show loading state
+      Swal.fire({
+        title: 'Loading Document Details...',
+        text: 'Please wait while we fetch the document information.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Fetch document details
+      fetch(`/document/${documentId}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Failed to fetch document details`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success && data.document) {
+          const doc = data.document;
+          
+          // Format dates
+          const formatDate = (dateString) => {
+            if (!dateString) return 'Not Set';
+            return new Date(dateString).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          };
+
+          // Get status badge class
+          const getStatusClass = (status) => {
+            const statusConfig = {
+              'active': 'bg-green-100 text-green-800',
+              'archived': 'bg-gray-100 text-gray-800',
+              'disposed': 'bg-gray-100 text-gray-800',
+              'expired': 'bg-red-100 text-red-800',
+              'pending_release': 'bg-yellow-100 text-yellow-800'
+            };
+            return statusConfig[status] || 'bg-gray-100 text-gray-800';
+          };
+
+          // Get confidentiality badge class
+          const getConfidentialityClass = (confidentiality) => {
+            const confConfig = {
+              'public': 'bg-green-100 text-green-800',
+              'internal': 'bg-yellow-100 text-yellow-800',
+              'confidential': 'bg-orange-100 text-orange-800',
+              'restricted': 'bg-red-100 text-red-800'
+            };
+            return confConfig[confidentiality] || 'bg-gray-100 text-gray-800';
+          };
+
+          // Create modal content
+          const modalContent = `
+            <div class="text-left">
+              <!-- Document Header -->
+              <div class="flex items-start justify-between mb-6">
+                <div class="flex-1">
+                  <h2 class="text-2xl font-bold text-gray-900 mb-2">${doc.title || 'Untitled Document'}</h2>
+                  <p class="text-gray-600">Document ID: #${doc.id}</p>
+                </div>
+                <span class="text-xs font-medium px-3 py-1 rounded-full ${getStatusClass(doc.status)}">
+                  ${doc.status ? doc.status.replace('_', ' ').toUpperCase() : 'ACTIVE'}
+                </span>
+              </div>
+
+              ${doc.description ? `
+                <div class="mb-6">
+                  <h3 class="font-semibold text-gray-700 mb-2">Description</h3>
+                  <p class="text-gray-600">${doc.description}</p>
+                </div>
+              ` : ''}
+
+              <!-- Document Details Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-2">Document Information</h4>
+                  <div class="space-y-2">
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Type:</span>
+                      <span class="font-medium">${doc.type || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Category:</span>
+                      <span class="font-medium">${doc.category || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Department:</span>
+                      <span class="font-medium">${doc.department || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Confidentiality:</span>
+                      <span class="px-2 py-1 text-xs rounded-full ${getConfidentialityClass(doc.confidentiality)}">
+                        ${doc.confidentiality ? doc.confidentiality.toUpperCase() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-2">Timeline</h4>
+                  <div class="space-y-2">
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Created:</span>
+                      <span class="font-medium">${formatDate(doc.created_at)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Updated:</span>
+                      <span class="font-medium">${formatDate(doc.updated_at)}</span>
+                    </div>
+                    ${doc.retention_until ? `
+                      <div class="flex justify-between">
+                        <span class="text-gray-600">Retention Until:</span>
+                        <span class="font-medium">${formatDate(doc.retention_until)}</span>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-gray-200">
+                <a href="/document/${doc.id}/download" class="btn btn-outline btn-sm">
+                  <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                  Download
+                </a>
+                <button onclick="analyzeDocument(${doc.id})" class="btn btn-primary btn-sm">
+                  <i data-lucide="brain" class="w-4 h-4 mr-2"></i>
+                  AI Analysis
+                </button>
+                ${doc.status === 'archived' ? `
+                  <button onclick="requestRelease(${doc.id})" class="btn btn-warning btn-sm">
+                    <i data-lucide="send" class="w-4 h-4 mr-2"></i>
+                    Request Release
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+
+          // Show the modal
+          Swal.fire({
+            title: 'Document Details',
+            html: modalContent,
+            width: '800px',
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Close',
+            customClass: {
+              popup: 'text-left'
+            },
+            didOpen: () => {
+              // Re-initialize Lucide icons in the modal
+              lucide.createIcons();
+            }
+          });
+        } else {
+          throw new Error('Invalid response format');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching document details:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to load document details. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      });
     }
 
     function downloadDocument(documentId) {
