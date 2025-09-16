@@ -20,7 +20,27 @@ class userController extends Controller
     $form = $request->validate([
         'employee_id' => 'required',
         'password' => 'required',
+        'g-recaptcha-response' => ['required']
     ]);
+
+    // Verify Google reCAPTCHA (server-side)
+    try {
+        $secret = env('RECAPTCHA_SECRET_KEY');
+        $resp = (new \GuzzleHttp\Client(['timeout' => 5]))->post('https://www.google.com/recaptcha/api/siteverify', [
+            'form_params' => [
+                'secret' => $secret,
+                'response' => $request->input('g-recaptcha-response'),
+                'remoteip' => $request->ip(),
+            ]
+        ]);
+        $body = json_decode((string) $resp->getBody(), true);
+        if (!($body['success'] ?? false)) {
+            return back()->withErrors(['employee_id' => 'Captcha verification failed.'])->onlyInput('employee_id');
+        }
+    } catch (\Throwable $e) {
+        \Log::error('reCAPTCHA verify error: ' . $e->getMessage());
+        return back()->withErrors(['employee_id' => 'Captcha service unavailable. Try again.'])->onlyInput('employee_id');
+    }
 
     // Always clear any existing session before logging in new user
     Auth::logout();

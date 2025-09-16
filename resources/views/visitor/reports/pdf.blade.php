@@ -85,6 +85,13 @@
         .page-break {
             page-break-before: always;
         }
+        .section {
+            margin-top: 24px;
+        }
+        .section h2 { font-size: 18px; margin: 0 0 12px 0; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+        .table th { background: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -114,6 +121,112 @@
                 <td>Average Duration:</td>
                 <td>{{ $statistics['average_duration'] }}</td>
             </tr>
+        </table>
+    </div>
+    @endif
+
+    <!-- Analytics Sections -->
+    <div class="section">
+        <h2>Peak Visiting Hours</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Hour</th>
+                    <th>Visitor Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse(($peak_hours ?? []) as $h)
+                    <tr>
+                        <td>{{ sprintf('%02d:00', $h['hour']) }}</td>
+                        <td>{{ (int)($h['count'] ?? 0) }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="2">No data</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Departments with Most Visitors</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $deptTotal = collect($departments ?? [])->sum('count'); @endphp
+                @forelse(($departments ?? []) as $d)
+                    <tr>
+                        <td>{{ $d['name'] }}</td>
+                        <td>{{ (int)($d['count'] ?? 0) }}</td>
+                        <td>
+                            @php
+                                $c = (int)($d['count'] ?? 0);
+                                echo $deptTotal > 0 ? round(($c / $deptTotal) * 100) . '%' : '0%';
+                            @endphp
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="3">No data</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Visit Purposes</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Purpose</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $purpTotal = collect($visitor_types ?? [])->values()->sum(); @endphp
+                @forelse(collect($visitor_types ?? [])->toArray() as $purpose => $count)
+                    <tr>
+                        <td>{{ $purpose }}</td>
+                        <td>{{ (int)$count }}</td>
+                        <td>
+                            @php $c=(int)$count; echo $purpTotal>0 ? round(($c/$purpTotal)*100) . '%' : '0%'; @endphp
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="3">No data</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    @if(($overstays ?? collect())->count() > 0)
+    <div class="section">
+        <h2>Overstays</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Facility</th>
+                    <th>Expected Time Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(($overstays ?? collect()) as $v)
+                    <tr>
+                        <td>{{ $v->name }}</td>
+                        <td>{{ $v->department ?? 'N/A' }}</td>
+                        <td>{{ optional($v->facility)->name ?? 'N/A' }}</td>
+                        <td>{{ $v->expected_time_out ? \Carbon\Carbon::parse($v->expected_time_out)->format('Y-m-d H:i') : 'N/A' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
         </table>
     </div>
     @endif

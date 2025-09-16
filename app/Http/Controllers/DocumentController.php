@@ -802,6 +802,12 @@ class DocumentController extends Controller
             
         // Check access permissions
         if (!$this->canAccessDocument(Auth::user(), $document)) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access Denied: You do not have permission to view this document.'
+                ], 403);
+            }
             return redirect()->back()->with('error', 'Access Denied: You do not have permission to view this document.');
         }
         
@@ -810,6 +816,30 @@ class DocumentController extends Controller
         
         // Check if user is administrator for action buttons
         $isAdmin = $this->isAdministrator(Auth::user());
+        
+        // Return JSON for AJAX requests
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'document' => [
+                    'id' => $document->id,
+                    'title' => $document->title,
+                    'description' => $document->description,
+                    'category' => $document->category,
+                    'department' => $document->department,
+                    'confidentiality' => $document->confidentiality,
+                    'retention_policy' => $document->retention_policy,
+                    'retention_until' => $document->retention_until,
+                    'status' => $document->status,
+                    'file_path' => $document->file_path,
+                    'created_at' => $document->created_at,
+                    'updated_at' => $document->updated_at,
+                    'uploader' => $document->uploader,
+                    'ai_analysis' => $document->ai_analysis,
+                    'is_admin' => $isAdmin
+                ]
+            ]);
+        }
         
         return view('document.show', compact('document', 'isAdmin'));
     }

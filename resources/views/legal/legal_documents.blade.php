@@ -8,7 +8,46 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   @vite(['resources/css/soliera.css'])
+  
+  <style>
+    .swal2-popup {
+      font-family: inherit;
+      border-radius: 12px !important;
+    }
+    .swal2-confirm {
+      background-color: #ef4444 !important;
+      border: none !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      color: white !important;
+      margin-right: 8px !important;
+    }
+    .swal2-cancel {
+      background-color: #6b7280 !important;
+      border: none !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      color: white !important;
+      margin-left: 8px !important;
+    }
+    .swal2-actions {
+      gap: 10px !important;
+      margin-top: 20px !important;
+    }
+    .swal2-title {
+      font-size: 20px !important;
+      font-weight: 600 !important;
+      margin-bottom: 16px !important;
+    }
+    .swal2-content {
+      font-size: 16px !important;
+      line-height: 1.5 !important;
+    }
+  </style>
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -1349,74 +1388,85 @@
      
      // Delete document function
      function deleteDocument(documentId) {
-       if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
-         return;
-       }
+       Swal.fire({
+         title: 'Confirm Deletion',
+         text: 'Are you sure you want to delete this legal document? This action cannot be undone and will permanently remove the document from the system.',
+         icon: 'warning',
+         showCancelButton: true,
+         confirmButtonText: 'DELETE DOCUMENT',
+         cancelButtonText: 'CANCEL',
+         confirmButtonColor: '#ef4444',
+         cancelButtonColor: '#6b7280',
+         reverseButtons: true,
+         focusCancel: true
+       }).then((result) => {
+         if (result.isConfirmed) {
+           // Show loading state
+           const button = event.target.closest('button');
+           const originalHTML = button.innerHTML;
+           button.innerHTML = '<i class="loading loading-spinner"></i>';
+           button.disabled = true;
        
-       // Show loading state
-       const button = event.target.closest('button');
-       const originalHTML = button.innerHTML;
-       button.innerHTML = '<i class="loading loading-spinner"></i>';
-       button.disabled = true;
-       
-       // Make delete request
-       fetch(`/legal/documents/${documentId}`, {
-         method: 'DELETE',
-         headers: {
-           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-           'Accept': 'application/json',
-           'Content-Type': 'application/json'
-         }
-       })
-       .then(response => {
-         if (response.ok) {
-           return response.json();
-         } else {
-           throw new Error(`Delete failed with status ${response.status}`);
-         }
-       })
-       .then(data => {
-         if (data.success) {
-           // Remove the row from the table
-           const row = document.querySelector(`tr[data-document-id="${documentId}"]`);
-           if (row) {
-             row.remove();
-             
-             // Show success toast
-             showToast('Document deleted successfully', 'success');
-             
-             // Check if table is empty and show empty state
-             const tbody = document.querySelector('tbody');
-             if (tbody && tbody.children.length === 0) {
-               const newEmptyRow = document.createElement('tr');
-               newEmptyRow.innerHTML = `
-                 <td colspan="7" class="text-center py-12">
-                   <div class="flex flex-col items-center">
-                     <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                       <i data-lucide="folder-open" class="w-10 h-10 text-gray-400"></i>
-                     </div>
-                     <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-                     <p class="text-gray-500">Get started by uploading your first document.</p>
-                   </div>
-                 </td>
-               `;
-               tbody.appendChild(newEmptyRow);
-               lucide.createIcons();
+           // Make delete request
+           fetch(`/legal/documents/${documentId}`, {
+             method: 'DELETE',
+             headers: {
+               'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+               'Accept': 'application/json',
+               'Content-Type': 'application/json'
              }
-           }
-         } else {
-           throw new Error(data.message || 'Delete failed');
+           })
+           .then(response => {
+             if (response.ok) {
+               return response.json();
+             } else {
+               throw new Error(`Delete failed with status ${response.status}`);
+             }
+           })
+           .then(data => {
+             if (data.success) {
+               // Remove the row from the table
+               const row = document.querySelector(`tr[data-document-id="${documentId}"]`);
+               if (row) {
+                 row.remove();
+                 
+                 // Show success toast
+                 showToast('Document deleted successfully', 'success');
+                 
+                 // Check if table is empty and show empty state
+                 const tbody = document.querySelector('tbody');
+                 if (tbody && tbody.children.length === 0) {
+                   const newEmptyRow = document.createElement('tr');
+                   newEmptyRow.innerHTML = `
+                     <td colspan="7" class="text-center py-12">
+                       <div class="flex flex-col items-center">
+                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                           <i data-lucide="folder-open" class="w-10 h-10 text-gray-400"></i>
+                         </div>
+                         <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+                         <p class="text-gray-500">Get started by uploading your first document.</p>
+                       </div>
+                     </td>
+                   `;
+                   tbody.appendChild(newEmptyRow);
+                   lucide.createIcons();
+                 }
+               }
+             } else {
+               throw new Error(data.message || 'Delete failed');
+             }
+           })
+           .catch(error => {
+             console.error('Delete error:', error);
+             // Show error toast
+             showToast('Error deleting document: ' + error.message, 'error');
+           })
+           .finally(() => {
+             // Restore button
+             button.innerHTML = originalHTML;
+             button.disabled = false;
+           });
          }
-       })
-       .catch(error => {
-         console.error('Delete error:', error);
-         // Show error toast
-         showToast('Error deleting document: ' + error.message, 'error');
-       })
-       .finally(() => {
-         // Restore button
-         button.innerHTML = originalHTML;
-         button.disabled = false;
        });
      }
      
@@ -1532,126 +1582,6 @@
          button.disabled = false;
        });
      }
-
-
-
-    function deleteDocument(documentId) {
-      // Create a custom confirmation dialog
-      const confirmDialog = document.createElement('div');
-      confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      confirmDialog.innerHTML = `
-        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
-          <div class="flex items-center gap-3 mb-4">
-            <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
-            <h3 class="text-lg font-semibold text-gray-800">Confirm Deletion</h3>
-          </div>
-          <p class="text-gray-600 mb-6">Are you sure you want to delete this legal document? This action cannot be undone and will permanently remove the document from the system.</p>
-          <div class="flex justify-end gap-3">
-            <button onclick="this.closest('.fixed').remove()" class="btn btn-outline">Cancel</button>
-            <button onclick="confirmDeleteDocument(${documentId}, this)" class="btn btn-error">Delete Document</button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(confirmDialog);
-      lucide.createIcons();
-    }
-
-    function confirmDeleteDocument(documentId, button) {
-      // Show loading state
-      const originalText = button.innerHTML;
-      button.innerHTML = '<i class="loading loading-spinner"></i> Deleting...';
-      button.disabled = true;
-      
-      // Remove confirmation dialog
-      button.closest('.fixed').remove();
-      
-             fetch(`/legal/documents/${documentId}`, {
-         method: 'DELETE',
-         headers: {
-           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-           'Accept': 'application/json',
-           'X-Requested-With': 'XMLHttpRequest'
-         }
-       })
-       .then(async response => {
-         console.log('Delete response status:', response.status);
-         console.log('Delete response headers:', response.headers);
-         
-         const contentType = response.headers.get('content-type') || '';
-         console.log('Delete Content-Type:', contentType);
-         
-         if (response.ok) {
-           if (contentType.includes('application/json')) {
-             return response.json();
-           } else {
-             // If response is not JSON, try to parse it as text first
-             const text = await response.text();
-             console.log('Non-JSON response text:', text);
-             throw new Error('Server returned non-JSON response. Please check your permissions.');
-           }
-         } else {
-           // Handle different error status codes
-           if (response.status === 403) {
-             throw new Error('Access denied. You do not have permission to delete documents.');
-           } else if (response.status === 401) {
-             throw new Error('Authentication required. Please log in again.');
-           } else if (response.status === 404) {
-             throw new Error('Document not found. It may have been already deleted.');
-           } else if (response.status === 422) {
-             const text = await response.text();
-             console.log('Validation error response:', text);
-             throw new Error('Validation error. Please check your input.');
-           } else {
-             const text = await response.text();
-             console.log('Error response text:', text);
-             throw new Error(`Delete failed with status ${response.status}`);
-           }
-         }
-       })
-       .then(data => {
-         console.log('Delete response data:', data);
-         if (data.success) {
-           // Show success toast
-           showToast(data.message || 'Document deleted successfully', 'success');
-           
-           // Remove the deleted row from the table
-           const row = document.querySelector(`tr[data-document-id="${documentId}"]`);
-           if (row) {
-             row.remove();
-             
-             // Check if table is empty and show empty state
-             const tbody = document.querySelector('tbody');
-             if (tbody && tbody.children.length === 0) {
-               const newEmptyRow = document.createElement('tr');
-               newEmptyRow.innerHTML = `
-                 <td colspan="7" class="text-center py-12">
-                   <div class="flex flex-col items-center">
-                     <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                       <i data-lucide="folder-open" class="w-10 h-10 text-gray-400"></i>
-                     </div>
-                     <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-                     <p class="text-gray-500">Get started by uploading your first document.</p>
-                   </div>
-                 </td>
-               `;
-               tbody.appendChild(newEmptyRow);
-               lucide.createIcons();
-             }
-             
-             // Update card counts
-             updateCardCounts();
-           }
-         } else {
-           throw new Error(data.message || 'Delete failed');
-         }
-       })
-       .catch(error => {
-         console.error('Delete error:', error);
-         // Show error toast with actual error details
-         showToast('Error deleting document: ' + error.message, 'error');
-       });
-         }
      
      // Toast notification function
      function showToast(message, type = 'info', duration = 5000) {
@@ -2568,7 +2498,7 @@
       
       // Reset all navigation buttons
       [nav1, nav2, nav3].forEach(btn => {
-        if (btn) {
+        if (btn && btn.classList) {
           btn.classList.remove('text-blue-600', 'text-blue-800', 'font-semibold');
           btn.classList.add('text-gray-600');
         }
@@ -2578,7 +2508,7 @@
         createTab.classList.remove('hidden');
         docsTab.classList.add('hidden');
         if (monTab) monTab.classList.add('hidden');
-        if (nav2) {
+        if (nav2 && nav2.classList) {
           nav2.classList.remove('text-gray-600');
           nav2.classList.add('text-blue-600', 'font-semibold');
         }
@@ -2592,7 +2522,7 @@
         docsTab.classList.add('hidden');
         createTab.classList.add('hidden');
         if (monTab) monTab.classList.remove('hidden');
-        if (nav3) {
+        if (nav3 && nav3.classList) {
           nav3.classList.remove('text-gray-600');
           nav3.classList.add('text-blue-600', 'font-semibold');
         }
@@ -2774,12 +2704,14 @@
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('mobile-overlay');
       
-      if (sidebar.classList.contains('-translate-x-full')) {
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-      } else {
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
+      if (sidebar && sidebar.classList && overlay && overlay.classList) {
+        if (sidebar.classList.contains('-translate-x-full')) {
+          sidebar.classList.remove('-translate-x-full');
+          overlay.classList.remove('hidden');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+          overlay.classList.add('hidden');
+        }
       }
     }
 

@@ -138,13 +138,20 @@ class VisitorLogController extends Controller
     public function generateReport(Request $request)
     {
         $request->validate([
-            'report_type' => 'required|in:daily,weekly,monthly,custom',
+            'report_type' => 'required|in:today,week,month,daily,weekly,monthly,custom',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'format' => 'required|in:pdf,excel,csv'
         ]);
         
-        $dates = $this->getDateRange($request->report_type, $request->start_date, $request->end_date);
+        // Normalize aliases from UI (daily/weekly/monthly) to internal (today/week/month)
+        $range = match ($request->report_type) {
+            'daily' => 'today',
+            'weekly' => 'week',
+            'monthly' => 'month',
+            default => $request->report_type,
+        };
+        $dates = $this->getDateRange($range, $request->start_date, $request->end_date);
         
         // Core datasets used in Reports & Analytics
         $visitors = Visitor::with('facility')
@@ -231,6 +238,9 @@ class VisitorLogController extends Controller
             'security_incidents' => $securityIncidents,
             'date_range' => $dates,
             'generated_at' => now(),
+            // PDF view toggles
+            'include_statistics' => true,
+            'include_details' => true,
         ];
         
         $filename = 'visitor_report_' . $request->report_type . '_' . now()->format('Y-m-d_H-i-s');
@@ -337,31 +347,49 @@ class VisitorLogController extends Controller
 
     private function getHostsDepartments(Carbon $start, Carbon $end): array
     {
-        // Departments should mirror the Host Department dropdown on the visitor landing page
-        $dropdownDepartments = [
-            'Human Resources',
-            'Information Technology',
-            'Finance',
-            'Operations',
-            'Marketing',
-            'Legal',
-            'Other',
+        // Mirror the Host Department dropdown on the visitor landing page
+        // Dropdown values (storage keys) → Display labels
+        $departmentMap = [
+            'hr1' => 'HR1',
+            'hr2' => 'HR2',
+            'hr3' => 'HR3',
+            'hr4' => 'HR4',
+            'finance' => 'Finance',
+            'logistic_1' => 'Logistic 1',
+            'logistic_2' => 'Logistic 2',
+            'core_1' => 'Core 1',
+            'core_2' => 'Core 2',
         ];
 
-        // Get counts per department within range
-        $counts = Visitor::whereBetween('created_at', [$start, $end])
-            ->whereIn('department', $dropdownDepartments)
+        // Initialize counters for all dropdown departments
+        $initializedCounts = collect($departmentMap)
+            ->mapWithKeys(function ($label, $key) {
+                return [$label => 0];
+            });
+
+        // Get raw counts grouped by whatever is stored in DB
+        $rawCounts = Visitor::whereBetween('created_at', [$start, $end])
             ->select('department', DB::raw('count(*) as count'))
             ->groupBy('department')
             ->pluck('count', 'department');
 
-        // Build full list including zeros and sort desc
-        $result = collect($dropdownDepartments)
-            ->map(function ($dept) use ($counts) {
+        // Map DB values (e.g., hr1) to display labels (e.g., HR1)
+        foreach ($rawCounts as $dbValue => $count) {
+            if ($dbValue === null) { continue; }
+            $normalized = strtolower(trim($dbValue));
+            if (array_key_exists($normalized, $departmentMap)) {
+                $label = $departmentMap[$normalized];
+                $initializedCounts[$label] = ($initializedCounts[$label] ?? 0) + (int) $count;
+            }
+        }
+
+        // Build result, preserving dropdown order and including zeros
+        $result = collect($departmentMap)
+            ->map(function ($label) use ($initializedCounts) {
                 return [
-                    'name' => $dept,
+                    'name' => $label,
                     'type' => 'department',
-                    'count' => (int) ($counts[$dept] ?? 0),
+                    'count' => (int) ($initializedCounts[$label] ?? 0),
                 ];
             })
             ->sortByDesc('count')

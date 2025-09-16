@@ -21,17 +21,22 @@
 
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+        <!-- Toast notifications in bottom right corner -->
         @if(session('success'))
-          <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>{{ session('success') }}</span>
+          <div class="toast toast-bottom toast-end">
+            <div class="alert alert-success">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              <span>{{ session('success') }}</span>
+            </div>
           </div>
         @endif
 
         @if(session('error'))
-          <div class="alert alert-error mb-6">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-            <span>{{ session('error') }}</span>
+          <div class="toast toast-bottom toast-end">
+            <div class="alert alert-error">
+              <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              <span>{{ session('error') }}</span>
+            </div>
           </div>
         @endif
 
@@ -157,6 +162,15 @@
       setupDarkMode();
       updateDateTime();
       setInterval(updateDateTime, 1000);
+
+      // Auto-hide toast notifications after 5 seconds
+      setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(toast => {
+          toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(() => toast.remove(), 500);
+        });
+      }, 5000);
 
       // Attach click handlers for view buttons
       document.querySelectorAll('.btn-view-visitor').forEach(btn => {

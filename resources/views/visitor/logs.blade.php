@@ -468,16 +468,7 @@
                     </div>
                   </div>
 
-                  <!-- Facility -->
-                  <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0 relative z-50">
-                    <label for="facility-filter" class="block text-xs font-medium text-slate-500 mb-1">Facility</label>
-                    <select id="facility-filter" class="w-full h-10 md:h-11 text-sm px-3 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 truncate" title="Select facility">
-                      <option value="" title="All Facilities">All Facilities</option>
-                      @foreach($facilities as $facility)
-                        <option value="{{ $facility->id }}" title="{{ $facility->name }}">{{ $facility->name }}</option>
-                      @endforeach
-                    </select>
-                  </div>
+                  
 
 
                 </div>
@@ -491,7 +482,6 @@
                       <th class="text-left py-3 px-4 font-medium text-gray-700">Visitor Name</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Contact Number</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Purpose</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Facility</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Check In Date</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Check In Time</th>
                       <th class="text-center py-3 px-4 font-medium text-gray-700">Check Out Date</th>
@@ -517,7 +507,6 @@
                         <td class="py-3 px-4 text-center">
                           <span class="badge badge-outline badge-sm">{{ $visitor->purpose ?? 'N/A' }}</span>
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $visitor->facility->name ?? 'N/A' }}</td>
                         <td class="py-3 px-4 text-center text-sm text-gray-600">
                           @if($visitor->time_in)
                             {{ \Carbon\Carbon::parse($visitor->time_in)->format('M d, Y') }}
@@ -629,7 +618,7 @@
                       </tr>
                     @empty
                       <tr>
-                        <td colspan="10" class="text-center py-12">
+                        <td colspan="9" class="text-center py-12">
                           <div class="flex flex-col items-center">
                             <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                               <i data-lucide="users" class="w-10 h-10 text-gray-400"></i>
@@ -1615,26 +1604,71 @@
 
     // Logs functions
     function loadLogsData() {
-      // Load logs data
-      console.log('Loading logs data...');
+      const startDate = document.getElementById('logs-start-date')?.value || '';
+      const endDate = document.getElementById('logs-end-date')?.value || '';
+      fetchLogs(startDate, endDate);
+    }
+
+    function formatDate(dtStr) {
+      if (!dtStr) return 'N/A';
+      try { const d = new Date(dtStr); return d.toLocaleDateString(undefined, { month:'short', day:'2-digit', year:'numeric' }); } catch { return 'N/A'; }
+    }
+    function formatTime(dtStr) {
+      if (!dtStr) return '—';
+      try { const d = new Date(dtStr); return d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' }); } catch { return '—'; }
+    }
+
+    function renderLogsTable(rows = []) {
+      const tbody = document.getElementById('logs-table-body');
+      if (!tbody) return;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-12">No Visitor Logs Found</td></tr>';
+        return;
+      }
+      const html = rows.map(v => {
+        const stillIn = !v.time_out;
+        return `
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <div><div class="font-medium text-gray-900">${v.name ?? ''}</div></div>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">${v.contact ?? 'N/A'}</td>
+            <td class="py-3 px-4 text-center"><span class="badge badge-outline badge-sm">${v.purpose ?? 'N/A'}</span></td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">${formatDate(v.time_in)}</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">${formatTime(v.time_in)}</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">${formatDate(v.time_out)}</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">${stillIn ? '<span class="badge badge-primary badge-sm">Still in</span>' : formatTime(v.time_out)}</td>
+            <td class="py-3 px-4 text-sm text-gray-600 duration-cell">—</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono">${v.pass_id ?? 'N/A'}</td>
+          </tr>
+        `;
+      }).join('');
+      tbody.innerHTML = html;
+      if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+    }
+
+    function fetchLogs(startDate, endDate) {
+      const url = new URL(`{{ route('visitor.logs.logs') }}` , window.location.origin);
+      if (startDate) url.searchParams.set('start_date', startDate);
+      if (endDate) url.searchParams.set('end_date', endDate);
+      fetch(url.toString(), { headers: { 'Accept':'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+          const rows = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+          renderLogsTable(rows);
+        })
+        .catch(() => { renderLogsTable([]); });
     }
 
     function applyLogsFilters() {
       const startDate = document.getElementById('logs-start-date').value;
       const endDate = document.getElementById('logs-end-date').value;
-      const facility = document.getElementById('facility-filter').value;
-      const payload = { 
-        from: startDate, 
-        to: endDate, 
-        facilityId: facility
-      };
-      
-      // Apply filters and reload data
-      console.log('Applying filters:', payload);
-      if (typeof window.dispatchEvent === 'function') {
-        window.dispatchEvent(new CustomEvent('visitorLogs:applyFilters', { detail: payload }));
-      }
-      loadLogsData();
+      fetchLogs(startDate, endDate);
     }
 
     // Reports functions
@@ -1849,70 +1883,55 @@
 
     // Export Report Function
     function exportReport() {
-      const timeRange = document.querySelector('#reports-content select').value || 'This Week';
+      const timeRange = document.querySelector('#reports-content select').value || 'today';
       
       // Show loading state
       const button = event.target.closest('button');
       const originalText = button.innerHTML;
-      button.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 mr-1 animate-spin"></i>Exporting...';
+      button.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 mr-1 animate-spin"></i>Exporting PDF...';
       button.disabled = true;
-      
-      // Re-initialize Lucide icons for spinner
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+      if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+      // Derive date range for the selected timeRange
+      const today = new Date();
+      const fmt = (d) => d.toISOString().split('T')[0];
+      let reportType = 'custom';
+      let startDate = fmt(today);
+      let endDate = fmt(today);
+      if (timeRange === 'today') { reportType = 'daily'; }
+      if (timeRange === 'week') {
+        reportType = 'weekly';
+        const wk = new Date(today); wk.setDate(today.getDate() - 7); startDate = fmt(wk); endDate = fmt(today);
       }
-      
-      // Prepare export data
-      const exportData = {
-        timeRange: timeRange,
-        timestamp: new Date().toISOString(),
-        statistics: getCurrentStatistics(),
-        analytics: getCurrentAnalytics()
-      };
-      
-      // Call backend export endpoint
-      fetch('{{ route("visitor.export.report") }}', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(exportData)
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.blob();
-      })
-      .then(blob => {
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `visitor-report-${timeRange.toLowerCase().replace(' ', '-')}-${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        showNotification('Report exported successfully!', 'success');
-      })
-      .catch(error => {
-        console.error('Export error:', error);
-        showNotification('Error exporting report. Please try again.', 'error');
-      })
-      .finally(() => {
-        // Reset button state
+      if (timeRange === 'month') {
+        reportType = 'monthly';
+        const mo = new Date(today); mo.setMonth(today.getMonth() - 1); startDate = fmt(mo); endDate = fmt(today);
+      }
+
+      // Build and submit a real form to let the browser handle the download (avoids blob/mixed-content issues)
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '{{ route('visitor.logs.generate-report') }}';
+      form.target = '_blank';
+      form.style.display = 'none';
+
+      const add = (name, value) => { const i = document.createElement('input'); i.type='hidden'; i.name=name; i.value=value; form.appendChild(i); };
+      add('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+      add('report_type', reportType);
+      add('start_date', startDate);
+      add('end_date', endDate);
+      add('format', 'pdf');
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+
+      // Reset button state shortly after submit
+      setTimeout(() => {
         button.innerHTML = originalText;
         button.disabled = false;
-        
-        // Re-initialize Lucide icons
-        if (typeof lucide !== 'undefined') {
-          lucide.createIcons();
-        }
-      });
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+      }, 500);
     }
 
     // Get current statistics for export
@@ -2122,78 +2141,40 @@
     // Form submissions
     document.getElementById('report-form').addEventListener('submit', function(e) {
       e.preventDefault();
-      const formData = new FormData(this);
-      
-      // Validate form
-      const reportType = formData.get('report_type');
-      const startDate = formData.get('start_date');
-      const endDate = formData.get('end_date');
-      const format = formData.get('format');
+      const form = e.currentTarget;
+      const reportType = form.querySelector('[name="report_type"]').value;
+      const startDate = form.querySelector('[name="start_date"]').value;
+      const endDate = form.querySelector('[name="end_date"]').value;
+      const format = form.querySelector('[name="format"]').value;
       
       if (!reportType || !startDate || !endDate || !format) {
         showNotification('Please fill in all required fields', 'error');
         return;
       }
-      
       if (new Date(startDate) > new Date(endDate)) {
         showNotification('Start date cannot be after end date', 'error');
         return;
       }
-      
-      // Show loading state
-      const submitBtn = this.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin"></i>Generating...';
-      submitBtn.disabled = true;
-      
-      // Generate report
-      fetch('{{ route("visitor.logs.generate-report") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => {
-        if (response.ok) {
-          return response.blob();
-        }
-        throw new Error('Report generation failed');
-      })
-      .then(blob => {
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        
-        // Get filename from response headers or create default
-        const reportType = formData.get('report_type');
-        const startDate = formData.get('start_date');
-        const format = formData.get('format');
-        const filename = `visitor_${reportType}_report_${startDate}.${format}`;
-        a.download = filename;
-        
-        // Trigger download
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        showNotification('Report generated and downloaded successfully!', 'success');
-        
-        // Add to recent reports
-        addToRecentReports(reportType, startDate, format);
-      })
-      .catch(error => {
-        console.error('Error generating report:', error);
-        showNotification('Error generating report: ' + error.message, 'error');
-      })
-      .finally(() => {
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-      });
+
+      // Create a real POST submit to open/download directly (works for custom too)
+      const tmp = document.createElement('form');
+      tmp.method = 'POST';
+      tmp.action = '{{ route('visitor.logs.generate-report') }}';
+      tmp.target = '_blank';
+      tmp.style.display = 'none';
+      const add = (n,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; tmp.appendChild(i); };
+      add('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+      add('report_type', reportType);
+      add('start_date', startDate);
+      add('end_date', endDate);
+      add('format', format);
+      document.body.appendChild(tmp);
+      tmp.submit();
+      document.body.removeChild(tmp);
+
+      // Optional: toast + recent list entry
+      showNotification('Report generation started...', 'success');
+      addToRecentReports(reportType, startDate, format);
     });
 
 
@@ -2301,6 +2282,13 @@
       if (applyCustomBtn) {
         applyCustomBtn.addEventListener('click', applyCustomRange);
       }
+      // Auto-apply From/To filters in Detailed Logs when date changes
+      const fromInput = document.getElementById('logs-start-date');
+      const toInput = document.getElementById('logs-end-date');
+      const debounced = (fn, d=300) => { let t; return (...a) => { clearTimeout(t); t=setTimeout(()=>fn(...a), d); }; };
+      const onChange = debounced(() => applyLogsFilters(), 250);
+      if (fromInput) { fromInput.addEventListener('change', onChange); fromInput.addEventListener('input', onChange); }
+      if (toInput) { toInput.addEventListener('change', onChange); toInput.addEventListener('input', onChange); }
       
       // Report form submission
       const reportForm = document.getElementById('report-form');

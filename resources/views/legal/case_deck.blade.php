@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   @vite(['resources/css/soliera.css'])
   
   <style>
@@ -20,6 +21,43 @@
       --color-modern-teal: #0d9488;
       --color-golden-ember: #d97706;
       --color-danger-red: #dc2626;
+    }
+    
+    /* SweetAlert2 Custom Styling */
+    .swal2-popup { 
+      font-family: inherit; 
+      border-radius: 12px !important; 
+    }
+    .swal2-confirm { 
+      background-color: #ef4444 !important; 
+      border: none !important; 
+      padding: 12px 24px !important; 
+      border-radius: 8px !important; 
+      font-weight: 600 !important; 
+      color: white !important; 
+      margin-right: 8px !important; 
+    }
+    .swal2-cancel { 
+      background-color: #6b7280 !important; 
+      border: none !important; 
+      padding: 12px 24px !important; 
+      border-radius: 8px !important; 
+      font-weight: 600 !important; 
+      color: white !important; 
+      margin-left: 8px !important; 
+    }
+    .swal2-actions { 
+      gap: 10px !important; 
+      margin-top: 20px !important; 
+    }
+    .swal2-title { 
+      font-size: 20px !important; 
+      font-weight: 600 !important; 
+      margin-bottom: 16px !important; 
+    }
+    .swal2-content { 
+      font-size: 16px !important; 
+      line-height: 1.5 !important; 
     }
     
     /* Modal styling */
@@ -138,16 +176,20 @@
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
         @if(session('success'))
-          <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>{{ session('success') }}</span>
+          <div class="toast toast-bottom toast-end">
+            <div class="alert alert-success">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              <span>{{ session('success') }}</span>
+            </div>
           </div>
         @endif
 
         @if(session('error'))
-          <div class="alert alert-error mb-6">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-            <span>{{ session('error') }}</span>
+          <div class="toast toast-bottom toast-end">
+            <div class="alert alert-error">
+              <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              <span>{{ session('error') }}</span>
+            </div>
           </div>
         @endif
 
@@ -714,12 +756,16 @@
       const rows = document.querySelectorAll('tbody tr');
       
       rows.forEach(row => {
+        if (!row) return; // Null check
+        
         let showRow = true;
         
         // Search filter
         if (searchTerm) {
-          const title = row.querySelector('td:first-child h4')?.textContent?.toLowerCase() || '';
-          const description = row.querySelector('td:first-child p')?.textContent?.toLowerCase() || '';
+          const titleElement = row.querySelector('td:first-child h4');
+          const descriptionElement = row.querySelector('td:first-child p');
+          const title = titleElement?.textContent?.toLowerCase() || '';
+          const description = descriptionElement?.textContent?.toLowerCase() || '';
           if (!title.includes(searchTerm) && !description.includes(searchTerm)) {
             showRow = false;
           }
@@ -727,7 +773,8 @@
         
         // Priority filter
         if (priorityFilter && showRow) {
-          const priority = row.querySelector('td:nth-child(2) .badge')?.textContent?.toLowerCase() || '';
+          const priorityElement = row.querySelector('td:nth-child(2) .badge');
+          const priority = priorityElement?.textContent?.toLowerCase() || '';
           if (!priority.includes(priorityFilter)) {
             showRow = false;
           }
@@ -748,399 +795,159 @@
       // Show all rows
       const rows = document.querySelectorAll('tbody tr');
       rows.forEach(row => {
-        row.style.display = '';
+        if (row) { // Null check
+          row.style.display = '';
+        }
       });
     }
     
     // Case actions
     function deleteCase(caseId) {
-      showDeleteModal(caseId);
-    }
-
-    // Show beautiful delete confirmation modal
-    function showDeleteModal(caseId) {
-      const modal = document.createElement('div');
-      modal.className = 'modal modal-open';
-      modal.innerHTML = `
-        <div class="modal-box w-11/12 max-w-md bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                <i data-lucide="trash-2" class="w-6 h-6 text-red-600"></i>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">Delete Legal Case</h3>
-                <p class="text-sm text-gray-500">This action will permanently remove the case</p>
-              </div>
-            </div>
-            <button onclick="closeDeleteModal()" class="btn btn-sm btn-circle btn-ghost">
-              <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-          </div>
-
-          <div class="mb-6">
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                  <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-gray-800">Permanent Deletion</h4>
-                  <p class="text-sm text-gray-600">Are you sure you want to delete this legal case? This action cannot be undone.</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div class="flex items-center gap-2">
-                <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
-                <p class="text-sm text-yellow-700 font-medium">All case data will be permanently lost</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3">
-            <button onclick="closeDeleteModal()" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-sm hover:shadow-md">
-              <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-              Cancel
-            </button>
-            <button onclick="confirmDelete(${caseId})" class="btn btn-error btn-sm hover:btn-error-focus transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105" id="confirmDeleteBtn">
-              <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
-              <span id="deleteBtnText">Delete Case</span>
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      lucide.createIcons();
-      
-      // Close modal when clicking outside
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeDeleteModal();
+      Swal.fire({
+        title: 'Delete Legal Case',
+        text: 'Are you sure you want to delete this legal case? This action cannot be undone and will permanently remove the case from the system.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'DELETE CASE',
+        cancelButtonText: 'CANCEL',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Proceed with deletion
+          fetch(`/legal/cases/${caseId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showEnhancedToast('Legal case deleted successfully!', 'success', 'check-circle', 'The case has been permanently removed from the system.');
+              // Remove the row from the table
+              const row = document.querySelector(`tr[data-case-id="${caseId}"]`);
+              if (row) {
+                row.remove();
+              }
+            } else {
+              showEnhancedToast('Error deleting case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showEnhancedToast('Error deleting case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+          });
         }
       });
     }
 
-    // Close delete modal
-    function closeDeleteModal() {
-      const modal = document.querySelector('.modal');
-      if (modal) {
-        modal.remove();
-      }
-    }
 
-    // Confirm delete action
-    function confirmDelete(caseId) {
-      const confirmBtn = document.getElementById('confirmDeleteBtn');
-      const btnText = document.getElementById('deleteBtnText');
-      
-      // Show loading state
-      confirmBtn.disabled = true;
-      btnText.textContent = 'Deleting...';
-      confirmBtn.innerHTML = `
-        <i class="loading loading-spinner loading-sm mr-2"></i>
-        <span>Deleting...</span>
-      `;
-      
-        fetch(`/legal/cases/${caseId}`, {
-          method: 'DELETE',
-          headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Close modal
-          closeDeleteModal();
-          
-          // Show enhanced success notification
-          showEnhancedToast('Legal case deleted successfully!', 'success', 'trash-2', 'Case has been permanently removed from the system.');
-          
-          // Reload page to update statistics and table
-          setTimeout(() => window.location.reload(), 1500);
-          } else {
-          throw new Error(data.message || 'Failed to delete case');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        
-        // Reset button state
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = `
-          <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
-          <span>Delete Case</span>
-        `;
-        lucide.createIcons();
-        
-        // Show enhanced error notification
-        showEnhancedToast('Error deleting case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-      });
-    }
 
     // Approve a legal case
     function approveCase(caseId) {
-      showApprovalModal(caseId);
-    }
-
-    // Show beautiful approval confirmation modal
-    function showApprovalModal(caseId) {
-      const modal = document.createElement('div');
-      modal.className = 'modal modal-open';
-      modal.innerHTML = `
-        <div class="modal-box w-11/12 max-w-md bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">Approve Legal Case</h3>
-                <p class="text-sm text-gray-500">This action will mark the case as completed</p>
-              </div>
-            </div>
-            <button onclick="closeApprovalModal()" class="btn btn-sm btn-circle btn-ghost">
-              <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-          </div>
-
-          <div class="mb-6">
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                  <i data-lucide="gavel" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-gray-800">Case Approval</h4>
-                  <p class="text-sm text-gray-600">Are you sure you want to approve this legal case?</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div class="flex items-center gap-2">
-                <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
-                <p class="text-sm text-yellow-700 font-medium">This action cannot be undone</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3">
-            <button onclick="closeApprovalModal()" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-sm hover:shadow-md">
-              <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-              Cancel
-            </button>
-            <button onclick="confirmApproval(${caseId})" class="btn btn-success btn-sm hover:btn-success-focus transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105" id="confirmApprovalBtn">
-              <i data-lucide="check" class="w-4 h-4 mr-2"></i>
-              <span id="approvalBtnText">Approve Case</span>
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      lucide.createIcons();
-      
-      // Close modal when clicking outside
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeApprovalModal();
+      Swal.fire({
+        title: 'Approve Legal Case',
+        text: 'Are you sure you want to approve this legal case? This action will mark the case as completed and cannot be undone.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'APPROVE CASE',
+        cancelButtonText: 'CANCEL',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Proceed with approval
+          fetch(`/legal/cases/${caseId}/approve`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showEnhancedToast('Legal case approved successfully!', 'success', 'check-circle', 'The case has been marked as completed.');
+              // Update the row status in the table
+              const row = document.querySelector(`tr[data-case-id="${caseId}"]`);
+              if (row) {
+                const statusBadge = row.querySelector('.status-badge');
+                if (statusBadge) {
+                  statusBadge.className = 'badge badge-success status-badge';
+                  statusBadge.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Approved';
+                  lucide.createIcons();
+                }
+              }
+            } else {
+              showEnhancedToast('Error approving case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showEnhancedToast('Error approving case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+          });
         }
       });
     }
 
-    // Close approval modal
-    function closeApprovalModal() {
-      const modal = document.querySelector('.modal');
-      if (modal) {
-        modal.remove();
-      }
-    }
 
-    // Confirm approval action
-    function confirmApproval(caseId) {
-      const confirmBtn = document.getElementById('confirmApprovalBtn');
-      const btnText = document.getElementById('approvalBtnText');
-      
-      // Show loading state
-      confirmBtn.disabled = true;
-      btnText.textContent = 'Approving...';
-      confirmBtn.innerHTML = `
-        <i class="loading loading-spinner loading-sm mr-2"></i>
-        <span>Approving...</span>
-      `;
-      
-      fetch(`/legal/cases/${caseId}/approve`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Close modal
-          closeApprovalModal();
-          
-          // Show enhanced success notification
-          showEnhancedToast('Legal case approved successfully!', 'success', 'check-circle', 'Case has been marked as completed and moved to approved status.');
-          
-          // Reload page to update statistics and table
-          setTimeout(() => window.location.reload(), 1500);
-        } else {
-          throw new Error(data.message || 'Failed to approve case');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        
-        // Reset button state
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = `
-          <i data-lucide="check" class="w-4 h-4 mr-2"></i>
-          <span>Approve Case</span>
-        `;
-        lucide.createIcons();
-        
-        // Show enhanced error notification
-        showEnhancedToast('Error approving case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-      });
-    }
 
     // Decline a legal case
     function declineCase(caseId) {
-      showDeclineModal(caseId);
-    }
-
-    // Show beautiful decline confirmation modal
-    function showDeclineModal(caseId) {
-      const modal = document.createElement('div');
-      modal.className = 'modal modal-open';
-      modal.innerHTML = `
-        <div class="modal-box w-11/12 max-w-md bg-white text-gray-800 rounded-xl shadow-2xl" onclick="event.stopPropagation()">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                <i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">Decline Legal Case</h3>
-                <p class="text-sm text-gray-500">This action will mark the case as rejected</p>
-              </div>
-            </div>
-            <button onclick="closeDeclineModal()" class="btn btn-sm btn-circle btn-ghost">
-              <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-          </div>
-
-          <div class="mb-6">
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                  <i data-lucide="gavel" class="w-5 h-5 text-red-600"></i>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-gray-800">Case Rejection</h4>
-                  <p class="text-sm text-gray-600">Are you sure you want to decline this legal case?</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div class="flex items-center gap-2">
-                <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
-                <p class="text-sm text-yellow-700 font-medium">This action cannot be undone</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3">
-            <button onclick="closeDeclineModal()" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-sm hover:shadow-md">
-              <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-              Cancel
-            </button>
-            <button onclick="confirmDecline(${caseId})" class="btn btn-error btn-sm hover:btn-error-focus transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105" id="confirmDeclineBtn">
-              <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-              <span id="declineBtnText">Decline Case</span>
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      lucide.createIcons();
-      
-      // Close modal when clicking outside
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeDeclineModal();
+      Swal.fire({
+        title: 'Decline Legal Case',
+        text: 'Are you sure you want to decline this legal case? This action will mark the case as rejected and cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'DECLINE CASE',
+        cancelButtonText: 'CANCEL',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Proceed with decline
+          fetch(`/legal/cases/${caseId}/decline`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showEnhancedToast('Legal case declined successfully!', 'success', 'check-circle', 'The case has been marked as rejected.');
+              // Update the row status in the table
+              const row = document.querySelector(`tr[data-case-id="${caseId}"]`);
+              if (row) {
+                const statusBadge = row.querySelector('.status-badge');
+                if (statusBadge) {
+                  statusBadge.className = 'badge badge-error status-badge';
+                  statusBadge.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Declined';
+                  lucide.createIcons();
+                }
+              }
+            } else {
+              showEnhancedToast('Error declining case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showEnhancedToast('Error declining case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
+          });
         }
       });
     }
 
-    // Close decline modal
-    function closeDeclineModal() {
-      const modal = document.querySelector('.modal');
-      if (modal) {
-        modal.remove();
-      }
-    }
 
-    // Confirm decline action
-    function confirmDecline(caseId) {
-      const confirmBtn = document.getElementById('confirmDeclineBtn');
-      const btnText = document.getElementById('declineBtnText');
-      
-      // Show loading state
-      confirmBtn.disabled = true;
-      btnText.textContent = 'Declining...';
-      confirmBtn.innerHTML = `
-        <i class="loading loading-spinner loading-sm mr-2"></i>
-        <span>Declining...</span>
-      `;
-      
-      fetch(`/legal/cases/${caseId}/decline`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Close modal
-          closeDeclineModal();
-          
-          // Show enhanced success notification
-          showEnhancedToast('Legal case declined successfully!', 'success', 'x-circle', 'Case has been marked as rejected and moved to declined status.');
-          
-          // Reload page to update statistics and table
-          setTimeout(() => window.location.reload(), 1500);
-        } else {
-          throw new Error(data.message || 'Failed to decline case');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        
-        // Reset button state
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = `
-          <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-          <span>Decline Case</span>
-        `;
-        lucide.createIcons();
-        
-        // Show enhanced error notification
-        showEnhancedToast('Error declining case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-      });
-    }
 
     // Violation Templates
     const violationTemplates = {
@@ -1329,17 +1136,19 @@
       
       // Animate in
       setTimeout(() => {
-        toast.classList.remove('translate-x-full', 'opacity-0');
-        toast.classList.add('translate-x-0', 'opacity-100');
+        if (toast && toast.classList) {
+          toast.classList.remove('translate-x-full', 'opacity-0');
+          toast.classList.add('translate-x-0', 'opacity-100');
+        }
       }, 100);
       
       // Auto remove after duration
       const duration = type === 'error' ? 6000 : 4000;
       setTimeout(() => {
-        if (toast.parentNode) {
+        if (toast && toast.parentNode && toast.classList) {
           toast.classList.add('translate-x-full', 'opacity-0');
           setTimeout(() => {
-            if (toast.parentNode) {
+            if (toast && toast.parentNode) {
               toast.parentNode.removeChild(toast);
             }
           }, 500);
@@ -1355,25 +1164,37 @@
     // Modal functions for Add New Case
     function openAddCaseModal() {
       const modal = document.getElementById('addCaseModal');
-      modal.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-      
-      // Initialize Lucide icons in modal
-      lucide.createIcons();
+      if (modal && modal.classList) {
+        modal.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        // Initialize Lucide icons in modal
+        lucide.createIcons();
+      }
     }
 
     function closeAddCaseModal() {
       const modal = document.getElementById('addCaseModal');
-      modal.classList.remove('modal-open');
-      document.body.style.overflow = 'auto';
+      if (modal && modal.classList) {
+        modal.classList.remove('modal-open');
+        document.body.style.overflow = 'auto';
+      }
       
       // Reset form
       const form = document.getElementById('addCaseForm');
-      form.reset();
+      if (form) {
+        form.reset();
+      }
       
       // Hide file preview and AI analysis
-      document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('aiAnalysis').classList.add('hidden');
+      const filePreview = document.getElementById('filePreview');
+      const aiAnalysis = document.getElementById('aiAnalysis');
+      if (filePreview && filePreview.classList) {
+        filePreview.classList.add('hidden');
+      }
+      if (aiAnalysis && aiAnalysis.classList) {
+        aiAnalysis.classList.add('hidden');
+      }
     }
 
 
@@ -1389,11 +1210,13 @@
       let isValid = true;
       requiredFields.forEach(fieldName => {
         const field = form.querySelector(`[name="${fieldName}"]`);
-        if (field && !field.value.trim()) {
-          field.classList.add('border-red-500');
-          isValid = false;
-        } else if (field) {
-          field.classList.remove('border-red-500');
+        if (field && field.classList) {
+          if (!field.value.trim()) {
+            field.classList.add('border-red-500');
+            isValid = false;
+          } else {
+            field.classList.remove('border-red-500');
+          }
         }
       });
       
@@ -1419,7 +1242,6 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          showToast('Violation report submitted successfully!', 'success');
           closeAddCaseModal();
           setTimeout(() => window.location.reload(), 1000);
         } else {
@@ -1449,7 +1271,6 @@
         });
       }
 
-
       // Close modal when clicking outside
       const modal = document.getElementById('addCaseModal');
       if (modal) {
@@ -1459,6 +1280,21 @@
           }
         });
       }
+
+      // Auto-hide session notifications after 5 seconds
+      setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(toast => {
+          if (toast) {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(() => {
+              if (toast.parentNode) {
+                toast.remove();
+              }
+            }, 500);
+          }
+        });
+      }, 5000);
     });
   </script>
 </body>

@@ -49,7 +49,7 @@
     
     <!-- Card Body -->
     <div>
-      <form action="/loginuser" method="POST">
+      <form action="/loginuser" method="POST" id="loginForm">
         <!-- Email Input -->
         @csrf
         <div class="mb-4">
@@ -110,6 +110,11 @@
           </div>
         </div>
         
+        <!-- reCAPTCHA -->
+        <div class="mb-6">
+          <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+        </div>
+
         <!-- Remember Me & Forgot Password -->
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center">
@@ -129,6 +134,7 @@
         <button 
           type="submit" 
           class="w-full btn-primary btn"
+          id="loginSubmitBtn"
         >
           Sign in
         </button>
@@ -173,6 +179,7 @@
     });
 </script>
 
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
 function togglePasswordVisibility() {
   const passwordInput = document.getElementById('password');
@@ -190,6 +197,18 @@ function togglePasswordVisibility() {
   }
 }
 
+// Client-side check to ensure captcha completed before submit
+document.addEventListener('DOMContentLoaded', function(){
+  const form = document.getElementById('loginForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e){
+    const response = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse() : '';
+    if (!response) {
+      e.preventDefault();
+      alert('Please complete the CAPTCHA before signing in.');
+    }
+  });
+});
 
 </script>
 

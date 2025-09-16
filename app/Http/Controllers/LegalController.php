@@ -475,6 +475,9 @@ class LegalController extends Controller
         ]);
 
         try {
+            // Generate case number first to avoid race conditions
+            $caseNumber = \App\Models\LegalCase::generateCaseNumber();
+            
             // Create legal case
             $legalCase = \App\Models\LegalCase::create([
                 'case_title' => $request->case_title,
@@ -487,6 +490,7 @@ class LegalController extends Controller
                 'employee_involved' => $request->employee_involved,
                 'incident_date' => $request->incident_date,
                 'incident_location' => $request->incident_location,
+                'case_number' => $caseNumber, // Explicitly set the case number
             ]);
 
 
@@ -501,6 +505,22 @@ class LegalController extends Controller
 
             return redirect()->route('legal.case_deck')->with('success', 'Legal case created successfully!');
             
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate case number error specifically
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false && strpos($e->getMessage(), 'case_number') !== false) {
+                $errorMessage = 'A case with this number already exists. Please try again.';
+            } else {
+                $errorMessage = 'Database error: ' . $e->getMessage();
+            }
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => $errorMessage]);
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([

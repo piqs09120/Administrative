@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   @vite(['resources/css/soliera.css'])
 </head>
 <body class="bg-base-100">
@@ -252,11 +253,11 @@
                       <td class="py-4 px-4 text-center">
                         <div class="flex items-center justify-center space-x-2">
                           <!-- View Button -->
-                          <a href="{{ route('document.show', $document->id) }}" 
-                             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200" 
-                             title="View Document">
+                          <button onclick="viewDocumentDetails({{ $document->id }})" 
+                                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200" 
+                                  title="View Document">
                             <i data-lucide="eye" class="w-4 h-4"></i>
-                          </a>
+                          </button>
                           
                           <!-- Download Button -->
                           <a href="{{ route('document.download', $document->id) }}" 
@@ -350,6 +351,313 @@
         filterDocuments();
       }
     });
+
+    // View document details in modal
+    function viewDocumentDetails(documentId) {
+      // Show loading state
+      Swal.fire({
+        title: 'Loading Document Details...',
+        text: 'Please wait while we fetch the document information.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Fetch document details
+      fetch(`/document/${documentId}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Failed to fetch document details`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success && data.document) {
+          const doc = data.document;
+          
+          // Format dates
+          const formatDate = (dateString) => {
+            if (!dateString) return 'Not Set';
+            return new Date(dateString).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          };
+
+          // Get status badge class
+          const getStatusClass = (status) => {
+            const statusConfig = {
+              'active': 'bg-green-100 text-green-800',
+              'archived': 'bg-gray-100 text-gray-800',
+              'disposed': 'bg-gray-100 text-gray-800',
+              'expired': 'bg-red-100 text-red-800',
+              'pending_release': 'bg-yellow-100 text-yellow-800'
+            };
+            return statusConfig[status] || 'bg-gray-100 text-gray-800';
+          };
+
+          // Get confidentiality badge class
+          const getConfidentialityClass = (confidentiality) => {
+            const confConfig = {
+              'public': 'bg-green-100 text-green-800',
+              'internal': 'bg-yellow-100 text-yellow-800',
+              'confidential': 'bg-orange-100 text-orange-800',
+              'restricted': 'bg-red-100 text-red-800'
+            };
+            return confConfig[confidentiality] || 'bg-gray-100 text-gray-800';
+          };
+
+          // Create modal content
+          const modalContent = `
+            <div class="text-left max-w-4xl mx-auto">
+              <!-- Document Header -->
+              <div class="flex items-start justify-between mb-6">
+                <div class="flex-1">
+                  <h2 class="text-2xl font-bold text-gray-900 mb-2">${doc.title || 'Untitled Document'}</h2>
+                  <p class="text-gray-600">Document ID: #${doc.id}</p>
+                </div>
+                <span class="text-xs font-medium px-3 py-1 rounded-full ${getStatusClass(doc.status)}">
+                  ${doc.status ? doc.status.replace('_', ' ').toUpperCase() : 'ACTIVE'}
+                </span>
+              </div>
+
+              ${doc.description ? `
+                <div class="mb-6">
+                  <h3 class="font-semibold text-gray-700 mb-2">Description</h3>
+                  <p class="text-gray-600">${doc.description}</p>
+                </div>
+              ` : ''}
+
+              <!-- Document Details Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Uploaded By</h4>
+                  <p class="text-gray-600">${doc.uploader?.name || 'Unknown'}</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Category</h4>
+                  <p class="text-gray-600">${doc.category || 'Uncategorized'}</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Department</h4>
+                  <p class="text-gray-600">${doc.department || 'Not Set'}</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Confidentiality Level</h4>
+                  <span class="text-xs font-medium px-2 py-1 rounded-full ${getConfidentialityClass(doc.confidentiality)}">
+                    ${doc.confidentiality ? doc.confidentiality.toUpperCase() : 'NOT SET'}
+                  </span>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Retention Period</h4>
+                  <p class="text-gray-600">${doc.retention_policy || 'Not Set'}</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Expiration Date</h4>
+                  <p class="text-gray-600">${formatDate(doc.retention_until)}</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Upload Date</h4>
+                  <p class="text-gray-600">${formatDate(doc.created_at)}</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-1">Last Updated</h4>
+                  <p class="text-gray-600">${formatDate(doc.updated_at)}</p>
+                </div>
+              </div>
+
+              <!-- File Path -->
+              <div class="mb-6">
+                <h4 class="font-semibold text-gray-700 mb-1">File Path</h4>
+                <p class="text-gray-600 text-sm break-all">${doc.file_path || 'Not available'}</p>
+              </div>
+
+              ${doc.ai_analysis && doc.ai_analysis.tags ? `
+                <div class="mb-6">
+                  <h4 class="font-semibold text-gray-700 mb-2">AI Tags</h4>
+                  <div class="flex flex-wrap gap-2">
+                    ${doc.ai_analysis.tags.map(tag => `
+                      <span class="badge badge-outline text-xs">${tag}</span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${doc.ai_analysis && doc.ai_analysis.compliance_status ? `
+                <div class="mb-6">
+                  <h4 class="font-semibold text-gray-700 mb-2">Compliance Status</h4>
+                  <span class="badge ${doc.ai_analysis.compliance_status === 'compliant' ? 'badge-success' : (doc.ai_analysis.compliance_status === 'non-compliant' ? 'badge-error' : 'badge-warning')} text-xs">
+                    ${doc.ai_analysis.compliance_status.replace('_', ' ').toUpperCase()}
+                  </span>
+                </div>
+              ` : ''}
+
+              <!-- Action Buttons -->
+              <div class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-gray-200">
+                <a href="/document/${doc.id}/download" class="btn btn-outline btn-sm">
+                  <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                  Download
+                </a>
+                <button onclick="analyzeDocument(${doc.id})" class="btn btn-primary btn-sm">
+                  <i data-lucide="brain" class="w-4 h-4 mr-2"></i>
+                  AI Analysis
+                </button>
+                ${doc.status === 'archived' ? `
+                  <button onclick="requestRelease(${doc.id})" class="btn btn-warning btn-sm">
+                    <i data-lucide="send" class="w-4 h-4 mr-2"></i>
+                    Request Release
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+
+          // Show the modal
+          Swal.fire({
+            title: 'Document Details',
+            html: modalContent,
+            width: '800px',
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Close',
+            customClass: {
+              popup: 'text-left'
+            },
+            didOpen: () => {
+              // Re-initialize Lucide icons in the modal
+              lucide.createIcons();
+            }
+          });
+        } else {
+          throw new Error('Invalid response format');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching document details:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to load document details. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      });
+    }
+
+    // Analyze document function
+    function analyzeDocument(documentId) {
+      Swal.fire({
+        title: 'AI Analysis',
+        text: 'Starting AI analysis of the document...',
+        icon: 'info',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch(`/document/${documentId}/analyze`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            title: 'Analysis Complete',
+            text: 'Document has been analyzed successfully!',
+            icon: 'success',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            // Refresh the page to show updated analysis
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            title: 'Analysis Failed',
+            text: data.message || 'Failed to analyze document',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'An error occurred during analysis',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      });
+    }
+
+    // Request release function
+    function requestRelease(documentId) {
+      Swal.fire({
+        title: 'Request Document Release',
+        text: 'Are you sure you want to request release for this archived document?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Request Release',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(`/document/${documentId}/request-release`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Request Submitted',
+                text: 'Your release request has been submitted successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+              });
+            } else {
+              Swal.fire({
+                title: 'Request Failed',
+                text: data.message || 'Failed to submit release request',
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              title: 'Error',
+              text: 'An error occurred while submitting the request',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          });
+        }
+      });
+    }
   </script>
 </body>
 </html>

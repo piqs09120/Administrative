@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\DeptAccount;
+use Illuminate\Support\Facades\DB;
 
 class LegalCase extends Model
 {
@@ -93,21 +94,39 @@ class LegalCase extends Model
     }
 
     /**
-     * Generate case number
+     * Generate case number with proper locking to prevent duplicates
      */
     public static function generateCaseNumber()
     {
         $year = date('Y');
-        $lastCase = self::whereYear('created_at', $year)->latest()->first();
+        $prefix = "LC-{$year}-";
         
-        if ($lastCase) {
-            $lastNumber = (int) substr($lastCase->case_number, -4);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-        
-        return "LC-{$year}-" . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        // Use database transaction with locking to prevent race conditions
+        return DB::transaction(function () use ($year, $prefix) {
+            // Lock the table to prevent concurrent access
+            $lastCase = self::whereYear('created_at', $year)
+                ->where('case_number', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderBy('case_number', 'desc')
+                ->first();
+            
+            if ($lastCase && $lastCase->case_number) {
+                $lastNumber = (int) substr($lastCase->case_number, -4);
+                $newNumber = $lastNumber + 1;
+            } else {
+                $newNumber = 1;
+            }
+            
+            $caseNumber = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+            
+            // Double-check that the case number doesn't already exist
+            while (self::where('case_number', $caseNumber)->exists()) {
+                $newNumber++;
+                $caseNumber = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+            }
+            
+            return $caseNumber;
+        });
     }
 
     /**

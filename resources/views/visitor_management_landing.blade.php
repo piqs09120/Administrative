@@ -401,13 +401,15 @@
                                         <select id="department" name="department"
                                                 class="form-input w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50 appearance-none">
                                             <option value="">Select department</option>
-                                            <option value="Human Resources">Human Resources</option>
-                                            <option value="Information Technology">Information Technology</option>
-                                            <option value="Finance">Finance</option>
-                                            <option value="Operations">Operations</option>
-                                            <option value="Marketing">Marketing</option>
-                                            <option value="Legal">Legal</option>
-                                            <option value="Other">Other</option>
+                                            <option value="hr1">HR1</option>
+                                            <option value="hr2">HR2</option>
+                                            <option value="hr3">HR3</option>
+                                            <option value="hr4">HR4</option>
+                                            <option value="finance">Finance</option>
+                                            <option value="logistic_1">Logistic 1</option>
+                                            <option value="logistic_2">Logistic 2</option>
+                                            <option value="core_1">Core 1</option>
+                                            <option value="core_2">Core 2</option>
                                         </select>
                                         <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                                     </div>
