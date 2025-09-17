@@ -39,6 +39,7 @@ Route::get('/facility_reservations/new-request', [App\Http\Controllers\FacilityR
 // Facilities Monitoring API (read-only)
 Route::get('/api/facilities/monitoring', [App\Http\Controllers\FacilityReservationController::class, 'monitoringSummary'])->name('facilities.monitoring.summary');
 Route::get('/api/facilities/monitoring/export-pdf', [App\Http\Controllers\FacilityReservationController::class, 'exportMonitoringPdf'])->name('facilities.monitoring.export_pdf');
+Route::get('/api/facilities/stats', [App\Http\Controllers\FacilitiesController::class, 'stats'])->name('facilities.stats');
 
 // Equipment details API
 Route::get('/api/facilities/equipment-details', [App\Http\Controllers\FacilityReservationController::class, 'equipmentDetails'])->name('facilities.equipment.details');

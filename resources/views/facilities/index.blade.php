@@ -458,7 +458,7 @@
                 <div class="badge badge-primary badge-outline text-xs">All</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1">{{ $facilities->count() }}</h2>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1" id="total-facilities">{{ $facilities->count() }}</h2>
                 <p class="text-sm text-base-content/70">Total Facilities</p>
               </div>
             </div>
@@ -476,7 +476,7 @@
                 <div class="badge badge-success badge-outline text-xs">Open</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1">{{ $facilities->where('status', 'available')->count() }}</h2>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="available-facilities">{{ $facilities->where('status', 'available')->count() }}</h2>
                 <p class="text-sm text-base-content/70">Available</p>
               </div>
             </div>
@@ -494,7 +494,7 @@
                 <div class="badge badge-error badge-outline text-xs">Busy</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-error justify-center mb-1">{{ $facilities->where('status', 'occupied')->count() }}</h2>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-error justify-center mb-1" id="occupied-facilities">{{ $facilities->where('status', 'occupied')->count() }}</h2>
                 <p class="text-sm text-base-content/70">Occupied</p>
               </div>
             </div>
@@ -512,7 +512,7 @@
                 <div class="badge badge-info badge-outline text-xs">Total</div>
               </div>
               <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1">{{ $facilities->sum(function($facility) { return $facility->reservations->count(); }) }}</h2>
+                <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1" id="total-reservations">{{ \App\Models\FacilityRequest::where('request_type', 'reservation')->where('status', 'approved')->count() }}</h2>
                 <p class="text-sm text-base-content/70">Total Reservations</p>
               </div>
             </div>
@@ -521,10 +521,10 @@
 
 
         <!-- Action Buttons -->
-        <div class="flex flex-wrap gap-3 mb-8">
+        <div class="flex flex-wrap gap-3 mb-8 justify-end">
           <a href="{{ route('facilities.reservation.landing') }}" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
             <i data-lucide="home" class="w-4 h-4 mr-2"></i>
-        
+            <span>Landing Page</span>
           </a>
           <button type="button" id="openCreateFacilityModal" class="btn btn-primary btn-md hover:btn-primary-focus transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
@@ -660,7 +660,7 @@
                       <div class="meta-row">
                       <div class="meta-item">
                         <i data-lucide="calendar" class="w-4 h-4"></i>
-                        <span>Reservations: {{ $facility->reservations->count() }}</span>
+                        <span>Reservations: <span data-reservations-count>{{ \App\Models\FacilityRequest::where('facility_id', $facility->id)->where('request_type', 'reservation')->where('status', 'approved')->count() }}</span></span>
                     </div>
                     <div class="meta-item">
                           <i data-lucide="star" class="w-4 h-4"></i>
@@ -1231,10 +1231,11 @@
             <textarea name="description" id="edit_description" class="textarea textarea-bordered"></textarea>
           </div>
           <div class="form-control">
-            <label class="label"><span class="label-text font-semibold">Status *</span></label>
-            <select name="status" id="edit_status" class="select select-bordered" required>
+            <label class="label"><span class="label-text font-semibold">Status</span></label>
+            <select name="status" id="edit_status" class="select select-bordered">
               <option value="available">Available</option>
               <option value="unavailable">Unavailable</option>
+              <option value="occupied">Occupied</option>
             </select>
           </div>
         </div>
@@ -1639,7 +1640,7 @@
       // Notification function
       function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+        notification.className = `fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
           type === 'success' ? 'bg-green-500 text-white' : 
           type === 'error' ? 'bg-red-500 text-white' : 
           'bg-blue-500 text-white'
@@ -1880,6 +1881,16 @@
           document.getElementById('edit_location').value = location;
           document.getElementById('edit_description').value = description;
           document.getElementById('edit_status').value = status;
+          
+          // Make status field optional for occupied facilities
+          const statusSelect = document.getElementById('edit_status');
+          if (status === 'occupied') {
+            statusSelect.required = false;
+            statusSelect.classList.remove('border-red-500');
+          } else {
+            statusSelect.required = true;
+          }
+          
           editForm.setAttribute('action', `{{ url('facilities') }}/${id}`);
 
           // Try to preload current image using facility-specific path only
@@ -2368,6 +2379,101 @@
         document.body.appendChild(container);
         return container;
       }
+
+      // Real-time facility stats update function
+      async function updateFacilityStats() {
+        try {
+          const response = await fetch('/api/facilities/stats', {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch facility stats');
+          }
+
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update the summary cards with new data
+            const totalFacilitiesEl = document.getElementById('total-facilities');
+            const availableFacilitiesEl = document.getElementById('available-facilities');
+            const occupiedFacilitiesEl = document.getElementById('occupied-facilities');
+            const totalReservationsEl = document.getElementById('total-reservations');
+
+            if (totalFacilitiesEl) totalFacilitiesEl.textContent = data.stats.total_facilities;
+            if (availableFacilitiesEl) availableFacilitiesEl.textContent = data.stats.available_facilities;
+            if (occupiedFacilitiesEl) occupiedFacilitiesEl.textContent = data.stats.occupied_facilities;
+            if (totalReservationsEl) totalReservationsEl.textContent = data.stats.total_reservations;
+
+            // Add visual feedback for changes
+            [totalFacilitiesEl, availableFacilitiesEl, occupiedFacilitiesEl, totalReservationsEl].forEach(el => {
+              if (el) {
+                el.style.transform = 'scale(1.05)';
+                el.style.transition = 'transform 0.3s ease';
+                setTimeout(() => {
+                  el.style.transform = 'scale(1)';
+                }, 300);
+              }
+            });
+
+            // Also update individual facility cards if we have detailed data
+            if (data.facilities) {
+              data.facilities.forEach(facility => {
+                updateFacilityCard(facility);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error updating facility stats:', error);
+        }
+      }
+
+      // Update individual facility card status
+      function updateFacilityCard(facility) {
+        const card = document.getElementById('facility-card-' + facility.id);
+        if (!card) return;
+
+        // Update status badge
+        const statusBadge = card.querySelector('.facility-status-badge .badge');
+        if (statusBadge) {
+          statusBadge.className = `badge badge-lg ${facility.status === 'available' ? 'badge-success' : (facility.status === 'occupied' ? 'badge-error' : 'badge-warning')}`;
+          statusBadge.textContent = facility.status.charAt(0).toUpperCase() + facility.status.slice(1);
+        }
+
+        // Update status indicator dot
+        const statusDot = card.querySelector('.w-2.h-2.rounded-full');
+        if (statusDot) {
+          statusDot.className = `w-2 h-2 rounded-full ${facility.status === 'available' ? 'bg-green-500' : (facility.status === 'occupied' ? 'bg-red-500' : 'bg-gray-400')}`;
+          statusDot.title = facility.status.charAt(0).toUpperCase() + facility.status.slice(1);
+        }
+
+        // Update reservations count if available
+        const reservationsCount = card.querySelector('[data-reservations-count]');
+        if (reservationsCount && facility.reservations_count !== undefined) {
+          reservationsCount.textContent = facility.reservations_count;
+        }
+
+        // Add visual feedback for status change
+        card.style.transform = 'scale(1.02)';
+        card.style.transition = 'transform 0.3s ease';
+        setTimeout(() => {
+          card.style.transform = 'scale(1)';
+        }, 300);
+      }
+
+      // Set up real-time updates every 5 seconds
+      setInterval(updateFacilityStats, 5000);
+
+      // Also update stats when the page becomes visible (user switches back to tab)
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          updateFacilityStats();
+        }
+      });
     });
   </script>
 </body>

@@ -21,9 +21,11 @@
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
         @if(session('success'))
-          <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>{{ session('success') }}</span>
+          <div class="toast toast-bottom toast-end">
+            <div class="alert alert-success">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              <span>{{ session('success') }}</span>
+            </div>
           </div>
         @endif
 
@@ -136,5 +138,27 @@
   </div>
 
   @include('partials.soliera_js')
+  
+  <script>
+    // Auto-hide session success toast
+    document.addEventListener('DOMContentLoaded', function() {
+      const successToast = document.querySelector('.toast .alert-success');
+      if (successToast) {
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          const toast = successToast.closest('.toast');
+          if (toast) {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(() => {
+              if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+              }
+            }, 500);
+          }
+        }, 5000);
+      }
+    });
+  </script>
 </body>
 </html>

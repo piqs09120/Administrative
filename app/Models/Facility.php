@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Facility extends Model
 {
@@ -13,6 +13,9 @@ class Facility extends Model
     protected $fillable = [
         'name', 'location', 'description', 'status', 'capacity', 'amenities', 'rating', 'facility_type', 'images', 'hourly_rate', 'operating_hours_start', 'operating_hours_end'
     ];
+
+    // Ensure computed cover image URL is always available on arrays/JSON
+    protected $appends = ['cover_url'];
 
     protected $casts = [
         'images' => 'array',
@@ -33,13 +36,15 @@ class Facility extends Model
      */
     public function getCoverUrlAttribute()
     {
-        // Check for cover image in facility-specific directory
+        // Public path using facility name only (preferred behavior)
+        // public/facilities/{Facility Name}/cover.{ext}
+        $nameSlug = $this->name ? Str::slug($this->name, '-') : (string) $this->id;
         foreach (['jpg', 'jpeg', 'png', 'webp'] as $ext) {
-            $storageRel = 'facilities/' . $this->id . '/cover.' . $ext;
-            if (Storage::disk('public')->exists($storageRel)) {
-                $abs = storage_path('app/public/' . $storageRel);
-                $ver = file_exists($abs) ? filemtime($abs) : $this->updated_at->timestamp;
-                return asset('storage/' . $storageRel) . '?v=' . $ver;
+            $publicRel = 'facilities/' . $nameSlug . '/cover.' . $ext;
+            $publicAbs = public_path($publicRel);
+            if (file_exists($publicAbs)) {
+                $ver = filemtime($publicAbs);
+                return asset($publicRel) . '?v=' . $ver;
             }
         }
 

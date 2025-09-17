@@ -13,6 +13,57 @@ class FacilitiesController extends Controller
         // Role restrictions removed - all users can now manage facilities
     }
 
+    public function stats()
+    {
+        try {
+            $totalFacilities = Facility::count();
+            $availableFacilities = Facility::where('status', 'available')->count();
+            $occupiedFacilities = Facility::where('status', 'occupied')->count();
+            
+            // Count approved facility requests (reservations) instead of FacilityReservation
+            $totalReservations = \App\Models\FacilityRequest::where('request_type', 'reservation')
+                ->where('status', 'approved')
+                ->count();
+
+            // Also get individual facility data for real-time card updates
+            $facilities = Facility::select('id', 'name', 'status', 'location', 'description')
+                ->get()
+                ->map(function($facility) {
+                    // Count approved reservations for this facility
+                    $reservationsCount = \App\Models\FacilityRequest::where('facility_id', $facility->id)
+                        ->where('request_type', 'reservation')
+                        ->where('status', 'approved')
+                        ->count();
+                        
+                    return [
+                        'id' => $facility->id,
+                        'name' => $facility->name,
+                        'status' => $facility->status,
+                        'location' => $facility->location,
+                        'description' => $facility->description,
+                        'reservations_count' => $reservationsCount
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'stats' => [
+                    'total_facilities' => $totalFacilities,
+                    'available_facilities' => $availableFacilities,
+                    'occupied_facilities' => $occupiedFacilities,
+                    'total_reservations' => $totalReservations
+                ],
+                'facilities' => $facilities
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch facility stats',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function index(Request $request)
     {
         $query = Facility::withCount('reservations');
@@ -250,17 +301,24 @@ class FacilitiesController extends Controller
 
     public function update(Request $request, $id)
     {
+        $facility = Facility::findOrFail($id);
+        
         $request->validate([
             'name' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:available,unavailable,occupied',
+            'status' => 'nullable|in:available,unavailable,occupied',
             'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'remove_image' => 'nullable|boolean'
         ]);
 
-        $facility = Facility::findOrFail($id);
-        $facility->update($request->only(['name','location','description','status']));
+        // Only update fields that are provided
+        $updateData = $request->only(['name', 'location', 'description']);
+        if ($request->has('status') && $request->status !== '') {
+            $updateData['status'] = $request->status;
+        }
+        
+        $facility->update($updateData);
 
         // Remove existing image if requested
         if ($request->boolean('remove_image')) {

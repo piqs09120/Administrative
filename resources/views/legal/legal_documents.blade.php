@@ -65,16 +65,20 @@
       <!-- Main content area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
         @if(session('success'))
-          <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>{{ session('success') }}</span>
+          <div class="toast toast-bottom toast-end" id="session-success-toast">
+            <div class="alert alert-success">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              <span>{{ session('success') }}</span>
+            </div>
           </div>
         @endif
 
         @if(session('error'))
-          <div class="alert alert-error mb-6">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-            <span>{{ session('error') }}</span>
+          <div class="toast toast-bottom toast-end" id="session-error-toast">
+            <div class="alert alert-error">
+              <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              <span>{{ session('error') }}</span>
+            </div>
           </div>
         @endif
 
@@ -2743,7 +2747,7 @@
     // Toast notification function
     function showToast(message, type = 'info') {
       const toast = document.createElement('div');
-      toast.className = `alert alert-${type} fixed top-4 right-4 max-w-sm z-50`;
+      toast.className = `alert alert-${type} fixed bottom-4 right-4 max-w-sm z-50`;
       toast.innerHTML = `
         <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
         <span>${message}</span>
@@ -2759,6 +2763,29 @@
         }
       }, 3000);
     }
+
+    // Auto-hide session toasts
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auto-hide session success toast
+      const successToast = document.getElementById('session-success-toast');
+      if (successToast) {
+        setTimeout(() => {
+          successToast.style.opacity = '0';
+          successToast.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(() => successToast.remove(), 500);
+        }, 5000);
+      }
+
+      // Auto-hide session error toast
+      const errorToast = document.getElementById('session-error-toast');
+      if (errorToast) {
+        setTimeout(() => {
+          errorToast.style.opacity = '0';
+          errorToast.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(() => errorToast.remove(), 500);
+        }, 5000);
+      }
+    });
 
   </script>
 

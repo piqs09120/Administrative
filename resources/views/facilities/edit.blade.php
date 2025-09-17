@@ -87,10 +87,10 @@
 
                 <div class="form-control mb-6">
                   <label class="label">
-                    <span class="label-text font-semibold">Status *</span>
+                    <span class="label-text font-semibold">Status</span>
                   </label>
-                  <select name="status" class="select select-bordered" required>
-                    <option value="">Select status</option>
+                  <select name="status" class="select select-bordered">
+                    <option value="">Keep current status</option>
                     <option value="available" {{ old('status', $facility->status) === 'available' ? 'selected' : '' }}>Available</option>
                     <option value="unavailable" {{ old('status', $facility->status) === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
                     <option value="occupied" {{ old('status', $facility->status) === 'occupied' ? 'selected' : '' }}>Occupied</option>
