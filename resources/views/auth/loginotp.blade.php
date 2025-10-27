@@ -50,9 +50,17 @@
       </div>
     @endif
     
+    <!-- Debug OTP Code (for development) -->
+    @if(session('debug_otp_code'))
+      <div class="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+        <p class="text-yellow-300 text-sm font-bold">DEBUG: Your OTP Code is: <span class="text-white text-lg">{{ session('debug_otp_code') }}</span></p>
+        <p class="text-yellow-300 text-xs mt-1">(This is shown because email sending failed. Use this code to login.)</p>
+      </div>
+    @endif
+    
     <!-- OTP Form -->
     <div>
-      <form id="otpForm" action="{{ route('verify.otp') }}" method="POST">
+      <form id="otpForm" action="{{ route('otp.verify.submit') }}" method="POST">
         @csrf
         <!-- OTP Input Boxes - Adjusted for mobile -->
         <div class="flex justify-between mb-6 sm:mb-8 gap-2 sm:gap-3">

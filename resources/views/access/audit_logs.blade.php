@@ -9,6 +9,27 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   @vite(['resources/css/soliera.css'])
+  <style>
+    /* Fix for module badges to ensure full text visibility */
+    .module-badge {
+      display: inline-block;
+      white-space: nowrap;
+      min-width: fit-content;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      line-height: 1.2;
+      border-radius: 0.375rem;
+      background-color: #3b82f6;
+      color: white;
+      font-weight: 500;
+    }
+    
+    /* Ensure table cell has enough space for the badge */
+    .module-cell {
+      min-width: 120px;
+      max-width: 150px;
+    }
+  </style>
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -38,141 +59,110 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-          <div class="mb-4">
+          <div class="mb-6">
             <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Audit Trail & Transaction</h1>
-            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track all system activities and user actions</p>
+            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track all system activities and user actions (excluding login/logout)</p>
           </div>
-          <!-- underline divider (matches Visitor Management style) -->
-          <div class="border-b border-gray-200 mb-6"></div>
 
           <!-- Record Count -->
-          @php
-            // Exclude auth events; keep all other logs. Compute current user's department name for fallback display.
-            $currentDeptName = null;
-            try {
-              $empId = session('emp_id');
-              if ($empId) {
-                $currentDeptName = optional(\App\Models\DeptAccount::where('employee_id', $empId)->first())->dept_name;
-              }
-              if (!$currentDeptName && auth()->check()) {
-                $email = auth()->user()->email ?? '';
-                $empFromEmail = strstr($email, '@', true);
-                if ($empFromEmail) {
-                  $currentDeptName = optional(\App\Models\DeptAccount::where('employee_id', $empFromEmail)->first())->dept_name;
-                }
-              }
-            } catch (\Throwable $e) { $currentDeptName = null; }
-
-            $auditLogs = $logs->filter(function($log) {
-              return !in_array(strtolower($log->action), ['login','logout','otp']);
-            });
-          @endphp
           <div class="text-sm text-gray-500 mb-6">
-            Total {{ $auditLogs->count() }} records
+            Total {{ $logs->count() }} records
           </div>
         </div>
 
-        <!-- Audit Logs Table Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <!-- Header with Search and Actions -->
-          <div class="mb-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <i data-lucide="activity" class="w-5 h-5 text-blue-600"></i>
-                  System Activity Logs
-                </h3>
-                <!-- Search Bar -->
-                <div class="relative">
-                  <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                  <input type="text" 
-                         id="searchInput"
-                         placeholder="Search logs..." 
-                         class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
-                </div>
-              </div>
-              
-              <!-- Export Button -->
-              <a href="{{ route('access.audit_logs.export') }}" class="btn btn-outline btn-sm">
-                <i data-lucide="download" class="w-4 h-4 mr-1"></i>
-                Export
-              </a>
+        <!-- Audit Logs Table -->
+        <x-table-card :title="'Audit Logs'">
+          @slot('headerAction')
+            <a href="{{ route('access.audit_logs.export') }}" 
+               class="btn btn-sm transition-all duration-200 cursor-pointer hover:scale-105"
+               style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+               onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+               onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+              <i data-lucide="download" class="w-4 h-4 mr-1" style="fill: none;"></i>Export
+            </a>
+          @endslot
+          
+          <!-- Filters Row -->
+          <div class="mb-6 flex items-center gap-4 flex-wrap">
+            <!-- Search Bar -->
+            <div class="relative flex-1 min-w-[200px]">
+              <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+              <input type="text" 
+                     id="searchInput"
+                     placeholder="Search logs..." 
+                     class="input input-bordered input-sm w-full pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
             </div>
 
-            <!-- Filters Row -->
-            <div class="flex items-center gap-4">
-              <!-- Department Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Department:</label>
-                <select id="departmentFilter" class="select select-bordered select-sm w-40">
-                  <option value="">All Departments</option>
-                  <option value="Soliera Restaurant">Soliera Restaurant</option>
-                  <option value="Management">Management</option>
-                  <option value="Reception">Reception</option>
-                  <option value="Housekeeping">Housekeeping</option>
-                  <option value="Restaurant">Restaurant</option>
-                  <option value="Legal">Legal</option>
-                  <option value="IT">IT</option>
-                  <option value="Finance">Finance</option>
-                </select>
-              </div>
+            <!-- Department Filter -->
+            <div class="flex items-center gap-2">
+              <select id="departmentFilter" class="select select-bordered select-sm w-40">
+                <option value="">All Departments</option>
+                <option value="Soliera Restaurant">Soliera Restaurant</option>
+                <option value="Management">Management</option>
+                <option value="Reception">Reception</option>
+                <option value="Housekeeping">Housekeeping</option>
+                <option value="Restaurant">Restaurant</option>
+                <option value="Legal">Legal</option>
+                <option value="IT">IT</option>
+                <option value="Finance">Finance</option>
+              </select>
+            </div>
 
-              <!-- Action Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Action:</label>
-                <select id="actionFilter" class="select select-bordered select-sm w-40">
-                  <option value="">All Actions</option>
-                  <option value="Table added">Table added</option>
-                  <option value="Document_uploaded">Document uploaded</option>
-                  <option value="Access_control_check">Access control check</option>
-                  <option value="Profile_updated">Profile updated</option>
-                </select>
-              </div>
+            <!-- Action Filter -->
+            <div class="flex items-center gap-2">
+              <select id="actionFilter" class="select select-bordered select-sm w-40">
+                <option value="">All Actions</option>
+                <option value="save_legal_draft">Save Legal Draft</option>
+                <option value="document_view">Document View</option>
+                <option value="Document_uploaded">Document Uploaded</option>
+                <option value="Access_control_check">Access Control Check</option>
+                <option value="Profile_updated">Profile Updated</option>
+                <option value="Table_added">Table Added</option>
+                <option value="Facility_reserved">Facility Reserved</option>
+                <option value="Visitor_registered">Visitor Registered</option>
+                <option value="Report_generated">Report Generated</option>
+                <option value="Settings_updated">Settings Updated</option>
+                <option value="Data_exported">Data Exported</option>
+                <option value="Notification_sent">Notification Sent</option>
+                <option value="Backup_created">Backup Created</option>
+                <option value="Permission_granted">Permission Granted</option>
+                <option value="File_deleted">File Deleted</option>
+              </select>
+            </div>
 
-              <!-- Date Range Filter -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">Date:</label>
-                <input type="date" id="dateFilter" class="input input-bordered input-sm w-32">
-              </div>
-
-              <!-- Clear Filters Button -->
-              <button onclick="clearFilters()" class="btn btn-ghost btn-xs text-gray-500 hover:text-gray-700">
-                <i data-lucide="x" class="w-3 h-3 mr-1"></i>
-                Clear
-              </button>
+            <!-- Date Range Filter -->
+            <div class="flex items-center gap-2">
+              <input type="date" id="dateFilter" class="input input-bordered input-sm w-32">
             </div>
           </div>
-
-          <!-- Audit Logs Table -->
-          <div class="overflow-x-auto">
             <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
                   <th class="text-left py-3 px-4 font-medium text-gray-700">LOG ID</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DEPARTMENT</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">EMPLOYEE</th>
-                  <th class="text-left py-3 px-4 font-medium text-gray-700">MODULES</th>
-                  
+                  <th class="text-left py-3 px-4 font-medium text-gray-700" style="min-width: 120px;">MODULES</th>
+                  <th class="text-left py-3 px-4 font-medium text-gray-700">ACTION</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">ACTIVITY</th>
                   <th class="text-left py-3 px-4 font-medium text-gray-700">DATE</th>
                 </tr>
               </thead>
               <tbody>
-                @forelse($auditLogs as $log)
+                @forelse($logs as $log)
                   <tr class="hover:bg-gray-50 transition-colors">
                     <td class="py-3 px-4">
                       <span class="font-mono text-sm text-gray-600">#{{ $log->id }}</span>
                     </td>
                     <td class="py-3 px-4">
                       <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">{{ $log->user->dept_name ?? ($currentDeptName ?? 'Unknown') }}</span>
+                        <span class="text-sm text-gray-600">{{ $log->user->dept_name ?? 'Soliera Restaurant' }}</span>
                         <span class="text-xs text-gray-400">ID: {{ $log->user->Dept_no ?? '0' }}</span>
                       </div>
                     </td>
                     <td class="py-3 px-4">
                       <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                          <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                        <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center">
+                          <i data-lucide="user" class="w-4 h-4 text-white"></i>
                         </div>
                         <div>
                           <div class="font-medium text-gray-900">{{ $log->user->employee_name ?? 'Unknown User' }}</div>
@@ -180,17 +170,34 @@
                         </div>
                       </div>
                     </td>
-                    <td class="py-3 px-4">
+                    <td class="py-3 px-4 module-cell">
                       @php
                         $moduleMap = [
-                          'Table added' => 'Table Management',
+                          'save_legal_draft' => 'Legal Management',
+                          'document_view' => 'Document Management',
                           'Document_uploaded' => 'Document Management',
                           'Access_control_check' => 'Security',
-                          'Profile_updated' => 'User Management'
+                          'Profile_updated' => 'User Management',
+                          'Table_added' => 'Table Management',
+                          'Facility_reserved' => 'Facility Management',
+                          'Visitor_registered' => 'Visitor Management',
+                          'Report_generated' => 'Reporting',
+                          'Settings_updated' => 'System Administration',
+                          'Data_exported' => 'Data Management',
+                          'Notification_sent' => 'Communication',
+                          'Backup_created' => 'System Administration',
+                          'Permission_granted' => 'User Management',
+                          'File_deleted' => 'File Management'
                         ];
                         $module = $moduleMap[$log->action] ?? 'System';
                       @endphp
-                      <span class="badge badge-primary badge-sm">{{ $module }}</span>
+                      <span class="module-badge">{{ $module }}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-gray-500"></i>
+                        <span class="text-sm text-gray-600">{{ $log->action }}</span>
+                      </div>
                     </td>
                     <td class="py-3 px-4">
                       <span class="text-sm text-gray-600">{{ $log->description }}</span>
@@ -206,26 +213,28 @@
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <i data-lucide="activity" class="w-10 h-10 text-gray-400"></i>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-600 mb-2">No Audit Logs Found</h3>
-                        <p class="text-gray-500 text-sm">No system activity logs available at the moment.</p>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2">No System Activity Logs Found</h3>
+                        <p class="text-gray-500 text-sm">No system activity logs available at the moment (excluding login/logout).</p>
                       </div>
                     </td>
                   </tr>
                 @endforelse
               </tbody>
             </table>
-          </div>
-
+          
           <!-- Pagination or Load More -->
           @if($logs->count() > 10)
             <div class="mt-6 flex justify-center">
-              <button onclick="loadMoreLogs()" class="btn btn-outline btn-sm">
-                <i data-lucide="chevron-down" class="w-4 h-4 mr-1"></i>
-                Load More
+              <button onclick="loadMoreLogs()" 
+                      class="btn btn-sm transition-all duration-200 cursor-pointer hover:scale-105"
+                      style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+                      onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                      onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                <i data-lucide="chevron-down" class="w-4 h-4 mr-1" style="fill: none;"></i>Load More
               </button>
             </div>
           @endif
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>

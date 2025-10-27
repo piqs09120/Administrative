@@ -255,6 +255,9 @@ class FacilitiesController extends Controller
 
         $facility = Facility::create($data);
         
+        // Send notification
+        \App\Services\SystemNotificationService::notifyFacilityReservationAction('created', (object)['facility' => (object)['name' => $facility->name], 'id' => $facility->id]);
+        
         return redirect()->route('facilities.index')->with('success', 'Facility created successfully!');
     }
 
@@ -347,6 +350,10 @@ class FacilitiesController extends Controller
 
             $file->storeAs($dir, "cover.$ext", 'public');
         }
+        
+        // Send notification
+        \App\Services\SystemNotificationService::notifyFacilityReservationAction('updated', (object)['facility' => (object)['name' => $facility->name], 'id' => $facility->id]);
+        
         return redirect()->route('facilities.show', $id)->with('success', 'Facility updated successfully!');
     }
 
@@ -397,7 +404,12 @@ class FacilitiesController extends Controller
                 try { Storage::disk('public')->deleteDirectory($dir); } catch (\Throwable $t) {}
             }
 
+            // Store facility name before deletion
+            $facilityName = $facility->name;
             $facility->delete();
+            
+            // Send notification
+            \App\Services\SystemNotificationService::notifyFacilityReservationAction('deleted', (object)['facility' => (object)['name' => $facilityName], 'id' => $id]);
 
             return response()->json([
                 'success' => true,

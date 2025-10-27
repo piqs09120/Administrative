@@ -36,7 +36,7 @@
         <a href="{{ route('dashboard') }}" class="block">
           <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
             <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-              <i data-lucide="home" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+              <i data-lucide="home" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
             </div>
             <span class="ml-3 sidebar-text">Dashboard</span>
           </div>
@@ -46,7 +46,7 @@
           <a href="{{ route('hr1.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="users" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="users" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Human Resources 1</span>
             </div>
@@ -56,7 +56,7 @@
           <a href="{{ route('hr2.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="user-plus" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="user-plus" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Human Resources 2</span>
             </div>
@@ -66,7 +66,7 @@
           <a href="{{ route('hr3.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="user-check" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="user-check" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Human Resources 3</span>
             </div>
@@ -76,7 +76,7 @@
           <a href="{{ route('hr4.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="user-x" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="user-x" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Human Resources 4</span>
             </div>
@@ -86,7 +86,7 @@
           <a href="{{ route('financials.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="dollar-sign" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="dollar-sign" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Financials</span>
             </div>
@@ -96,7 +96,7 @@
           <a href="{{ route('logistic1.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="truck" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="truck" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Logistic 1</span>
             </div>
@@ -106,7 +106,7 @@
           <a href="{{ route('logistic2.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="package" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="package" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Logistic 2</span>
             </div>
@@ -116,7 +116,7 @@
           <a href="{{ route('hotel.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="building" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="building" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Hotel</span>
             </div>
@@ -126,7 +126,7 @@
           <a href="{{ route('restaurant.index') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="utensils" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="utensils" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Restaurant</span>
             </div>
@@ -136,7 +136,7 @@
           <a href="{{ route('superadmin.users') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="shield" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="shield" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">User Management</span>
             </div>
@@ -149,7 +149,7 @@
           <a href="{{ route('dashboard') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="home" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="home" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Dashboard</span>
             </div>
@@ -166,22 +166,22 @@
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('legal.*') ? 'bg-blue-700' : '' }}">
             <div class="flex items-center">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="gavel" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="gavel" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Legal Management</span>
             </div>
-            <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+            <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
           </div>
           <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
             <a href="{{ route('legal.legal_documents') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('legal.legal_documents') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="file-text" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="file-text" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Legal Documents
               </span>
             </a>
             <a href="{{ route('legal.legal_cases') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('legal.legal_cases') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="scale" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="scale" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Legal Cases
               </span>
             </a>
@@ -194,16 +194,16 @@
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('document.*') ? 'bg-blue-700' : '' }}">
             <div class="flex items-center">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="file-text" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="file-text" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Document Management</span>
             </div>
-            <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+            <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
           </div>
           <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
             <a href="{{ route('document.archived') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('document.archived') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="archive" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="archive" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Archived Documents
               </span>
             </a>
@@ -216,28 +216,28 @@
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('visitor.*') ? 'bg-blue-700' : '' }}">
             <div class="flex items-center">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="users" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="users" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Visitor Management</span>
             </div>
-            <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+            <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
           </div>
           <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
             <a href="{{ route('visitor.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.index') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="list" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="list" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 View Visitors
               </span>
             </a>
             <a href="{{ route('visitor.create') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.create') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="user-plus" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="user-plus" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 New Visitor
               </span>
             </a>
             <a href="{{ route('visitor.logs.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.logs.*') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="bar-chart-3" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Visitor Logs
               </span>
             </a>
@@ -250,22 +250,22 @@
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('facilities.*') ? 'bg-blue-700' : '' }}">
             <div class="flex items-center">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="building" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="building" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Facilities Reservations</span>
             </div>
-            <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+            <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
           </div>
           <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
             <a href="{{ route('facilities.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('facilities.index') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="map-pin" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 View Facilities
               </span>
             </a>
             <a href="{{ route('facility_reservations.new_request') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('facility_reservations.new_request') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="plus-circle" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="plus-circle" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 New Request
               </span>
             </a>
@@ -278,34 +278,34 @@
           <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('access.*') ? 'bg-blue-700' : '' }}">
             <div class="flex items-center">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="shield" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="shield" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">User Management</span>
             </div>
-            <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+            <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
           </div>
           <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
             <a href="{{ route('access.users') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.users') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="users" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="users" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Access Control
               </span>
             </a>
             <a href="{{ route('access.logs') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.logs') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="file-text" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="file-text" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Account Logs
               </span>
             </a>
             <a href="{{ route('access.audit_logs') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.audit_logs') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="clipboard-list" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="clipboard-list" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Audit Logs
               </span>
             </a>
             <a href="{{ route('access.department_accounts') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.department_accounts') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
-                <i data-lucide="building" class="w-4 h-4 text-[#F7B32B]"></i>
+                <i data-lucide="building" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 Department Accounts
               </span>
             </a>
@@ -319,7 +319,7 @@
           <a href="{{ route('dashboard') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="home" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="home" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Dashboard</span>
             </div>
@@ -331,22 +331,22 @@
             <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('legal.legal_documents') ? 'bg-blue-700' : '' }}">
               <div class="flex items-center">
                 <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                  <i data-lucide="gavel" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                  <i data-lucide="gavel" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 </div>
                 <span class="ml-3 sidebar-text">Legal Management</span>
               </div>
-              <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+              <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
             </div>
             <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
               <a href="{{ route('legal.legal_documents') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('legal.legal_documents') ? 'bg-blue-700 text-white' : '' }}">
                 <span class="flex items-center gap-2">
-                  <i data-lucide="file-text" class="w-4 h-4 text-[#F7B32B]"></i>
+                  <i data-lucide="file-text" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   Legal Documents
                 </span>
               </a>
               <a href="{{ route('legal.legal_cases') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('legal.legal_cases') ? 'bg-blue-700 text-white' : '' }}">
                 <span class="flex items-center gap-2">
-                  <i data-lucide="scale" class="w-4 h-4 text-[#F7B32B]"></i>
+                  <i data-lucide="scale" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   Legal Cases
                 </span>
               </a>
@@ -360,7 +360,7 @@
           <a href="{{ route('dashboard') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="home" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="home" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Dashboard</span>
             </div>
@@ -372,28 +372,28 @@
             <div class="collapse-title flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all peer-checked:bg-blue-600/50 text-white group {{ request()->routeIs('visitor.*') ? 'bg-blue-700' : '' }}">
               <div class="flex items-center">
                 <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                  <i data-lucide="users" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                  <i data-lucide="users" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                 </div>
                 <span class="ml-3 sidebar-text">Visitor Management</span>
               </div>
-              <i class="w-4 h-4 text-blue-200 transform transition-transform duration-200 peer-checked:rotate-90 dropdown-icon" data-lucide="chevron-down"></i>
+              <i class="text-lg md:text-xl lg:text-2xl text-blue-200 transform transition-all duration-300 ease-in-out peer-checked:rotate-90 dropdown-icon hover:text-accent cursor-pointer" data-lucide="chevron-down"></i>
             </div>
             <div class="collapse-content pl-14 pr-4 py-1 space-y-1"> 
               <a href="{{ route('visitor.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.index') ? 'bg-blue-700 text-white' : '' }}">
                 <span class="flex items-center gap-2">
-                  <i data-lucide="list" class="w-4 h-4 text-[#F7B32B]"></i>
+                  <i data-lucide="list" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   View Visitors
                 </span>
               </a>
               <a href="{{ route('visitor.create') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.create') ? 'bg-blue-700 text-white' : '' }}">
                 <span class="flex items-center gap-2">
-                  <i data-lucide="user-plus" class="w-4 h-4 text-[#F7B32B]"></i>
+                  <i data-lucide="user-plus" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   New Visitor
                 </span>
               </a>
               <a href="{{ route('visitor.logs.index') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('visitor.logs.*') ? 'bg-blue-700 text-white' : '' }}">
                 <span class="flex items-center gap-2">
-                  <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#F7B32B]"></i>
+                  <i data-lucide="bar-chart-3" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   Visitor Logs
                 </span>
               </a>
@@ -407,7 +407,7 @@
           <a href="{{ route('dashboard') }}" class="block">
             <div class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all hover:bg-blue-600/50 text-white group {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
               <div class="p-1.5 rounded-lg bg-blue-800/30 group-hover:bg-blue-700/50 transition-colors">
-                <i data-lucide="home" class="w-5 h-5 text-[#F7B32B] group-hover:text-white"></i>
+                <i data-lucide="home" class="text-xl md:text-2xl lg:text-3xl text-[#F7B32B] group-hover:text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </div>
               <span class="ml-3 sidebar-text">Dashboard</span>
             </div>

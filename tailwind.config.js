@@ -12,6 +12,11 @@ export default {
         gray: {
           750: '#1e2736',
         },
+        primary: {
+          DEFAULT: '#F7A923',
+          hover: '#E6940F',
+          dark: '#D2840E',
+        },
       },
       animation: {
         fadeIn: 'fadeIn 0.4s ease-in-out',
@@ -26,4 +31,16 @@ export default {
     },
   },
   plugins: [require('daisyui')],
+  daisyui: {
+    themes: [
+      {
+        light: {
+          primary: "#F7A923",
+          "primary-content": "#2C3E50",
+          secondary: "#E6940F",
+          accent: "#D2840E",
+        },
+      },
+    ],
+  },
 }

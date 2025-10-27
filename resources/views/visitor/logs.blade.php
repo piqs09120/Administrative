@@ -352,76 +352,36 @@
           <!-- Quick Stats Cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Total Visitors Today -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-primary text-primary-content rounded-full w-10 h-10">
-                      <i data-lucide="users" class="w-5 h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-primary badge-outline text-xs">Today</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1" id="totalVisitorsToday">{{ $stats['today'] ?? 0 }}</h2>
-                  <p class="text-sm text-base-content/70">Total Visitors</p>
-                </div>
-              </div>
-            </div>
+            <x-stat-card 
+              title="Total Visitors" 
+              :value="$stats['today'] ?? 0" 
+              icon="fa-users" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
 
             <!-- Currently In Building -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-success text-success-content rounded-full w-10 h-10">
-                      <i data-lucide="user-check" class="w-5 h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-success badge-outline text-xs">Active</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="currentlyInBuilding">{{ $stats['currently_in'] ?? 0 }}</h2>
-                  <p class="text-sm text-base-content/70">In Building</p>
-                </div>
-              </div>
-            </div>
+            <x-stat-card 
+              title="In Building" 
+              :value="$stats['currently_in'] ?? 0" 
+              icon="fa-user-check" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
 
             <!-- Average Visit Duration -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-warning text-warning-content rounded-full w-10 h-10">
-                      <i data-lucide="clock" class="w-5 h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-warning badge-outline text-xs">Avg</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1" id="avgDuration">{{ $stats['avg_duration'] ?? '0m' }}</h2>
-                  <p class="text-sm text-base-content/70">Average Duration</p>
-                </div>
-              </div>
-            </div>
+            <x-stat-card 
+              title="Average Duration" 
+              :value="$stats['avg_duration'] ?? '0m'" 
+              icon="fa-clock" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
 
             <!-- Peak Hours -->
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-info text-info-content rounded-full w-10 h-10">
-                      <i data-lucide="activity" class="w-5 h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-info badge-outline text-xs">Peak</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-xl sm:text-2xl font-bold text-info justify-center mb-1" id="peakHours">{{ $stats['peak_hours'] ?? '—' }}</h2>
-                  <p class="text-sm text-base-content/70">Busiest Hour</p>
-                </div>
-              </div>
-            </div>
+            <x-stat-card 
+              title="Busiest Hour" 
+              :value="$stats['peak_hours'] ?? '—'" 
+              icon="fa-activity" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
 
           </div>
         </div>
@@ -447,35 +407,31 @@
           <div class="p-4 sm:p-6">
             <!-- Detailed Logs Tab -->
             <div id="logs-content" class="tab-content">
-              <!-- Filters Bar -->
-              <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                <div class="grid grid-cols-12 gap-3 md:gap-4 items-end">
-                  <!-- From Date -->
-                  <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0">
-                    <label for="logs-start-date" class="block text-xs font-medium text-slate-500 mb-1">From</label>
-                    <div class="relative">
-                      <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                      <input type="date" id="logs-start-date" placeholder="mm/dd/yyyy" class="w-full h-10 md:h-11 text-sm px-3 pl-9 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                    </div>
-                  </div>
-
-                  <!-- To Date -->
-                  <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0">
-                    <label for="logs-end-date" class="block text-xs font-medium text-slate-500 mb-1">To</label>
-                    <div class="relative">
-                      <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                      <input type="date" id="logs-end-date" placeholder="mm/dd/yyyy" class="w-full h-10 md:h-11 text-sm px-3 pl-9 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                    </div>
-                  </div>
-
-                  
-
-
-                </div>
-              </div>
-
               <!-- Logs Table -->
-              <div class="overflow-x-auto">
+              <x-table-card :title="'Visitor Logs'">
+                <!-- Date Filters inside the table card, below the blue banner -->
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                  <div class="grid grid-cols-12 gap-3 md:gap-4 items-end">
+                    <!-- From Date -->
+                    <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0">
+                      <label for="logs-start-date" class="block text-xs font-medium text-slate-500 mb-1">From</label>
+                      <div class="relative">
+                        <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="date" id="logs-start-date" placeholder="mm/dd/yyyy" class="w-full h-10 md:h-11 text-sm px-3 pl-9 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0">
+                      <label for="logs-end-date" class="block text-xs font-medium text-slate-500 mb-1">To</label>
+                      <div class="relative">
+                        <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="date" id="logs-end-date" placeholder="mm/dd/yyyy" class="w-full h-10 md:h-11 text-sm px-3 pl-9 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <table class="table table-zebra w-full">
                   <thead>
                     <tr class="bg-gray-50">
@@ -495,8 +451,8 @@
                       <tr class="hover:bg-gray-50 transition-colors">
                         <td class="py-3 px-4">
                           <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                            <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center">
+                              <i data-lucide="user" class="w-4 h-4 text-white"></i>
                             </div>
                             <div>
                               <div class="font-medium text-gray-900">{{ $visitor->name }}</div>
@@ -542,7 +498,7 @@
                               {{ $checkOut->format('h:i A') }}
                             </span>
                           @else
-                            <span class="badge badge-primary badge-sm" title="Visitor is still in the building">Still in</span>
+                            <span class="badge badge-success badge-sm" style="background-color: #22c55e; color: white;" title="Visitor is still in the building">Still in</span>
                           @endif
                         </td>
                         <td class="py-3 px-4 text-sm text-gray-600 duration-cell">
@@ -610,7 +566,7 @@
                                  data-duration-minutes="0"
                                  title="Still in building - duration being calculated"
                                  aria-label="Still in building - duration being calculated">
-                              <span class="duration-pill duration-pill--error">Still in</span>
+                              <span class="duration-pill duration-pill--short">Still in</span>
                             </div>
                           @endif
                         </td>
@@ -631,18 +587,10 @@
                     @endforelse
                   </tbody>
                 </table>
-              </div>
+              </x-table-card>
 
               <!-- Pagination -->
-              <div class="flex justify-center mt-6">
-                <div class="btn-group">
-                  <button class="btn btn-sm">Previous</button>
-                  <button class="btn btn-sm btn-active">1</button>
-                  <button class="btn btn-sm">2</button>
-                  <button class="btn btn-sm">3</button>
-                  <button class="btn btn-sm">Next</button>
-                </div>
-              </div>
+              <x-table-card :pagination="null"></x-table-card>
             </div>
 
 
@@ -665,13 +613,11 @@
                       <option value="year">This Year</option>
                     </select>
                   </div>
-                  <button onclick="refreshAnalytics()" class="btn btn-outline btn-sm">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i>
-                    Refresh
+                  <button onclick="refreshAnalytics()" class="btn btn-sm" style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;" onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'" onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-1" style="color: #1f2937; fill: none;"></i>Refresh
                   </button>
-                  <button onclick="exportReport()" class="btn btn-primary btn-sm">
-                    <i data-lucide="download" class="w-4 h-4 mr-1"></i>
-                    Export Report
+                  <button onclick="exportReport()" class="btn btn-sm" style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;" onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'" onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                    <i data-lucide="download" class="w-4 h-4 mr-1" style="color: #1f2937; fill: none;"></i>Export Report
                   </button>
                 </div>
               </div>
@@ -1631,8 +1577,8 @@
           <tr class="hover:bg-gray-50 transition-colors">
             <td class="py-3 px-4">
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center">
+                  <i data-lucide="user" class="w-4 h-4 text-white"></i>
                 </div>
                 <div><div class="font-medium text-gray-900">${v.name ?? ''}</div></div>
               </div>
@@ -1642,7 +1588,7 @@
             <td class="py-3 px-4 text-center text-sm text-gray-600">${formatDate(v.time_in)}</td>
             <td class="py-3 px-4 text-center text-sm text-gray-600">${formatTime(v.time_in)}</td>
             <td class="py-3 px-4 text-center text-sm text-gray-600">${formatDate(v.time_out)}</td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600">${stillIn ? '<span class="badge badge-primary badge-sm">Still in</span>' : formatTime(v.time_out)}</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">${stillIn ? '<span class="badge badge-success badge-sm" style="background-color: #22c55e; color: white;">Still in</span>' : formatTime(v.time_out)}</td>
             <td class="py-3 px-4 text-sm text-gray-600 duration-cell">—</td>
             <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono">${v.pass_id ?? 'N/A'}</td>
           </tr>

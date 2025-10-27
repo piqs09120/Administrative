@@ -382,9 +382,10 @@
         penBtn.addEventListener('click', openPenSignModal);
       }
 
-      // Load existing content if editing
+      // Load existing content if editing (preserve original HTML)
       @if($document && $document->metadata && isset($document->metadata['content']))
-        quill.setContents(quill.clipboard.convert('{{ addslashes($document->metadata['content']) }}'));
+        const __initialHtml = @json($document->metadata['content']);
+        quill.setContents(quill.clipboard.convert(__initialHtml));
       @elseif($template && is_string($template) && isset($templates[$template]))
         // Load template content
         const templateContent = `{{ addslashes($templates[$template]['content']) }}`;
@@ -573,7 +574,7 @@
           showNotification('Document saved successfully!', 'success');
           updateLastSaved('Saved at ' + new Date().toLocaleTimeString());
           setTimeout(() => {
-            window.location.href = '{{ route("legal.legal_documents") }}';
+            window.location.href = '{{ route("legal.legal_documents", ["tab" => "create"]) }}';
           }, 1500);
         } else {
           showNotification('Error saving document: ' + (data.message || 'Unknown error'), 'error');

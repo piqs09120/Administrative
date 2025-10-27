@@ -1,0 +1,136 @@
+/* Icon Standardization CSS */
+/* This file ensures consistent icon sizing and hover effects across all breakpoints */
+
+/* Base icon classes for different sizes */
+.icon-xs {
+  @apply text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer;
+}
+
+.icon-sm {
+  @apply text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer;
+}
+
+.icon-md {
+  @apply text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer;
+}
+
+.icon-lg {
+  @apply text-2xl md:text-3xl lg:text-4xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer;
+}
+
+.icon-xl {
+  @apply text-3xl md:text-4xl lg:text-5xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer;
+}
+
+.icon-2xl {
+  @apply text-4xl md:text-5xl lg:text-6xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer;
+}
+
+/* Specific icon hover effects */
+.icon-hover-primary:hover {
+  @apply text-primary;
+}
+
+.icon-hover-secondary:hover {
+  @apply text-secondary;
+}
+
+.icon-hover-accent:hover {
+  @apply text-accent;
+}
+
+.icon-hover-success:hover {
+  @apply text-success;
+}
+
+.icon-hover-warning:hover {
+  @apply text-warning;
+}
+
+.icon-hover-error:hover {
+  @apply text-error;
+}
+
+/* Ensure all lucide icons have consistent behavior */
+[data-lucide] {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 640px) {
+  .icon-responsive {
+    @apply text-sm;
+  }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .icon-responsive {
+    @apply text-base;
+  }
+}
+
+/* Desktop-specific adjustments */
+@media (min-width: 1025px) {
+  .icon-responsive {
+    @apply text-lg;
+  }
+}
+
+/* Focus states for accessibility */
+[data-lucide]:focus {
+  @apply outline-none ring-2 ring-primary ring-opacity-50;
+}
+
+/* Ensure icons are properly aligned in flex containers */
+.icon-container {
+  @apply flex items-center justify-center;
+}
+
+/* Button icon specific styles */
+.btn [data-lucide] {
+  @apply flex-shrink-0;
+}
+
+/* Card icon specific styles */
+.card [data-lucide] {
+  @apply flex-shrink-0;
+}
+
+/* Sidebar icon specific styles */
+.sidebar [data-lucide] {
+  @apply flex-shrink-0;
+}
+
+/* Navbar icon specific styles */
+.navbar [data-lucide] {
+  @apply flex-shrink-0;
+}
+
+/* Animation for icon state changes */
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.icon-pulse {
+  animation: iconPulse 2s infinite;
+}
+
+/* Loading state for icons */
+.icon-loading {
+  @apply animate-spin;
+}
+
+/* Disabled state for icons */
+.icon-disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.icon-disabled:hover {
+  @apply text-current;
+}

@@ -8,12 +8,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   @vite(['resources/css/soliera.css'])
-
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     @include('partials.sidebarr')
+    
     <!-- Main content -->
     <div class="flex flex-col flex-1 overflow-hidden">
       <!-- Header -->
@@ -23,8 +23,8 @@
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
         <!-- Toast notifications in bottom right corner -->
         @if(session('success'))
-          <div class="toast toast-bottom toast-end">
-            <div class="alert alert-success">
+          <div class="toast toast-bottom toast-end z-50">
+            <div class="alert alert-success shadow-lg">
               <i data-lucide="check-circle" class="w-5 h-5"></i>
               <span>{{ session('success') }}</span>
             </div>
@@ -32,28 +32,26 @@
         @endif
 
         @if(session('error'))
-          <div class="toast toast-bottom toast-end">
-            <div class="alert alert-error">
+          <div class="toast toast-bottom toast-end z-50">
+            <div class="alert alert-error shadow-lg">
               <i data-lucide="alert-circle" class="w-5 h-5"></i>
               <span>{{ session('error') }}</span>
             </div>
           </div>
         @endif
 
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
-            <h1 class="text-xl font-semibold">New Visitors (Pending Review)</h1>
+            <h1 class="text-2xl font-semibold text-gray-800">New Visitors (Pending Review)</h1>
           </div>
         </div>
-        <!-- underline divider (matches other modules) -->
+
         <div class="border-b border-gray-200 mb-6"></div>
 
-        <div class="card bg-white shadow-xl">
-          <div class="card-body">
-            <div class="overflow-x-auto">
-              <table class="table w-full">
+        <x-table-card :title="'New Visitors (Pending Review)'" :pagination="method_exists($pendingVisitors, 'links') ? $pendingVisitors->links() : null">
+          <table class="table table-zebra w-full text-sm">
                 <thead>
-                  <tr>
+                  <tr class="text-gray-600">
                     <th>Name</th>
                     <th>Email</th>
                     <th>Purpose</th>
@@ -64,27 +62,30 @@
                 </thead>
                 <tbody>
                   @forelse($pendingVisitors as $visitor)
-                    <tr>
+                    <tr class="hover:bg-gray-50 transition-all duration-200">
                       <td class="font-medium">{{ $visitor->name }}</td>
                       <td>{{ $visitor->email ?? 'N/A' }}</td>
                       <td>{{ \Illuminate\Support\Str::limit($visitor->purpose ?? 'N/A', 40) }}</td>
                       <td>{{ $visitor->department ?? ($visitor->facility->name ?? 'N/A') }}</td>
                       <td>{{ $visitor->created_at?->format('M d, Y h:i A') }}</td>
                       <td>
-                        <div class="flex justify-end gap-2">
-                          <button type="button" class="btn btn-ghost btn-xs btn-square btn-view-visitor" data-visitor-id="{{ $visitor->id }}" title="View">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        <div class="flex justify-end gap-3">
+                          <button type="button" class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" data-visitor-id="{{ $visitor->id }}" title="View" style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);" onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'" onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                            <i data-lucide="eye" class="w-4 h-4" style="fill: none;"></i>
                           </button>
+                          <a href="/test-id-verification?visitor_id={{ $visitor->id }}" class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" title="ID Verification" style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);" onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'" onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                            <i data-lucide="shield-check" class="w-4 h-4" style="fill: none;"></i>
+                          </a>
                           <form action="{{ route('visitor.approve', $visitor->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-ghost btn-success btn-xs btn-square" title="Approve">
-                              <i data-lucide="check" class="w-4 h-4"></i>
+                            <button type="submit" class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" title="Approve" style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);" onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'" onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                              <i data-lucide="check" class="w-4 h-4" style="fill: none;"></i>
                             </button>
                           </form>
                           <form action="{{ route('visitor.decline', $visitor->id) }}" method="POST" onsubmit="return confirm('Decline this visitor?');">
                             @csrf
-                            <button type="submit" class="btn btn-ghost btn-error btn-xs btn-square" title="Decline">
-                              <i data-lucide="x" class="w-4 h-4"></i>
+                            <button type="submit" class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" title="Decline" style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);" onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'" onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                              <i data-lucide="x" class="w-4 h-4" style="fill: none;"></i>
                             </button>
                           </form>
                         </div>
@@ -97,17 +98,13 @@
                   @endforelse
                 </tbody>
               </table>
-            </div>
-            @if(method_exists($pendingVisitors, 'links'))
-              <div class="mt-4">{{ $pendingVisitors->links() }}</div>
-            @endif
-          </div>
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>
 
   @include('partials.soliera_js')
+
   <script>
     function setupDarkMode() {
       const toggle = document.getElementById('darkModeToggle');
@@ -146,6 +143,7 @@
         });
       }
     }
+
     function updateDateTime() {
       const now = new Date();
       const dateElement = document.getElementById('currentDate');
@@ -155,6 +153,7 @@
       if (dateElement) dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
       if (timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
     }
+    
     document.addEventListener('DOMContentLoaded', function() {
       setupDarkMode();
       updateDateTime();

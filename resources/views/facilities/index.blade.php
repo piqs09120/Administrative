@@ -40,14 +40,16 @@
     
     /* Enhanced shadow effects */
     .btn-primary {
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
       border: none;
-      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 2px 4px rgba(247, 169, 35, 0.3);
+      color: #2C3E50;
     }
     
     .btn-primary:hover {
-      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
+      box-shadow: 0 4px 8px rgba(247, 169, 35, 0.4);
+      transform: translateY(-2px);
     }
     
     .btn-warning {
@@ -84,15 +86,15 @@
     }
     
     .btn-outline {
-      border: 2px solid #e5e7eb;
+      border: 2px solid #F7A923;
       background: transparent;
-      color: #374151;
+      color: #F7A923;
     }
     
     .btn-outline:hover {
-      background: #f3f4f6;
-      border-color: #d1d5db;
-      color: #111827;
+      background: #F7A923;
+      border-color: #F7A923;
+      color: #2C3E50;
     }
     
     /* Focus states for accessibility */
@@ -104,6 +106,11 @@
     /* Smooth transitions for all interactive elements */
     .btn, .btn * {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Remove transitions from facility cards */
+    .facility-card {
+      transition: none;
     }
     
     /* Facility card tweaks */
@@ -174,16 +181,16 @@
       line-height: 1;
     }
     
-    /* View Button - Soft Blue/Teal */
+    /* View Button - Orange-Yellow (matches Landing Page) */
     .facility-btn-view {
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
+      color: #1f2937;
+      box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);
     }
     
     .facility-btn-view:hover {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
+      box-shadow: 0 4px 12px rgba(247, 169, 35, 0.35);
       transform: translateY(-2px);
     }
     
@@ -191,16 +198,16 @@
       transform: scale(1.1);
     }
     
-    /* Edit Button - Warm Orange */
+    /* Edit Button - Orange-Yellow (matches Landing Page) */
     .facility-btn-edit {
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
+      color: #1f2937;
+      box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);
     }
     
     .facility-btn-edit:hover {
-      background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
+      box-shadow: 0 4px 12px rgba(247, 169, 35, 0.35);
       transform: translateY(-2px);
     }
     
@@ -208,16 +215,16 @@
       transform: scale(1.1);
     }
     
-    /* Reserve Button - Green */
+    /* Reserve Button - Orange-Yellow (matches Landing Page) */
     .facility-btn-reserve {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
+      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
+      color: #1f2937;
+      box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);
     }
     
     .facility-btn-reserve:hover {
-      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
+      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
+      box-shadow: 0 4px 12px rgba(247, 169, 35, 0.35);
       transform: translateY(-2px);
     }
     
@@ -226,16 +233,17 @@
     }
 
     .facility-btn-free {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: white;
-      border: 1px solid #d97706;
+      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
+      color: #1f2937;
+      border: 1px solid #E6940F;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);
     }
 
     .facility-btn-free:hover {
-      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      box-shadow: 0 4px 12px rgba(247, 169, 35, 0.35);
     }
 
     .facility-btn-free:hover i {
@@ -268,16 +276,16 @@
       scrollbar-color: #cbd5e1 #f1f5f9;
     }
     
-    /* Delete Button - Soft Red */
+    /* Delete Button - Orange-Yellow (matches Landing Page) */
     .facility-btn-delete {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
+      color: #1f2937;
+      box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);
     }
     
     .facility-btn-delete:hover {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
+      box-shadow: 0 4px 12px rgba(247, 169, 35, 0.35);
       transform: translateY(-2px);
     }
     
@@ -400,7 +408,7 @@
     
     /* Smooth transitions for layout changes */
     .facility-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: none;
     }
     
     /* Respect reduced motion preferences */
@@ -429,7 +437,7 @@
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
         @if(session('success'))
           <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <i data-lucide="check-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
             <span>{{ session('success') }}</span>
           </div>
         @endif
@@ -447,82 +455,42 @@
         <!-- Stats Cards (DaisyUI) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <!-- Total Facilities -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-            <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div class="avatar placeholder">
-                  <div class="bg-primary text-primary-content rounded-full w-10 h-10 flex items-center justify-center">
-                    <i data-lucide="building" class="w-5 h-5"></i>
-                  </div>
-                </div>
-                <div class="badge badge-primary badge-outline text-xs">All</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1" id="total-facilities">{{ $facilities->count() }}</h2>
-                <p class="text-sm text-base-content/70">Total Facilities</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Total Facilities" 
+            :value="$facilities->count()" 
+            icon="fa-building" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
 
           <!-- Available Facilities -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
-            <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div class="avatar placeholder">
-                  <div class="bg-success text-success-content rounded-full w-10 h-10 flex items-center justify-center">
-                    <i data-lucide="check-circle" class="w-5 h-5"></i>
-                  </div>
-                </div>
-                <div class="badge badge-success badge-outline text-xs">Open</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="available-facilities">{{ $facilities->where('status', 'available')->count() }}</h2>
-                <p class="text-sm text-base-content/70">Available</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Available" 
+            :value="$facilities->where('status', 'available')->count()" 
+            icon="fa-check-circle" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
 
           <!-- Occupied Facilities -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
-            <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div class="avatar placeholder">
-                  <div class="bg-error text-error-content rounded-full w-10 h-10 flex items-center justify-center">
-                    <i data-lucide="x-circle" class="w-5 h-5"></i>
-                  </div>
-                </div>
-                <div class="badge badge-error badge-outline text-xs">Busy</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-error justify-center mb-1" id="occupied-facilities">{{ $facilities->where('status', 'occupied')->count() }}</h2>
-                <p class="text-sm text-base-content/70">Occupied</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Occupied" 
+            :value="$facilities->where('status', 'occupied')->count()" 
+            icon="fa-times-circle" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
 
           <!-- Total Reservations -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
-            <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div class="avatar placeholder">
-                    <div class="bg-info text-info-content rounded-full w-10 h-10 flex items-center justify-center">
-                    <i data-lucide="calendar" class="w-5 h-5"></i>
-                  </div>
-                </div>
-                <div class="badge badge-info badge-outline text-xs">Total</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1" id="total-reservations">{{ \App\Models\FacilityRequest::where('request_type', 'reservation')->where('status', 'approved')->count() }}</h2>
-                <p class="text-sm text-base-content/70">Total Reservations</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Total Reservations" 
+            :value="\App\Models\FacilityRequest::where('request_type', 'reservation')->where('status', 'approved')->count()" 
+            icon="fa-calendar" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
         </div>
 
 
         <!-- Action Buttons -->
         <div class="flex flex-wrap gap-3 mb-8 justify-end">
-          <a href="{{ route('facilities.reservation.landing') }}" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+          <a href="{{ route('facilities.reservation.landing') }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-md hover:btn-primary-focus transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
             <i data-lucide="home" class="w-4 h-4 mr-2"></i>
             <span>Landing Page</span>
           </a>
@@ -530,10 +498,6 @@
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
             Add New Facility
           </button>
-          <a href="{{ route('facility_reservations.calendar') }}" class="btn btn-outline btn-md hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
-            <i data-lucide="calendar-days" class="w-4 h-4 mr-2"></i>
-            <span>Calendar View</span>
-          </a>
         </div>
 
         <!-- Calendar View (Hidden by default) -->
@@ -551,7 +515,7 @@
                 @endforeach
               </select>
               <button onclick="toggleCalendarView()" class="btn btn-ghost btn-sm">
-                <i data-lucide="grid-3x3" class="w-4 h-4"></i>
+                <i data-lucide="grid-3x3" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               </button>
             </div>
           </div>
@@ -587,33 +551,39 @@
         </div>
 
         <!-- Facilities Grid -->
-        <div id="facilitiesGridView" class="bg-white rounded-xl shadow-lg p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-              <i data-lucide="building" class="w-6 h-6 text-blue-500 mr-3"></i>
-              Facility Directory
-            </h2>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">Total: <span id="facilityCount">{{ $facilities->count() }}</span> facilities</span>
-              <button 
-                id="viewToggleBtn" 
-                class="btn btn-ghost btn-sm" 
-                title="Switch to list view"
-                aria-label="Switch to list view"
-                aria-pressed="false"
-                tabindex="0"
-              >
-                <i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i>
-                <span class="fallback-icon" style="display: none;">☰</span>
-                </button>
+        <div id="facilitiesGridView" class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <!-- Blue Banner Header -->
+          <div class="bg-blue-900 text-white px-6 py-4 rounded-t-xl">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-bold text-white flex items-center">
+                <i data-lucide="building" class="w-6 h-6 text-yellow-400 mr-3"></i>
+                Facility Directory
+              </h2>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-200">Total: <span id="facilityCount">{{ $facilities->count() }}</span> facilities</span>
+                <button 
+                  id="viewToggleBtn" 
+                  class="btn btn-ghost btn-sm text-white hover:bg-blue-800" 
+                  title="Switch to list view"
+                  aria-label="Switch to list view"
+                  aria-pressed="false"
+                  tabindex="0"
+                >
+                  <i data-lucide="list" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out" style="display: inline-block; color: white;"></i>
+                  <span class="fallback-icon" style="display: none;">☰</span>
+                  </button>
+              </div>
             </div>
           </div>
+          
+          <!-- Content Section -->
+          <div class="p-6">
 
           @if($facilities->count() > 0)
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               @foreach($facilities as $facility)
-                <div id="facility-card-{{ $facility->id }}" class="facility-card hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <div id="facility-card-{{ $facility->id }}" class="facility-card">
                   @if($facility->cover_url)
                     <div class="facility-card-image">
                       <img src="{{ $facility->cover_url }}" alt="{{ $facility->name }}">
@@ -647,23 +617,23 @@
                       <div class="meta-row">
                       @if($facility->location)
                         <div class="meta-item">
-                          <i data-lucide="map-pin" class="w-4 h-4"></i>
+                          <i data-lucide="map-pin" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                           <span>{{ $facility->location }}</span>
                         </div>
                       @endif
                         <div class="meta-item">
-                          <i data-lucide="users" class="w-4 h-4"></i>
+                          <i data-lucide="users" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                           <span>Capacity: {{ $facility->capacity ?? 'N/A' }}</span>
                         </div>
                       </div>
                       
                       <div class="meta-row">
                       <div class="meta-item">
-                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        <i data-lucide="calendar" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                         <span>Reservations: <span data-reservations-count>{{ \App\Models\FacilityRequest::where('facility_id', $facility->id)->where('request_type', 'reservation')->where('status', 'approved')->count() }}</span></span>
                     </div>
                     <div class="meta-item">
-                          <i data-lucide="star" class="w-4 h-4"></i>
+                          <i data-lucide="star" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                           <span>Rating: {{ $facility->rating ?? 'N/A' }}</span>
                         </div>
                       </div>
@@ -691,7 +661,7 @@
                         <button type="button"
                            class="openViewFacilityBtn facility-action-btn facility-btn-view h-9"
                            data-id="{{ $facility->id }}">
-                          <i data-lucide="eye" class="w-3 h-3"></i>
+                          <i data-lucide="eye" class="w-3 h-3" style="fill: none;"></i>
                           <span>View</span>
                         </button>
 
@@ -702,7 +672,7 @@
                            data-location="{{ $facility->location }}"
                            data-description="{{ $facility->description }}"
                            data-status="{{ $facility->status }}">
-                          <i data-lucide="edit" class="w-3 h-3"></i>
+                          <i data-lucide="edit" class="w-3 h-3" style="fill: none;"></i>
                           <span>Edit</span>
                         </button>
 
@@ -710,7 +680,7 @@
                            class="openReserveFacilityBtn facility-action-btn facility-btn-reserve h-9"
                            data-id="{{ $facility->id }}"
                            data-name="{{ $facility->name }}">
-                          <i data-lucide="calendar-plus" class="w-3 h-3"></i>
+                          <i data-lucide="calendar-plus" class="w-3 h-3" style="fill: none;"></i>
                           <span>Reserve</span>
                         </button>
 
@@ -722,7 +692,7 @@
                                 data-status="{{ $facility->status }}"
                                 data-reservations="{{ $facility->reservations->count() }}"
                                 data-url="{{ route('facilities.destroy', $facility->id) }}">
-                          <i data-lucide="trash-2" class="w-3 h-3"></i>
+                          <i data-lucide="trash-2" class="w-3 h-3" style="fill: none;"></i>
                           <span>Delete</span>
                         </button>
                       </div>
@@ -732,7 +702,7 @@
                         <button type="button"
                            class="openViewFacilityBtn facility-action-btn facility-btn-view h-9"
                            data-id="{{ $facility->id }}">
-                          <i data-lucide="eye" class="w-3 h-3"></i>
+                          <i data-lucide="eye" class="w-3 h-3" style="fill: none;"></i>
                           <span>View</span>
                         </button>
 
@@ -743,7 +713,7 @@
                            data-location="{{ $facility->location }}"
                            data-description="{{ $facility->description }}"
                            data-status="{{ $facility->status }}">
-                          <i data-lucide="edit" class="w-3 h-3"></i>
+                          <i data-lucide="edit" class="w-3 h-3" style="fill: none;"></i>
                           <span>Edit</span>
                         </button>
 
@@ -751,7 +721,7 @@
                                 class="freeFacilityBtn facility-action-btn facility-btn-free h-9" 
                                 data-id="{{ $facility->id }}"
                                 data-name="{{ $facility->name }}">
-                          <i data-lucide="unlock" class="w-3 h-3"></i>
+                          <i data-lucide="unlock" class="w-3 h-3" style="fill: none;"></i>
                           <span>Free</span>
                         </button>
 
@@ -763,7 +733,7 @@
                                 data-status="{{ $facility->status }}"
                                 data-reservations="{{ $facility->reservations->count() }}"
                                 data-url="{{ route('facilities.destroy', $facility->id) }}">
-                          <i data-lucide="trash-2" class="w-3 h-3"></i>
+                          <i data-lucide="trash-2" class="w-3 h-3" style="fill: none;"></i>
                           <span>Delete</span>
                         </button>
                       </div>
@@ -784,6 +754,8 @@
               </a>
             </div>
           @endif
+          </div>
+          <!-- End Content Section -->
         </div>
 
         <!-- Monitoring Tab Panel (empty placeholder for now) -->
@@ -893,7 +865,7 @@
     <div class="modal-box w-11/12 max-w-5xl bg-white text-gray-800 rounded-xl" data-theme="light" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-xl font-bold">Image Preview</h3>
-        <button id="closeFullImageModal" class="btn btn-sm btn-circle btn-ghost"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button id="closeFullImageModal" class="btn btn-sm btn-circle btn-ghost"><i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i></button>
       </div>
       <div class="rounded-lg border border-gray-200" style="max-height:80vh; overflow:auto; background:#00000010; display:flex; align-items:center; justify-content:center;">
         <img id="fullImageEl" src="" alt="Preview" style="max-width:100%; max-height:80vh; width:auto; height:auto; object-fit:contain; display:block;">
@@ -915,7 +887,7 @@
           </div>
         </div>
         <button id="closeDeleteModal" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -970,7 +942,7 @@
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-2xl font-bold text-gray-800">Reserve a Facility</h3>
         <button id="closeReserveFacilityModal" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -1041,7 +1013,7 @@
           </div>
 
           <div class="alert alert-info">
-            <i data-lucide="brain" class="w-5 h-5"></i>
+            <i data-lucide="brain" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
             <div>
               <h3 class="font-bold">AI-Powered Processing</h3>
               <div class="text-sm">
@@ -1074,7 +1046,7 @@
         <div class="flex items-center gap-3">
           <div class="badge badge-lg" id="vf_status_badge">Available</div>
           <button id="closeViewFacilityModal" class="btn btn-sm btn-circle btn-ghost">
-            <i data-lucide="x" class="w-5 h-5"></i>
+            <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
           </button>
         </div>
       </div>
@@ -1136,13 +1108,13 @@
           Add New Facility
         </h3>
         <button id="closeCreateFacilityModal" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
       @if($errors->any())
         <div class="alert alert-error mb-6">
-          <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          <i data-lucide="alert-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
           <ul>
             @foreach($errors->all() as $error)
               <li>{{ $error }}</li>
@@ -1196,7 +1168,7 @@
           Edit Facility
         </h3>
         <button id="closeEditFacilityModal" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -1209,10 +1181,10 @@
             <div id="editImageWrap" class="img-edit-wrap rounded-xl overflow-hidden border border-gray-200" style="height: 180px; background:#f3f4f6; cursor:pointer;">
               <img id="edit_image_preview" src="" alt="Facility Image" style="width:100%; height:100%; object-fit:cover; display:none;">
               <div class="img-edit-overlay">
-                <button type="button" id="btnEditImage" class="img-edit-btn"><i data-lucide="edit-3" class="w-4 h-4"></i><span>Edit</span></button>
-                <button type="button" id="btnViewImage" class="img-edit-btn"><i data-lucide="maximize-2" class="w-4 h-4"></i><span>View</span></button>
-                <button type="button" id="btnRemoveImage" class="img-edit-btn"><i data-lucide="eraser" class="w-4 h-4"></i><span>Remove BG</span></button>
-                <button type="button" id="btnCloseOverlay" class="img-edit-btn"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button type="button" id="btnEditImage" class="img-edit-btn"><i data-lucide="edit-3" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>Edit</span></button>
+                <button type="button" id="btnViewImage" class="img-edit-btn"><i data-lucide="maximize-2" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>View</span></button>
+                <button type="button" id="btnRemoveImage" class="img-edit-btn"><i data-lucide="eraser" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>Remove BG</span></button>
+                <button type="button" id="btnCloseOverlay" class="img-edit-btn"><i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i></button>
               </div>
             </div>
             <input type="file" id="edit_cover_image" name="cover_image" accept=".jpg,.jpeg,.png,.webp" class="hidden">
@@ -1402,7 +1374,7 @@
         grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
         
         // Update button state
-        toggleBtn.innerHTML = '<i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">☰</span>';
+        toggleBtn.innerHTML = '<i data-lucide="list" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">☰</span>';
         toggleBtn.setAttribute('title', 'Switch to list view');
         toggleBtn.setAttribute('aria-label', 'Switch to list view');
         toggleBtn.setAttribute('aria-pressed', 'false');
@@ -1416,7 +1388,7 @@
         grid.className = 'grid grid-cols-1 gap-3';
         
         // Update button state
-        toggleBtn.innerHTML = '<i data-lucide="grid-3x3" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">⊞</span>';
+        toggleBtn.innerHTML = '<i data-lucide="grid-3x3" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">⊞</span>';
         toggleBtn.setAttribute('title', 'Switch to grid view');
         toggleBtn.setAttribute('aria-label', 'Switch to grid view');
         toggleBtn.setAttribute('aria-pressed', 'true');
@@ -1739,7 +1711,7 @@
             const statusBadge = it.status === 'approved' ? 'badge-success' : (it.status==='pending'?'badge-warning':'badge-neutral');
             const priBadge = it.priority === 'urgent' || it.priority==='high' ? 'badge-error' : (it.priority==='medium' ? 'badge-warning' : 'badge-success');
             const card = document.createElement('div');
-            card.className = 'facility-card hover:shadow-lg transition-all duration-300 hover:scale-105';
+            card.className = 'facility-card';
             card.innerHTML = `
               <div class="facility-card-body">
                 <div class="flex justify-between items-start mb-2">
@@ -1752,16 +1724,16 @@
                 <div class="mb-3 space-y-2">
                   <div class="meta-row">
                     ${it.id ? `<div class=\"meta-item\"><i data-lucide=\"hash\" class=\"w-4 h-4\"></i><span>#${String(it.id).padStart(6,'0')}</span></div>` : ''}
-                    <div class="meta-item"><i data-lucide="users" class="w-4 h-4"></i><span>${it.department||''}</span></div>
-                    <div class="meta-item"><i data-lucide="box" class="w-4 h-4"></i><span>Qty: ${it.equipment_quantity ?? '—'}</span></div>
+                    <div class="meta-item"><i data-lucide="users" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>${it.department||''}</span></div>
+                    <div class="meta-item"><i data-lucide="box" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>Qty: ${it.equipment_quantity ?? '—'}</span></div>
                   </div>
                   <div class="meta-row">
-                    <div class="meta-item"><i data-lucide="calendar" class="w-4 h-4"></i><span>${it.requested_datetime ? new Date(it.requested_datetime).toLocaleString() : '—'}</span></div>
-                    <div class="meta-item"><i data-lucide="map-pin" class="w-4 h-4"></i><span>${it.location||''}</span></div>
+                    <div class="meta-item"><i data-lucide="calendar" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>${it.requested_datetime ? new Date(it.requested_datetime).toLocaleString() : '—'}</span></div>
+                    <div class="meta-item"><i data-lucide="map-pin" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>${it.location||''}</span></div>
                   </div>
                   <div class="meta-row">
-                    <div class="meta-item"><i data-lucide="user" class="w-4 h-4"></i><span>${it.contact_name||''}</span></div>
-                    <div class="meta-item"><i data-lucide="mail" class="w-4 h-4"></i><span>${it.contact_email||''}</span></div>
+                    <div class="meta-item"><i data-lucide="user" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>${it.contact_name||''}</span></div>
+                    <div class="meta-item"><i data-lucide="mail" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>${it.contact_email||''}</span></div>
                   </div>
                 </div>
               </div>`;
@@ -1789,12 +1761,12 @@
         
         // Initialize button state based on saved preference
         if (currentViewMode === 'list') {
-          toggleBtn.innerHTML = '<i data-lucide="grid-3x3" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">⊞</span>';
+          toggleBtn.innerHTML = '<i data-lucide="grid-3x3" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">⊞</span>';
           toggleBtn.setAttribute('title', 'Switch to grid view');
           toggleBtn.setAttribute('aria-label', 'Switch to grid view');
           toggleBtn.setAttribute('aria-pressed', 'true');
         } else {
-          toggleBtn.innerHTML = '<i data-lucide="list" class="w-4 h-4" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">☰</span>';
+          toggleBtn.innerHTML = '<i data-lucide="list" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer" style="display: inline-block;"></i><span class="fallback-icon" style="display: none;">☰</span>';
           toggleBtn.setAttribute('title', 'Switch to list view');
           toggleBtn.setAttribute('aria-label', 'Switch to list view');
           toggleBtn.setAttribute('aria-pressed', 'false');
@@ -2245,7 +2217,6 @@
             // Animate card removal
             if (facilityCard) {
               facilityCard.style.transition = 'all 0.5s ease-out';
-              facilityCard.style.transform = 'scale(0.8)';
               facilityCard.style.opacity = '0';
               facilityCard.style.margin = '0';
               facilityCard.style.padding = '0';
@@ -2343,10 +2314,10 @@
         if (type === 'warning') icon = 'alert-triangle';
         
         toast.innerHTML = `
-          <i data-lucide="${icon}" class="w-5 h-5"></i>
+          <i data-lucide="${icon}" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
           <span>${message}</span>
           <button onclick="this.parentElement.remove()" class="btn btn-ghost btn-xs">
-            <i data-lucide="x" class="w-4 h-4"></i>
+            <i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
           </button>
         `;
         
@@ -2412,11 +2383,7 @@
             // Add visual feedback for changes
             [totalFacilitiesEl, availableFacilitiesEl, occupiedFacilitiesEl, totalReservationsEl].forEach(el => {
               if (el) {
-                el.style.transform = 'scale(1.05)';
-                el.style.transition = 'transform 0.3s ease';
-                setTimeout(() => {
-                  el.style.transform = 'scale(1)';
-                }, 300);
+                // Removed scale animation for static cards
               }
             });
 
@@ -2458,11 +2425,7 @@
         }
 
         // Add visual feedback for status change
-        card.style.transform = 'scale(1.02)';
-        card.style.transition = 'transform 0.3s ease';
-        setTimeout(() => {
-          card.style.transform = 'scale(1)';
-        }, 300);
+        // Removed scale animation for static cards
       }
 
       // Set up real-time updates every 5 seconds

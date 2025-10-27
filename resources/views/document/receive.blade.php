@@ -137,25 +137,8 @@
         </div>
 
         <!-- Complete Documents Table -->
-        <div class="card bg-white shadow-xl">
-          <div class="card-body">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="card-title text-xl">
-                <i data-lucide="file-text" class="w-6 h-6 text-blue-500"></i>
-                Document Management System - All Documents
-              </h3>
-              <div class="flex items-center gap-3">
-                <div class="text-sm text-gray-600">
-                  Total: <span class="font-semibold">{{ $documents->count() }}</span> documents
-                </div>
-                <button onclick="refreshTable()" class="btn btn-sm btn-outline">
-                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                </button>
-              </div>
-            </div>
-            
-            <div class="overflow-x-auto">
-              <table class="table table-zebra w-full">
+        <x-table-card :title="'Document Management System - All Documents'">
+          <table class="table table-zebra w-full">
                 <thead>
                   <tr class="bg-gray-50">
                     <th class="text-left py-4 px-4 font-semibold text-gray-700 w-16">#</th>
@@ -336,9 +319,7 @@
                   @endforelse
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>

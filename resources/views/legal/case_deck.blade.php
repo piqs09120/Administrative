@@ -14,13 +14,26 @@
   <style>
     /* CSS Variables for consistent styling */
     :root {
-      --color-regal-navy: #1e3a8a;
-      --color-charcoal-ink: #1f2937;
+      --color-regal-navy: #F7A923;
+      --color-charcoal-ink: #2C3E50;
       --color-snow-mist: #f3f4f6;
       --color-white: #ffffff;
       --color-modern-teal: #0d9488;
-      --color-golden-ember: #d97706;
+      --color-golden-ember: #E6940F;
       --color-danger-red: #dc2626;
+      --color-button-secondary: #E6940F;
+    }
+    
+    /* Force button primary to use orange-yellow */
+    .btn.btn-primary {
+      background-color: #F7A923 !important;
+      border-color: #F7A923 !important;
+      color: #2C3E50 !important;
+    }
+    
+    .btn.btn-primary:hover {
+      background-color: #E6940F !important;
+      border-color: #E6940F !important;
     }
     
     /* SweetAlert2 Custom Styling */
@@ -211,78 +224,38 @@
 
 
         <!-- Status Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <!-- Total Cases -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-              <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
-                  <div class="bg-primary text-primary-content rounded-full w-12 h-12">
-                    <i data-lucide="briefcase" class="w-6 h-6"></i>
-                  </div>
-                </div>
-                <div class="badge badge-primary badge-outline">Total</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-primary justify-center mb-2">{{ $stats['total_cases'] ?? 0 }}</h2>
-                <p class="text-base-content/70">All Cases</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="All Cases" 
+            :value="$stats['total_cases'] ?? 0" 
+            icon="fa-building" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
 
           <!-- Approved Cases -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
-              <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
-                  <div class="bg-success text-success-content rounded-full w-12 h-12">
-                    <i data-lucide="check-circle" class="w-6 h-6"></i>
-                  </div>
-                </div>
-                <div class="badge badge-success badge-outline">Approved</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-success justify-center mb-2">{{ $stats['approved_cases'] ?? 0 }}</h2>
-                <p class="text-base-content/70">Completed</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Completed" 
+            :value="$stats['approved_cases'] ?? 0" 
+            icon="fa-check-circle" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
 
           <!-- Pending Cases -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
-              <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
-                  <div class="bg-warning text-warning-content rounded-full w-12 h-12">
-                    <i data-lucide="clock" class="w-6 h-6"></i>
-                  </div>
-                </div>
-                <div class="badge badge-warning badge-outline">Pending</div>
-              </div>
-              <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-warning justify-center mb-2">{{ $stats['pending_cases'] ?? 0 }}</h2>
-                <p class="text-base-content/70">Awaiting Review</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Awaiting Review" 
+            :value="$stats['pending_cases'] ?? 0" 
+            icon="fa-clock" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
 
           <!-- Declined Cases -->
-          <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
-              <div class="card-body p-4">
-              <div class="flex items-center justify-between mb-4">
-                <div class="avatar placeholder">
-                  <div class="bg-error text-error-content rounded-full w-12 h-12">
-                    <i data-lucide="x-circle" class="w-6 h-6"></i>
-                  </div>
-                </div>
-                <div class="badge badge-error badge-outline">Declined</div>
-                </div>
-              <div class="text-center">
-                <h2 class="card-title text-4xl font-bold text-error justify-center mb-2">{{ $stats['declined_cases'] ?? 0 }}</h2>
-                <p class="text-base-content/70">Not Approved</p>
-              </div>
-            </div>
-          </div>
+          <x-stat-card 
+            title="Not Approved" 
+            :value="$stats['declined_cases'] ?? 0" 
+            icon="fa-times-circle" 
+            iconColor="text-yellow-400" 
+            bgColor="bg-blue-900" />
         </div>
 
 
@@ -290,7 +263,7 @@
 
 
         <!-- Cases Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <x-table-card :title="'Legal Cases'" :pagination="(isset($cases) && $cases->hasPages()) ? $cases->links() : null">
           <div class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-lg font-semibold text-gray-900">Legal Cases</h3>
@@ -300,7 +273,6 @@
             </div>
             
             <!-- Proper HTML Table -->
-            <div class="overflow-x-auto">
               <table class="table table-zebra w-full">
                 <thead>
                   <tr class="bg-gray-50">
@@ -329,7 +301,7 @@
                         <div class="flex items-center space-x-3">
                           <!-- Avatar -->
                           <div class="avatar placeholder">
-                            <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center">
+                            <div class="bg-blue-900 text-white rounded-full w-10 h-10 flex items-center justify-center">
                               <span class="text-sm font-semibold">
                                 {{ substr($case->case_title ?? 'UC', 0, 2) }}
                               </span>
@@ -401,9 +373,9 @@
                       <td class="py-4 px-4 text-center">
                         @php
                           $statusConfig = [
-                            'pending' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'clock', 'text' => 'Pending'],
+                            'pending' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'clock', 'text' => 'Pending'],
                             'ongoing' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'play-circle', 'text' => 'Ongoing'],
-                            'completed' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle', 'text' => 'Completed'],
+                            'completed' => ['class' => 'bg-green-500 text-white', 'icon' => 'check-circle', 'text' => 'Completed'],
                             'rejected' => ['class' => 'bg-red-100 text-red-800', 'icon' => 'x-circle', 'text' => 'Rejected'],
                             'active' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'play-circle', 'text' => 'Active'],
                             'on_hold' => ['class' => 'bg-orange-100 text-orange-800', 'icon' => 'pause-circle', 'text' => 'On Hold'],
@@ -437,32 +409,18 @@
                         <div class="flex items-center justify-center space-x-2">
                           <!-- Review Button -->
                           <a href="{{ route('legal.cases.review', $case->id ?? 1) }}" 
-                             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200" 
+                             class="p-2 rounded-lg transition-all duration-200 hover:scale-110" 
+                             style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                              title="Review Case">
-                            <i data-lucide="search" class="w-4 h-4"></i>
+                            <i data-lucide="search" class="w-4 h-4" style="fill: none;"></i>
                           </a>
-                          
-                          @if($case->status === 'pending')
-                            <!-- Approve Button -->
-                            <button onclick="approveCase({{ $case->id ?? 1 }})" 
-                                    class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200" 
-                                    title="Approve Case">
-                              <i data-lucide="check" class="w-4 h-4"></i>
-                            </button>
-                            
-                            <!-- Decline Button -->
-                            <button onclick="declineCase({{ $case->id ?? 1 }})" 
-                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200" 
-                                    title="Decline Case">
-                              <i data-lucide="x" class="w-4 h-4"></i>
-                            </button>
-                          @endif
                           
                           <!-- Delete Button -->
                           <button onclick="deleteCase({{ $case->id ?? 1 }})" 
-                                  class="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200" 
+                                  class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                                   title="Delete Case">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <i data-lucide="trash-2" class="w-4 h-4" style="fill: none;"></i>
                           </button>
                         </div>
                       </td>
@@ -488,16 +446,8 @@
                   @endforelse
                 </tbody>
               </table>
-            </div>
-            
-            <!-- Pagination -->
-            @if(isset($cases) && $cases->hasPages())
-              <div class="flex justify-center p-6 border-t border-gray-200">
-                {{ $cases->links() }}
-              </div>
-            @endif
           </div>
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>
@@ -856,133 +806,9 @@
 
 
 
-    // Approve a legal case
-    function approveCase(caseId) {
-      Swal.fire({
-        title: 'Approve Legal Case',
-        text: 'Are you sure you want to approve this legal case? This action will mark the case as completed and cannot be undone.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'APPROVE CASE',
-        cancelButtonText: 'CANCEL',
-        confirmButtonColor: '#10b981',
-        cancelButtonColor: '#6b7280',
-        reverseButtons: true,
-        focusCancel: true
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Proceed with approval
-          fetch(`/legal/cases/${caseId}/approve`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              showEnhancedToast('Legal case approved successfully!', 'success', 'check-circle', 'The case has been marked as completed.');
-              // Update the row status in the table
-              const row = document.querySelector(`tr[data-case-id="${caseId}"]`);
-              if (row) {
-                const statusBadge = row.querySelector('.status-badge');
-                if (statusBadge) {
-                  statusBadge.className = 'badge badge-success status-badge';
-                  statusBadge.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Approved';
-                  lucide.createIcons();
-                }
-              } else {
-                // Fallback: find row by looking for the approve button with the caseId
-                const approveButton = document.querySelector(`button[onclick="approveCase(${caseId})"]`);
-                if (approveButton) {
-                  const tableRow = approveButton.closest('tr');
-                  if (tableRow) {
-                    const statusBadge = tableRow.querySelector('.status-badge');
-                    if (statusBadge) {
-                      statusBadge.className = 'badge badge-success status-badge';
-                      statusBadge.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Approved';
-                      lucide.createIcons();
-                    }
-                  }
-                }
-              }
-            } else {
-              showEnhancedToast('Error approving case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            showEnhancedToast('Error approving case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-          });
-        }
-      });
-    }
 
 
 
-    // Decline a legal case
-    function declineCase(caseId) {
-      Swal.fire({
-        title: 'Decline Legal Case',
-        text: 'Are you sure you want to decline this legal case? This action will mark the case as rejected and cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'DECLINE CASE',
-        cancelButtonText: 'CANCEL',
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        reverseButtons: true,
-        focusCancel: true
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Proceed with decline
-          fetch(`/legal/cases/${caseId}/decline`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              showEnhancedToast('Legal case declined successfully!', 'success', 'check-circle', 'The case has been marked as rejected.');
-              // Update the row status in the table
-              const row = document.querySelector(`tr[data-case-id="${caseId}"]`);
-              if (row) {
-                const statusBadge = row.querySelector('.status-badge');
-                if (statusBadge) {
-                  statusBadge.className = 'badge badge-error status-badge';
-                  statusBadge.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Declined';
-                  lucide.createIcons();
-                }
-              } else {
-                // Fallback: find row by looking for the decline button with the caseId
-                const declineButton = document.querySelector(`button[onclick="declineCase(${caseId})"]`);
-                if (declineButton) {
-                  const tableRow = declineButton.closest('tr');
-                  if (tableRow) {
-                    const statusBadge = tableRow.querySelector('.status-badge');
-                    if (statusBadge) {
-                      statusBadge.className = 'badge badge-error status-badge';
-                      statusBadge.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Declined';
-                      lucide.createIcons();
-                    }
-                  }
-                }
-              }
-            } else {
-              showEnhancedToast('Error declining case: ' + (data.message || 'Unknown error'), 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            showEnhancedToast('Error declining case: ' + error.message, 'error', 'alert-circle', 'Please try again or contact support if the issue persists.');
-          });
-        }
-      });
-    }
 
 
 

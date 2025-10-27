@@ -12,6 +12,7 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarLogo = document.getElementById('sidebar-logo');
     const sonlyLogo = document.getElementById('sonly');
+    if (!sidebar) { return; }
     
     if (isMobileView()) {
       // Mobile behavior - toggle visibility
@@ -25,18 +26,20 @@
         sidebar.classList.add('translate-x-0');
       }
           } else {
-        // Desktop behavior - toggle between expanded/collapsed
-        const isCollapsed = sidebar.classList.toggle('w-64');
-        sidebar.classList.toggle('w-20', !isCollapsed);
-        localStorage.setItem('sidebarCollapsed', !isCollapsed);
+        // Desktop behavior - toggle between expanded (w-64) and collapsed (w-20)
+        const currentlyCollapsed = sidebar.classList.contains('w-20');
+        const nextCollapsed = !currentlyCollapsed;
+        sidebar.classList.remove('w-64', 'w-20');
+        sidebar.classList.add(nextCollapsed ? 'w-20' : 'w-64');
+        localStorage.setItem('sidebarCollapsed', nextCollapsed);
         
         // Update text visibility based on collapsed state
         document.querySelectorAll('.sidebar-text').forEach(text => {
-          text.classList.toggle('hidden', !isCollapsed);
+          text.classList.toggle('hidden', nextCollapsed);
         });
         
         // Toggle logos based on collapsed state
-        if (sidebar.classList.contains('w-20')) {
+        if (nextCollapsed) {
           sidebarLogo.classList.add('hidden');
           sonlyLogo.classList.remove('hidden');
         } else {
@@ -74,6 +77,7 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarLogo = document.getElementById('sidebar-logo');
     const sonlyLogo = document.getElementById('sonly');
+    if (!sidebar) { return; }
     
     if (isMobileView()) {
       // On mobile, ensure proper transform classes and show full logo
@@ -112,6 +116,7 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarLogo = document.getElementById('sidebar-logo');
     const sonlyLogo = document.getElementById('sonly');
+    if (!sidebar) { return; }
     
     if (isMobileView()) {
       // Start hidden on mobile with full logo

@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\DocumentRequest;
+use App\Models\CompanyPolicy;
+use App\Models\EmployeeComplaint;
+use App\Models\ViolationReport;
+use App\Models\LegalAiResult;
+use App\Models\LegalAuditLog;
+use App\Services\LegalManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\FacilityReservation;
@@ -80,8 +86,8 @@ class LegalController extends Controller
         $status = $request->input('status');
         
         // Build the query for Documents tab
-        // Show ONLY legal documents (from legal_management and legal_submission sources)
-        $query = Document::whereIn('source', ['legal_management', 'legal_submission', 'ai_builder'])
+        // Show ONLY external/legal submissions here; exclude Create workspace and AI builder
+        $query = Document::whereIn('source', ['legal_submission'])
             ->with(['uploader' => function($q) {
                 $q->select('Dept_no', 'employee_name', 'dept_name');
             }]);
@@ -114,8 +120,7 @@ class LegalController extends Controller
             ->take(50)
             ->get();
             
-        // Build the query for statistics
-        // Stats should only include legal documents
+        // Build the query for statistics for the cards (include all legal sources)
         $statsQuery = Document::whereIn('source', ['legal_management', 'legal_submission', 'ai_builder']);
         
         // Apply the same filters to stats query
@@ -131,14 +136,20 @@ class LegalController extends Controller
         }
         
         // Get document statistics with filters applied
+        // Compute card stats. Declined combines rejected and returned
         $stats = [
-            'total' => $statsQuery->count(),
-            'active' => $statsQuery->where('status', 'active')->count(),
-            'pending_review' => $statsQuery->where('status', 'pending_review')->count(),
-            'archived' => $statsQuery->where('status', 'archived')->count(),
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->where('status', 'active')->count(),
+            'pending_review' => (clone $statsQuery)->where('status', 'pending_review')->count(),
+            'archived' => (clone $statsQuery)->whereIn('status', ['rejected','returned'])->count(),
         ];
-            
-        return view('legal.legal_documents', compact('documents', 'createdDocuments', 'stats', 'search', 'category', 'status'));
+
+        // Determine which tab should be active (documents | create | monitor)
+        $requestedTab = $request->get('tab');
+        $validTabs = ['documents', 'create', 'monitor'];
+        $activeTab = in_array($requestedTab, $validTabs, true) ? $requestedTab : 'documents';
+
+        return view('legal.legal_documents', compact('documents', 'createdDocuments', 'stats', 'search', 'category', 'status', 'activeTab'));
     }
 
     /**
@@ -275,23 +286,7 @@ class LegalController extends Controller
         return back()->with('success', 'Revision requested.');
     }
 
-    /** Archive and compute retention */
-    public function archiveDocument(Request $request, $id)
-    {
-        $doc = Document::findOrFail($id);
-        // Compute retention (default 5 years; per type could differ)
-        $years = match($doc->category) {
-            'contract' => 5,
-            'policy' => 3,
-            default => 2,
-        };
-        $retentionUntil = now()->addYears($years);
-        $doc->update([
-            'status' => 'archived',
-            'retention_until' => $retentionUntil,
-        ]);
-        return back()->with('success', 'Document archived. Retention until ' . $retentionUntil->format('Y-m-d'));
-    }
+    /** Archive and compute retention - Enhanced version moved to enhanced methods section */
 
     /** Department submission form */
     public function submitForm()
@@ -817,6 +812,7 @@ class LegalController extends Controller
     {
         try {
             $case = \App\Models\LegalCase::findOrFail($id);
+            $caseTitle = $case->case_title;
             $case->delete();
 
             // Log the action
@@ -826,6 +822,9 @@ class LegalController extends Controller
                 'description' => 'Deleted legal case ID ' . $case->id,
                 'ip_address' => request()->ip()
             ]);
+
+            // Send notification
+            \App\Services\SystemNotificationService::notifyLegalCaseAction('deleted', (object)['case_title' => $caseTitle, 'id' => $id]);
 
             return response()->json([
                 'success' => true,
@@ -2581,6 +2580,791 @@ class LegalController extends Controller
                 'message' => 'No documents were uploaded',
                 'errors' => $errors
             ], 400);
+        }
+    }
+
+    /**
+     * Enhanced Legal Management Methods
+     */
+
+    protected $legalManagementService;
+
+    public function __construct(LegalManagementService $legalManagementService)
+    {
+        $this->legalManagementService = $legalManagementService;
+    }
+
+    /**
+     * Company Policies Management
+     */
+    public function policies(Request $request)
+    {
+        $search = $request->input('search');
+        $category = $request->input('category');
+        $status = $request->input('status');
+
+        $policies = CompanyPolicy::query();
+
+        if ($search) {
+            $policies->search($search);
+        }
+
+        if ($category) {
+            $policies->byCategory($category);
+        }
+
+        if ($status) {
+            $policies->where('status', $status);
+        }
+
+        $policies = $policies->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('legal.policies', compact('policies'));
+    }
+
+    public function createPolicy()
+    {
+        return view('legal.create_policy');
+    }
+
+    public function storePolicy(Request $request)
+    {
+        $request->validate([
+            'policy_code' => 'required|string|max:255|unique:company_policies',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'content' => 'required|string',
+            'category' => 'required|string|max:255',
+            'department' => 'nullable|string|max:255',
+            'effective_date' => 'required|date',
+            'review_date' => 'nullable|date|after:effective_date',
+            'keywords' => 'nullable|array',
+            'related_laws' => 'nullable|array',
+            'applicable_roles' => 'nullable|array'
+        ]);
+
+        $policy = CompanyPolicy::create([
+            'policy_code' => $request->policy_code,
+            'title' => $request->title,
+            'description' => $request->description,
+            'content' => $request->content,
+            'category' => $request->category,
+            'department' => $request->department,
+            'effective_date' => $request->effective_date,
+            'review_date' => $request->review_date,
+            'keywords' => $request->keywords ?? [],
+            'related_laws' => $request->related_laws ?? [],
+            'applicable_roles' => $request->applicable_roles ?? [],
+            'created_by' => auth()->id(),
+            'approved_by' => auth()->id(),
+            'approved_at' => now()
+        ]);
+
+        return redirect()->route('legal.policies')->with('success', 'Policy created successfully.');
+    }
+
+    /**
+     * Employee Complaints Management
+     */
+    public function complaints(Request $request)
+    {
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $priority = $request->input('priority');
+        $department = $request->input('department');
+
+        $complaints = EmployeeComplaint::query();
+
+        if ($search) {
+            $complaints->where(function ($query) use ($search) {
+                $query->where('case_id', 'like', "%{$search}%")
+                      ->orWhere('complainant_name', 'like', "%{$search}%")
+                      ->orWhere('complaint_description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $complaints->byStatus($status);
+        }
+
+        if ($priority) {
+            $complaints->byPriority($priority);
+        }
+
+        if ($department) {
+            $complaints->byDepartment($department);
+        }
+
+        $complaints = $complaints->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('legal.complaints', compact('complaints'));
+    }
+
+    public function createComplaint()
+    {
+        return view('legal.create_complaint');
+    }
+
+    public function storeComplaint(Request $request)
+    {
+        $request->validate([
+            'complainant_name' => 'required|string|max:255',
+            'complainant_department' => 'required|string|max:255',
+            'complainant_email' => 'required|email|max:255',
+            'complainant_contact' => 'required|string|max:255',
+            'complaint_description' => 'required|string',
+            'complaint_type' => 'required|string|max:255',
+            'priority' => 'nullable|in:low,medium,high,urgent',
+            'incident_details' => 'nullable|string',
+            'incident_date' => 'nullable|date',
+            'incident_location' => 'nullable|string|max:255',
+            'witnesses' => 'nullable|array',
+            'supporting_documents' => 'nullable|array'
+        ]);
+
+        $complaintData = $request->all();
+        $complaintData['complainant_id'] = auth()->id();
+
+        $complaint = $this->legalManagementService->processComplaint($complaintData);
+
+        if ($complaint) {
+            return redirect()->route('legal.complaints')->with('success', 'Complaint filed successfully. Case ID: ' . $complaint->case_id);
+        } else {
+            return back()->withErrors(['error' => 'Failed to process complaint. Please try again.']);
+        }
+    }
+
+    public function showComplaint($id)
+    {
+        $complaint = EmployeeComplaint::findOrFail($id);
+        $aiResults = LegalAiResult::where('case_id', $complaint->case_id)->get();
+        
+        return view('legal.show_complaint', compact('complaint', 'aiResults'));
+    }
+
+    /**
+     * Violation Reports Management
+     */
+    public function violationReports(Request $request)
+    {
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $severity = $request->input('severity');
+        $department = $request->input('department');
+
+        $reports = ViolationReport::query();
+
+        if ($search) {
+            $reports->where(function ($query) use ($search) {
+                $query->where('report_id', 'like', "%{$search}%")
+                      ->orWhere('reporter_name', 'like', "%{$search}%")
+                      ->orWhere('violation_description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $reports->byStatus($status);
+        }
+
+        if ($severity) {
+            $reports->bySeverity($severity);
+        }
+
+        if ($department) {
+            $reports->byDepartment($department);
+        }
+
+        $reports = $reports->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('legal.violation_reports', compact('reports'));
+    }
+
+    public function createViolationReport()
+    {
+        return view('legal.create_violation_report');
+    }
+
+    public function storeViolationReport(Request $request)
+    {
+        $request->validate([
+            'reporter_name' => 'required|string|max:255',
+            'reporter_department' => 'required|string|max:255',
+            'violator_name' => 'nullable|string|max:255',
+            'violator_department' => 'nullable|string|max:255',
+            'violation_description' => 'required|string',
+            'violation_type' => 'required|string|max:255',
+            'severity' => 'nullable|in:low,medium,high,critical',
+            'incident_details' => 'required|string',
+            'incident_date' => 'required|date',
+            'incident_location' => 'required|string|max:255',
+            'witnesses' => 'nullable|array',
+            'evidence_documents' => 'nullable|array'
+        ]);
+
+        $reportData = $request->all();
+        $reportData['reporter_id'] = auth()->id();
+
+        $report = $this->legalManagementService->processViolationReport($reportData);
+
+        if ($report) {
+            return redirect()->route('legal.violation_reports')->with('success', 'Violation report submitted successfully. Report ID: ' . $report->report_id);
+        } else {
+            return back()->withErrors(['error' => 'Failed to process violation report. Please try again.']);
+        }
+    }
+
+    public function showViolationReport($id)
+    {
+        $report = ViolationReport::findOrFail($id);
+        $aiResults = LegalAiResult::where('report_id', $report->report_id)->get();
+        
+        return view('legal.show_violation_report', compact('report', 'aiResults'));
+    }
+
+    /**
+     * AI Analysis Management
+     */
+    public function aiAnalyses(Request $request)
+    {
+        $analysisType = $request->input('analysis_type');
+        $riskLevel = $request->input('risk_level');
+        $complianceStatus = $request->input('compliance_status');
+
+        $analyses = LegalAiResult::query();
+
+        if ($analysisType) {
+            $analyses->byAnalysisType($analysisType);
+        }
+
+        if ($riskLevel) {
+            $analyses->byRiskLevel($riskLevel);
+        }
+
+        if ($complianceStatus) {
+            $analyses->byComplianceStatus($complianceStatus);
+        }
+
+        $analyses = $analyses->with(['document', 'complaint', 'violationReport'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('legal.ai_analyses', compact('analyses'));
+    }
+
+    public function showAiAnalysis($id)
+    {
+        $analysis = LegalAiResult::with(['document', 'complaint', 'violationReport'])->findOrFail($id);
+        
+        return view('legal.show_ai_analysis', compact('analysis'));
+    }
+
+    /**
+     * Audit Logs
+     */
+    public function auditLogs(Request $request)
+    {
+        $actionType = $request->input('action_type');
+        $userId = $request->input('user_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $logs = LegalAuditLog::query();
+
+        if ($actionType) {
+            $logs->byActionType($actionType);
+        }
+
+        if ($userId) {
+            $logs->byUser($userId);
+        }
+
+        if ($startDate && $endDate) {
+            $logs->byDateRange($startDate, $endDate);
+        }
+
+        $logs = $logs->orderBy('timestamp', 'desc')->paginate(50);
+
+        return view('legal.audit_logs', compact('logs'));
+    }
+
+    /**
+     * Enhanced Dashboard with AI Statistics
+     */
+    public function enhancedDashboard()
+    {
+        $stats = $this->legalManagementService->getDashboardStats();
+        $highRiskDocuments = $this->legalManagementService->getHighRiskDocuments();
+        $recentAnalyses = $this->legalManagementService->getRecentAiAnalyses(10);
+        
+        return view('legal.enhanced_dashboard', compact('stats', 'highRiskDocuments', 'recentAnalyses'));
+    }
+
+    /**
+     * Archive Document (No Deletion)
+     */
+    public function archiveDocument(Request $request, $id)
+    {
+        $document = Document::findOrFail($id);
+        $reason = $request->input('reason', 'Administrative archive');
+
+        if ($this->legalManagementService->archiveDocument($document, $reason)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Document archived successfully.'
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to archive document.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk AI Analysis
+     */
+    public function bulkAiAnalysis(Request $request)
+    {
+        $documentIds = $request->input('document_ids', []);
+        $results = [];
+
+        foreach ($documentIds as $documentId) {
+            $document = Document::find($documentId);
+            if ($document) {
+                $result = $this->legalManagementService->processDocument($document);
+                $results[] = [
+                    'document_id' => $documentId,
+                    'title' => $document->title,
+                    'success' => $result !== false,
+                    'ai_result' => $result
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bulk AI analysis completed.',
+            'results' => $results
+        ]);
+    }
+
+    /**
+     * Enhanced Document Management - Main view with advanced filtering
+     */
+    public function enhancedDocumentManagement(Request $request)
+    {
+        try {
+            $query = Document::query();
+
+            // Apply filters
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhere('author', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('category')) {
+                $query->byCategory($request->input('category'));
+            }
+
+            if ($request->filled('author')) {
+                $query->byAuthor($request->input('author'));
+            }
+
+            if ($request->filled('department')) {
+                $query->byDepartment($request->input('department'));
+            }
+
+            if ($request->filled('date_from') && $request->filled('date_to')) {
+                $query->byDateRange($request->input('date_from'), $request->input('date_to'));
+            }
+
+            if ($request->filled('confidentiality')) {
+                $query->byConfidentiality($request->input('confidentiality'));
+            }
+
+            if ($request->filled('status')) {
+                $query->byStatus($request->input('status'));
+            }
+
+            // Apply sorting
+            $sortBy = $request->input('sort_by', 'created_at');
+            $sortOrder = $request->input('sort_order', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            $documents = $query->paginate(20);
+
+            // Calculate statistics
+            $stats = [
+                'total_documents' => Document::count(),
+                'archived_documents' => Document::where('status', 'archived')->count(),
+                'total_views' => Document::sum('view_count'),
+                'total_downloads' => Document::sum('download_count')
+            ];
+
+            return view('legal.enhanced_document_management', compact('documents', 'stats'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error loading documents: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Log document view access
+     */
+    public function logDocumentView($id)
+    {
+        try {
+            $document = Document::findOrFail($id);
+            $document->logAccess('view');
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Log document download access
+     */
+    public function logDocumentDownload($id)
+    {
+        try {
+            $document = Document::findOrFail($id);
+            $document->logAccess('download');
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get document history and tracking information
+     */
+    public function getDocumentHistory($id)
+    {
+        try {
+            $document = Document::findOrFail($id);
+            
+            return response()->json([
+                'success' => true,
+                'editing_history' => $document->getEditingHistory(),
+                'access_log' => $document->getAccessLog(),
+                'collaborators' => $document->getCollaborators(),
+                'stats' => $document->getDocumentStats()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get document activity tracking with pagination and filtering
+     */
+    public function getDocumentActivityTracking(Request $request, $id)
+    {
+        try {
+            $document = Document::findOrFail($id);
+            
+            // Get query parameters for filtering and pagination
+            $perPage = $request->get('per_page', 10);
+            $userFilter = $request->get('user');
+            $actionFilter = $request->get('action');
+            $dateFrom = $request->get('date_from');
+            $dateTo = $request->get('date_to');
+            
+            // Build the query for AccessLog entries related to this document
+            $query = AccessLog::where('document_id', $id)
+                ->with(['user' => function($q) {
+                    $q->select('Dept_no', 'employee_name', 'dept_name');
+                }])
+                ->orderBy('created_at', 'desc');
+            
+            // Apply filters
+            if ($userFilter) {
+                $query->whereHas('user', function($q) use ($userFilter) {
+                    $q->where('employee_name', 'like', '%' . $userFilter . '%');
+                });
+            }
+            
+            if ($actionFilter) {
+                $query->where('action', 'like', '%' . $actionFilter . '%');
+            }
+            
+            if ($dateFrom) {
+                $query->whereDate('created_at', '>=', $dateFrom);
+            }
+            
+            if ($dateTo) {
+                $query->whereDate('created_at', '<=', $dateTo);
+            }
+            
+            // Get paginated results
+            $activityLog = $query->paginate($perPage);
+            
+            // Format the data for frontend
+            $formattedLog = $activityLog->map(function($log) {
+                $userName = 'Unknown User';
+                if ($log->user) {
+                    $userName = $log->user->employee_name ?? 'User #' . $log->user_id;
+                } elseif ($log->user_id) {
+                    // Try to get user name from User model if not in DeptAccount
+                    $user = \App\Models\User::find($log->user_id);
+                    if ($user) {
+                        $userName = $user->name ?? 'User #' . $log->user_id;
+                    } else {
+                        $userName = 'User #' . $log->user_id;
+                    }
+                }
+                
+                return [
+                    'id' => $log->id,
+                    'user_name' => $userName,
+                    'action' => $this->formatActionName($log->action),
+                    'description' => $log->description,
+                    'timestamp' => $log->created_at->toISOString(),
+                    'formatted_date' => $log->created_at->format('M d, Y g:i A'),
+                    'ip_address' => $log->ip_address,
+                    'metadata' => $log->metadata
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'activity_log' => $formattedLog,
+                'pagination' => [
+                    'current_page' => $activityLog->currentPage(),
+                    'last_page' => $activityLog->lastPage(),
+                    'per_page' => $activityLog->perPage(),
+                    'total' => $activityLog->total(),
+                    'from' => $activityLog->firstItem(),
+                    'to' => $activityLog->lastItem()
+                ],
+                'filters' => [
+                    'user' => $userFilter,
+                    'action' => $actionFilter,
+                    'date_from' => $dateFrom,
+                    'date_to' => $dateTo
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting document activity tracking', [
+                'document_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Failed to load activity tracking: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Format action names for better display
+     */
+    private function formatActionName($action)
+    {
+        $actionMap = [
+            'document_uploaded' => 'Uploaded',
+            'document_edited' => 'Edited',
+            'document_viewed' => 'Viewed',
+            'document_downloaded' => 'Downloaded',
+            'document_archived' => 'Archived',
+            'document_unarchived' => 'Unarchived',
+            'document_approved' => 'Approved',
+            'document_declined' => 'Declined',
+            'document_disposed' => 'Disposed',
+            'collaborator_added' => 'Added Collaborator',
+            'collaborator_removed' => 'Removed Collaborator',
+            'legal_document_uploaded' => 'Uploaded (Legal)',
+            'legal_document_updated' => 'Updated (Legal)',
+            'legal_document_archived' => 'Archived (Legal)',
+            'legal_document_approved' => 'Approved (Legal)',
+            'legal_document_declined' => 'Declined (Legal)',
+            'document_lifecycle_uploaded' => 'Lifecycle: Uploaded',
+            'document_lifecycle_ai_analysis_completed' => 'Lifecycle: AI Analysis',
+            'document_lifecycle_routed_to_fr' => 'Lifecycle: Routed to FR',
+            'document_lifecycle_routed_to_vm' => 'Lifecycle: Routed to VM',
+            'document_lifecycle_routed_to_lm' => 'Lifecycle: Routed to LM',
+            'document_lifecycle_archived' => 'Lifecycle: Archived'
+        ];
+        
+        return $actionMap[$action] ?? ucwords(str_replace('_', ' ', $action));
+    }
+
+
+    /**
+     * Get document statistics for dashboard
+     */
+    public function getDocumentStats()
+    {
+        try {
+            $stats = [
+                'total_documents' => Document::count(),
+                'archived_documents' => Document::where('status', 'archived')->count(),
+                'active_documents' => Document::where('status', '!=', 'archived')->count(),
+                'total_views' => Document::sum('view_count'),
+                'total_downloads' => Document::sum('download_count'),
+                'most_viewed' => Document::mostViewed(5)->get(),
+                'most_downloaded' => Document::mostDownloaded(5)->get(),
+                'recently_edited' => Document::recentlyEdited(5)->get(),
+                'by_category' => Document::selectRaw('category, count(*) as count')
+                    ->groupBy('category')
+                    ->get(),
+                'by_department' => Document::selectRaw('department, count(*) as count')
+                    ->groupBy('department')
+                    ->get()
+            ];
+
+            return response()->json(['success' => true, 'stats' => $stats]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get collaborators for a document
+     */
+    public function getCollaborators($id)
+    {
+        try {
+            \Log::info("Getting collaborators for document ID: $id");
+            
+            $document = Document::findOrFail($id);
+            \Log::info("Document found: " . $document->title);
+            
+            // Get collaborators from access_logs table
+            $logs = \App\Models\AccessLog::where('document_id', $id)
+                ->where('action', 'collaborator_added')
+                ->get();
+                
+            \Log::info("Found " . $logs->count() . " collaborator logs for document $id");
+            
+            $collaborators = $logs->map(function($log) {
+                \Log::info("Processing log: user_id={$log->user_id}, metadata=" . json_encode($log->metadata));
+                
+                // Get user name from User model using the user_id
+                $user = \App\Models\User::find($log->user_id);
+                $userName = $user ? $user->name : 'User ' . $log->user_id;
+                
+                return [
+                    'user_id' => $log->user_id,
+                    'user_name' => $userName,
+                    'role' => $log->metadata['role'] ?? 'collaborator',
+                    'added_at' => $log->created_at
+                ];
+            });
+
+            \Log::info("Returning " . $collaborators->count() . " collaborators");
+
+            return response()->json([
+                'success' => true,
+                'collaborators' => $collaborators
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Error getting collaborators: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Add a collaborator to a document
+     */
+    public function addCollaborator(Request $request, $id)
+    {
+        try {
+            $document = Document::findOrFail($id);
+            
+            $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'role' => 'required|in:viewer,editor,reviewer,admin'
+            ]);
+
+            $userId = $request->user_id;
+            $role = $request->role;
+
+            // Check if user is already a collaborator
+            $existingCollaborator = \App\Models\AccessLog::where('document_id', $id)
+                ->where('user_id', $userId)
+                ->where('action', 'collaborator_added')
+                ->first();
+
+            if ($existingCollaborator) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User is already a collaborator on this document'
+                ], 400);
+            }
+
+            // Add collaborator
+            \App\Models\AccessLog::create([
+                'document_id' => $id,
+                'user_id' => $userId,
+                'action' => 'collaborator_added',
+                'ip_address' => $request->ip(),
+                'metadata' => [
+                    'role' => $role,
+                    'added_by' => Auth::id()
+                ]
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Collaborator added successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Remove a collaborator from a document
+     */
+    public function removeCollaborator($id, $userId)
+    {
+        try {
+            $document = Document::findOrFail($id);
+
+            // Find and remove collaborator
+            $collaborator = \App\Models\AccessLog::where('document_id', $id)
+                ->where('user_id', $userId)
+                ->where('action', 'collaborator_added')
+                ->first();
+
+            if (!$collaborator) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Collaborator not found'
+                ], 404);
+            }
+
+            // Log the removal
+            \App\Models\AccessLog::create([
+                'document_id' => $id,
+                'user_id' => $userId,
+                'action' => 'collaborator_removed',
+                'ip_address' => request()->ip(),
+                'metadata' => [
+                    'removed_by' => Auth::id(),
+                    'original_role' => $collaborator->metadata['role'] ?? 'collaborator'
+                ]
+            ]);
+
+            // Remove the collaborator entry
+            $collaborator->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Collaborator removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

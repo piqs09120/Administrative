@@ -225,9 +225,9 @@
           <div class="card-body">
             <h3 class="card-title text-lg font-semibold mb-6">Reservation History</h3>
             
-            @if($reservations->count() > 0)
-              <div class="table-responsive overflow-x-auto">
-                <table class="table table-zebra w-full min-w-full">
+        @if($reservations->count() > 0)
+          <x-table-card :title="'My Reservation History'" :pagination="$reservations->hasPages() ? $reservations->links() : null">
+            <table class="table table-zebra w-full min-w-full">
                   <thead>
                     <tr>
                       <th>Facility</th>
@@ -292,8 +292,8 @@
                       </tr>
                     @endforeach
                   </tbody>
-                </table>
-              </div>
+            </table>
+          </x-table-card>
 
               <!-- Pagination -->
               <div class="mt-6">

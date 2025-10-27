@@ -14,6 +14,7 @@ use App\Exports\VisitorReportExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Services\VisitorService;
+use App\Services\IdValidationPipelineService;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VisitorCheckedOutMail;
 
@@ -21,8 +22,9 @@ class VisitorController extends Controller
 {
     protected $visitorService;
     protected $workflowService;
+    protected $idValidationPipelineService;
 
-    public function __construct(VisitorService $visitorService, \App\Services\ReservationWorkflowService $workflowService)
+    public function __construct(VisitorService $visitorService, \App\Services\ReservationWorkflowService $workflowService, IdValidationPipelineService $idValidationPipelineService)
     {
         $this->middleware(function ($request, $next) {
             $role = auth()->user()->role ?? null;
@@ -32,6 +34,7 @@ class VisitorController extends Controller
 
         $this->visitorService = $visitorService;
         $this->workflowService = $workflowService;
+        $this->idValidationPipelineService = $idValidationPipelineService;
     }
 
     public function index(Request $request)
@@ -91,6 +94,7 @@ class VisitorController extends Controller
             'id_number' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'time_in' => 'nullable|date',
+            'id_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120', // 5MB max
         ]);
 
         // Generate pass ID
@@ -107,6 +111,9 @@ class VisitorController extends Controller
 
         // Calculate pass validity based on expected time out
         $validity = $this->calculatePassValidity($request);
+        
+        // Handle ID document upload
+        $idDocumentData = $this->handleIdDocumentUpload($request);
         
         $visitorData = [
             'name' => $request->name,
@@ -134,6 +141,9 @@ class VisitorController extends Controller
             'escort_required' => 'no',
             'status' => 'registered', // Changed from 'active' to 'registered'
         ];
+
+        // Merge ID document data
+        $visitorData = array_merge($visitorData, $idDocumentData);
         
         $visitor = Visitor::create($visitorData);
         
@@ -169,18 +179,23 @@ class VisitorController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'contact' => 'required|string|max:255',
+            'contact' => 'required|string|max:20',
             'purpose' => 'required|string|max:1000',
-            'facility_id' => 'nullable',
-            'host_employee' => 'nullable|string|max:255',
+            'facility_id' => 'nullable|integer',
+            'host_employee' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
-            'id_type' => 'nullable|string|max:255',
-            'id_number' => 'nullable|string|max:255',
+            'id_type' => 'required|string|in:philnational_id,passport,drivers_license,umid,postal_id,voters_id,sss_id,gsis_id,tin_id,prc_id,barangay_id,senior_citizen_id,pwd_id,company_id,school_id,other_id',
+            'id_number' => 'required|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'expected_date_out' => 'nullable|date',
             'expected_time_out' => 'nullable|date_format:H:i',
             'arrival_date' => 'nullable|date',
             'arrival_time' => 'nullable|date_format:H:i',
+            'visit_type' => 'nullable|in:immediate,preschedule',
+            'scheduled_date' => 'nullable|date|after:today',
+            'scheduled_time' => 'nullable|date_format:H:i',
+            'status' => 'nullable|string',
+            'id_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120', // 5MB max
         ]);
 
         // Generate pass ID
@@ -195,42 +210,178 @@ class VisitorController extends Controller
             $expectedDateTimeOut = \Carbon\Carbon::parse($request->expected_time_out);
         }
 
-        // Calculate pass validity based on expected time out
-        $validity = $this->calculatePassValidity($request);
+        // Check if this is a pre-scheduled visit
+        $isPrescheduled = $request->visit_type === 'preschedule' || $request->status === 'scheduled';
+        
+        if ($isPrescheduled) {
+            \Log::info('Creating pre-scheduled visitor', [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'scheduled_date' => $request->scheduled_date,
+                'scheduled_time' => $request->scheduled_time,
+                'visit_type' => $request->visit_type
+            ]);
+            
+            // For pre-scheduled visits, create visitor with scheduled status
+            $visitor = Visitor::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'contact' => $validated['contact'],
+                'phone' => $validated['contact'], // Also store in phone field
+                'purpose' => $validated['purpose'],
+                'facility_id' => $request->facility_id ? (int)$request->facility_id : null,
+                'host_employee' => $request->host_employee,
+                'department' => $request->department,
+                'company' => $request->company,
+                'id_type' => $request->id_type,
+                'id_number' => $request->id_number,
+                'vehicle_plate' => $request->vehicle_plate,
+                'scheduled_date' => $request->scheduled_date,
+                'scheduled_time' => $request->scheduled_time,
+                'expected_duration' => 2, // Default 2 hours
+                'time_in' => null,
+                'pass_id' => $passId,
+                'pass_type' => 'visitor',
+                'pass_validity' => 'scheduled',
+                'pass_valid_from' => \Carbon\Carbon::parse($request->scheduled_date . ' 00:00:00'),
+                'pass_valid_until' => \Carbon\Carbon::parse($request->scheduled_date . ' 23:59:59'),
+                'access_level' => null,
+                'escort_required' => 'no',
+                'status' => 'scheduled',
+            ]);
 
-        $visitor = Visitor::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'contact' => $validated['contact'],
-            'purpose' => $validated['purpose'],
-            'facility_id' => $request->facility_id ?: null,
-            'host_employee' => $request->host_employee,
-            'department' => $request->department,
-            'company' => $request->company,
-            'id_type' => $request->id_type,
-            'id_number' => $request->id_number,
-            'vehicle_plate' => $request->vehicle_plate,
-            'arrival_date' => $request->arrival_date,
-            'arrival_time' => $request->arrival_time,
-            'expected_date_out' => $request->expected_date_out,
-            'expected_time_out' => $expectedDateTimeOut,
-            'time_in' => null,
-            'pass_id' => $passId,
-            'pass_type' => 'visitor',
-            'pass_validity' => '24_hours',
-            'pass_valid_from' => $validity['valid_from'],
-            'pass_valid_until' => $validity['valid_until'],
-            'access_level' => null,
-            'escort_required' => 'no',
-            'status' => 'registered',
+            \Log::info('Pre-scheduled visitor created successfully', [
+                'visitor_id' => $visitor->id,
+                'name' => $visitor->name,
+                'status' => $visitor->status,
+                'scheduled_date' => $visitor->scheduled_date
+            ]);
+
+            // Generate digital pass for scheduled date
+            $this->generateDigitalPass($visitor);
+            
+            // Send email with QR pass and code
+            $this->sendScheduledVisitorEmail($visitor);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitor pre-scheduled successfully! You will receive an email with your QR pass and code for the scheduled date.',
+            ]);
+        } else {
+            // For immediate visits, use existing logic
+            $validity = $this->calculatePassValidity($request);
+            
+            // Handle ID document upload
+            $idDocumentData = $this->handleIdDocumentUpload($request);
+
+            $visitorData = [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'contact' => $validated['contact'],
+                'phone' => $validated['contact'], // Also store in phone field
+                'purpose' => $validated['purpose'],
+                'facility_id' => $request->facility_id ? (int)$request->facility_id : null,
+                'host_employee' => $request->host_employee,
+                'department' => $request->department,
+                'company' => $request->company,
+                'id_type' => $request->id_type,
+                'id_number' => $request->id_number,
+                'vehicle_plate' => $request->vehicle_plate,
+                'arrival_date' => $request->arrival_date,
+                'arrival_time' => $request->arrival_time,
+                'expected_date_out' => $request->expected_date_out,
+                'expected_time_out' => $expectedDateTimeOut,
+                'time_in' => null,
+                'pass_id' => $passId,
+                'pass_type' => 'visitor',
+                'pass_validity' => '24_hours',
+                'pass_valid_from' => $validity['valid_from'],
+                'pass_valid_until' => $validity['valid_until'],
+                'access_level' => null,
+                'escort_required' => 'no',
+                'status' => 'registered',
+            ];
+
+            // Merge ID document data
+            $visitorData = array_merge($visitorData, $idDocumentData);
+
+            $visitor = Visitor::create($visitorData);
+
+            $this->generateDigitalPass($visitor);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitor registered successfully',
+                'redirect' => route('visitor.create')
+            ]);
+        }
+    }
+
+    /**
+     * Send email to scheduled visitor with QR pass and code
+     */
+    private function sendScheduledVisitorEmail($visitor)
+    {
+        try {
+            // Generate a unique access code for the scheduled date
+            $accessCode = $this->generateAccessCode();
+            
+            // Update visitor with access code
+            $visitor->update(['access_code' => $accessCode]);
+            
+            // Send email
+            Mail::to($visitor->email)->send(new \App\Mail\ScheduledVisitorMail($visitor, $accessCode));
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to send scheduled visitor email: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate a unique access code for scheduled visitors
+     */
+    private function generateAccessCode()
+    {
+        return strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+    }
+
+    /**
+     * Validate access code for scheduled visitors
+     */
+    public function validateAccessCode(Request $request): JsonResponse
+    {
+        $request->validate([
+            'access_code' => 'required|string|size:8',
+            'pass_id' => 'required|string'
         ]);
 
-        $this->generateDigitalPass($visitor);
+        $visitor = Visitor::where('access_code', $request->access_code)
+                         ->where('pass_id', $request->pass_id)
+                         ->where('status', 'scheduled')
+                         ->first();
+
+        if (!$visitor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid access code or pass ID'
+            ], 404);
+        }
+
+        // Check if the scheduled date is today
+        $scheduledDate = \Carbon\Carbon::parse($visitor->scheduled_date)->format('Y-m-d');
+        $today = now()->format('Y-m-d');
+
+        if ($scheduledDate !== $today) {
+            return response()->json([
+                'success' => false,
+                'message' => "This access code is only valid on {$visitor->scheduled_date}. Today is {$today}."
+            ], 403);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Visitor registered successfully',
-            'redirect' => route('visitor.create')
+            'message' => 'Access code is valid',
+            'visitor' => $visitor
         ]);
     }
 
@@ -265,6 +416,9 @@ class VisitorController extends Controller
         $visitor = Visitor::findOrFail($id);
         $visitor->update($request->all());
         
+        // Send notification
+        \App\Services\SystemNotificationService::notifyVisitorAction('updated', $visitor);
+        
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -279,7 +433,11 @@ class VisitorController extends Controller
     public function destroy($id)
     {
         $visitor = Visitor::findOrFail($id);
+        $visitorName = $visitor->name;
         $visitor->delete();
+        
+        // Send notification
+        \App\Services\SystemNotificationService::notifyVisitorAction('deleted', (object)['name' => $visitorName, 'id' => $id]);
         
         if (request()->ajax()) {
             return response()->json([
@@ -409,6 +567,19 @@ class VisitorController extends Controller
                 'success' => false,
                 'message' => 'Visitor is already checked in!'
             ]);
+        }
+
+        // Check if this is a scheduled visitor and validate the date
+        if ($visitor->status === 'scheduled' && $visitor->scheduled_date) {
+            $scheduledDate = \Carbon\Carbon::parse($visitor->scheduled_date)->format('Y-m-d');
+            $today = now()->format('Y-m-d');
+            
+            if ($scheduledDate !== $today) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "This visitor is scheduled for {$visitor->scheduled_date}. Check-in is only allowed on the scheduled date."
+                ]);
+            }
         }
 
         $visitor->update([
@@ -1078,6 +1249,12 @@ class VisitorController extends Controller
     public function approveVisitor($id)
     {
         $visitor = Visitor::findOrFail($id);
+        
+        // Check if ID verification is required and completed
+        if (!$visitor->id_verified) {
+            return redirect()->back()->with('error', 'ID verification is required before approving this visitor. Please verify the visitor\'s ID document first.');
+        }
+        
         // Approve and auto check-in
         $visitor->update([
             'status' => 'active',
@@ -1172,5 +1349,391 @@ class VisitorController extends Controller
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Pre-schedule a visitor for a future date
+     */
+    public function preschedule(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'scheduled_date' => 'required|date|after:today',
+                'scheduled_time' => 'required|date_format:H:i',
+                'host_employee' => 'required|string|max:255',
+                'company' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'expected_duration' => 'nullable|integer|min:1|max:24',
+                'purpose' => 'nullable|string|max:1000',
+            ]);
+
+            // Create scheduled visitor record
+            $scheduledVisitor = Visitor::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'company' => $request->company,
+                'phone' => $request->phone,
+                'host_employee' => $request->host_employee,
+                'purpose' => $request->purpose,
+                'scheduled_date' => $request->scheduled_date,
+                'scheduled_time' => $request->scheduled_time,
+                'expected_duration' => $request->expected_duration ?? 2,
+                'status' => 'scheduled',
+                'time_in' => null,
+                'time_out' => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitor scheduled successfully',
+                'visitor' => $scheduledVisitor
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to schedule visitor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get list of scheduled visitors
+     */
+    public function getScheduledVisitors()
+    {
+        try {
+            \Log::info('Getting scheduled visitors...');
+            
+            $scheduledVisitors = Visitor::where('status', 'scheduled')
+                ->whereNotNull('scheduled_date')
+                ->orderBy('scheduled_date')
+                ->orderBy('scheduled_time')
+                ->get();
+
+            \Log::info('Found ' . $scheduledVisitors->count() . ' scheduled visitors');
+
+            return response()->json([
+                'success' => true,
+                'visitors' => $scheduledVisitors
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting scheduled visitors: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load scheduled visitors: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+* Cancel a visitor (removed restriction - any visitor can be cancelled)
+     */
+    public function cancelScheduledVisitor($id)
+    {
+        try {
+            $visitor = Visitor::findOrFail($id);
+            
+            // Remove status restriction - allow any visitor to be cancelled
+            $visitor->update(['status' => 'cancelled']);
+
+            // Send cancellation email to visitor
+            try {
+                if (!empty($visitor->email)) {
+                    \Mail::to($visitor->email)->send(new \App\Mail\VisitorCancelledMail($visitor));
+                    \Log::info('Cancellation email sent to visitor', [
+                        'visitor_id' => $visitor->id,
+                        'email' => $visitor->email
+                    ]);
+                }
+            } catch (\Exception $emailError) {
+                \Log::error('Failed to send cancellation email: ' . $emailError->getMessage());
+                // Don't fail the entire operation if email fails
+            }
+
+            \Log::info('Visitor cancelled', [
+                'visitor_id' => $visitor->id,
+                'name' => $visitor->name,
+                'email' => $visitor->email,
+                'previous_status' => $visitor->getOriginal('status')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitor cancelled successfully and email notification sent'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error cancelling visitor: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel visitor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve a scheduled visitor
+     */
+    public function approveScheduledVisitor($id)
+    {
+        try {
+            $visitor = Visitor::findOrFail($id);
+            
+            if ($visitor->status !== 'scheduled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only scheduled visitors can be approved'
+                ], 400);
+            }
+
+            $visitor->update(['status' => 'approved']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Scheduled visitor approved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve scheduled visitor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a cancelled scheduled visitor
+     */
+    public function restoreScheduledVisitor($id)
+    {
+        try {
+            $visitor = Visitor::findOrFail($id);
+            
+            if ($visitor->status !== 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only cancelled visitors can be restored'
+                ], 400);
+            }
+
+            $visitor->update(['status' => 'scheduled']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Scheduled visitor restored successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore scheduled visitor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+* Decline a visitor (removed restriction - any visitor can be declined)
+     */
+    public function declineScheduledVisitor($id)
+    {
+        try {
+            $visitor = Visitor::findOrFail($id);
+            
+            // Remove status restriction - allow any visitor to be declined
+            $visitor->update(['status' => 'declined']);
+
+            // Send decline email to visitor
+            try {
+                if (!empty($visitor->email)) {
+                    \Mail::to($visitor->email)->send(new \App\Mail\VisitorDeclinedMail($visitor));
+                    \Log::info('Decline email sent to visitor', [
+                        'visitor_id' => $visitor->id,
+                        'email' => $visitor->email
+                    ]);
+                }
+            } catch (\Exception $emailError) {
+                \Log::error('Failed to send decline email: ' . $emailError->getMessage());
+                // Don't fail the entire operation if email fails
+            }
+
+            \Log::info('Visitor declined', [
+                'visitor_id' => $visitor->id,
+                'name' => $visitor->name,
+                'email' => $visitor->email,
+                'previous_status' => $visitor->getOriginal('status')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitor declined successfully and email notification sent'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error declining visitor: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to decline visitor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle ID document upload and validation
+     */
+    private function handleIdDocumentUpload(Request $request): array
+    {
+        $idDocumentData = [
+            'id_document_path' => null,
+            'id_document_original_name' => null,
+            'id_document_mime_type' => null,
+            'id_document_size' => null,
+            'id_validation_status' => 'pending',
+            'id_validation_confidence' => 0,
+            'id_validation_details' => null,
+        ];
+
+        if ($request->hasFile('id_document')) {
+            $file = $request->file('id_document');
+            
+            // Validate file
+            $validated = $request->validate([
+                'id_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120' // 5MB max
+            ]);
+
+            // Generate unique filename
+            $filename = 'id_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            // Store file in storage/app/public/visitor_id_documents
+            $path = $file->storeAs('visitor_id_documents', $filename, 'public');
+            
+            // Perform layered validation pipeline if ID type is provided
+            $validationResult = null;
+            if ($request->has('id_type') && $request->id_type) {
+                try {
+                    $validationResult = $this->idValidationPipelineService->validateIdDocument(
+                        $path, 
+                        $request->id_type, 
+                        $request->id_number
+                    );
+                    
+                    \Log::info('ID Validation Pipeline Result', [
+                        'id_type' => $request->id_type,
+                        'is_valid' => $validationResult['is_valid'],
+                        'score' => $validationResult['score'],
+                        'status' => $validationResult['status'],
+                        'confidence' => $validationResult['confidence'],
+                        'reasons' => $validationResult['reasons'],
+                        'file_path' => $path
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('ID Validation Pipeline Error: ' . $e->getMessage());
+                    $validationResult = [
+                        'is_valid' => false,
+                        'score' => 0,
+                        'status' => 'rejected',
+                        'confidence' => 0,
+                        'reasons' => ['Validation service unavailable'],
+                        'error_message' => 'Validation service unavailable'
+                    ];
+                }
+            }
+            
+            $idDocumentData = [
+                'id_document_path' => $path,
+                'id_document_original_name' => $file->getClientOriginalName(),
+                'id_document_mime_type' => $file->getMimeType(),
+                'id_document_size' => $file->getSize(),
+                'id_validation_status' => $validationResult ? ($validationResult['is_valid'] ? 'validated' : 'rejected') : 'pending',
+                'id_validation_confidence' => $validationResult['confidence'] ?? 0,
+                'id_validation_details' => $validationResult ? json_encode($validationResult) : null,
+            ];
+        }
+
+        return $idDocumentData;
+    }
+
+    /**
+     * Show ID verification interface
+     */
+    public function idVerification(Request $request)
+    {
+        // Check if a specific visitor ID is requested
+        if ($request->has('visitor_id')) {
+            $visitorId = $request->get('visitor_id');
+            $pendingVerification = Visitor::where('id', $visitorId)
+                ->where('id_verified', false)
+                ->whereNotNull('id_document_path')
+                ->get();
+        } else {
+            // Show all visitors with uploaded documents if no specific visitor requested
+            $pendingVerification = Visitor::where('id_verified', false)
+                ->whereNotNull('id_document_path')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        $verified = Visitor::where('id_verified', true)
+            ->orderBy('id_verified_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return view('visitor.id-verification', compact('pendingVerification', 'verified'));
+    }
+
+    /**
+     * Verify visitor ID
+     */
+    public function verifyId(Request $request, $id)
+    {
+        $visitor = Visitor::findOrFail($id);
+        
+        $request->validate([
+            'verification_method' => 'required|in:upload,scan,manual',
+            'verification_notes' => 'nullable|string|max:1000',
+            'scanned_data' => 'nullable|json'
+        ]);
+
+        $visitor->update([
+            'id_verified' => true,
+            'id_verified_at' => now(),
+            'id_verified_by' => auth()->id(),
+            'id_verification_method' => $request->verification_method,
+            'id_verification_notes' => $request->verification_notes,
+            'id_scanned_data' => $request->scanned_data ? json_decode($request->scanned_data, true) : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'ID verification completed successfully'
+        ]);
+    }
+
+    /**
+     * Reject ID verification
+     */
+    public function rejectId(Request $request, $id)
+    {
+        $visitor = Visitor::findOrFail($id);
+        
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000'
+        ]);
+
+        $visitor->update([
+            'id_verified' => false,
+            'id_verification_notes' => 'REJECTED: ' . $request->rejection_reason,
+            'id_verified_by' => auth()->id(),
+            'id_verified_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'ID verification rejected'
+        ]);
     }
 } 

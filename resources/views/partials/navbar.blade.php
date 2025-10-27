@@ -1,9 +1,9 @@
-<header class="bg-base-100 shadow-sm z-10 border-b border-base-300 dark:border-gray-700" data-theme="light">
+<header class="bg-base-100 shadow-sm z-40 border-b border-base-300 dark:border-gray-700" data-theme="light">
     <div class="px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
-          <button onclick="toggleSidebar()" class="btn btn-ghost btn-sm hover:bg-base-300  transition-all hover:scale-105">
-            <i data-lucide="menu" class="w-5 h-5"></i>
+          <button onclick="toggleSidebar()" aria-label="Toggle sidebar" class="relative z-50 btn btn-ghost btn-sm hover:bg-base-300 transition-all hover:scale-105 pointer-events-auto cursor-pointer">
+            <i data-lucide="menu" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent"></i>
           </button>
         </div>
        <div class="flex items-center gap-4">
@@ -15,10 +15,15 @@
           <!-- Notification Dropdown -->
           <div class="dropdown dropdown-end">
             <!-- Button (standard indicator layout) -->
-            <button id="notification-button" tabindex="0" class="btn btn-ghost btn-circle">
+            <button id="notification-button" tabindex="0" class="btn btn-ghost btn-circle cursor-pointer">
               <div class="indicator">
-                <i data-lucide="bell" class="w-5 h-5"></i>
-                <span class="badge badge-xs badge-error indicator-item"></span>
+                <i data-lucide="bell" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent"></i>
+                @php
+                  $unreadCount = auth()->user() ? auth()->user()->unreadNotifications()->count() : 0;
+                @endphp
+                @if($unreadCount > 0)
+                  <span class="badge badge-xs badge-error indicator-item">{{ $unreadCount }}</span>
+                @endif
               </div>
             </button>
             
@@ -27,125 +32,166 @@
               <!-- Header -->
               <li class="px-4 py-3 border-b  flex justify-between items-center sticky top-0 bg-[#001f54] backdrop-blur-sm z-10">
                 <div class="flex items-center gap-2">
-                  <i data-lucide="bell" class="w-5 h-5 text-blue-300"></i>
+                  <i data-lucide="bell" class="text-xl md:text-2xl lg:text-3xl text-blue-300 transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   <span class="font-semibold text-white">Notifications</span>
                 </div>
-                <button class="text-blue-300 hover:text-white text-sm flex items-center gap-1">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <button class="text-blue-300 hover:text-white text-sm flex items-center gap-1 cursor-pointer" id="clearAllNotificationsBtn">
+                  <i data-lucide="trash-2" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
                   <span>Clear All</span>
                 </button>
               </li>
               
               <!-- Notification Items Container - Scrollable -->
-              <div class="max-h-96 overflow-y-auto">
-                <!-- Notification Items -->
-                <li class="px-4 py-3 hover:scale-105 transition-all">
-                  <a class="bg-blue-700/50 flex items-start gap-3">
-                    <div class="p-2 rounded-full bg-blue-600/30 text-blue-300">
-                      <i data-lucide="calendar-check" class="w-5 h-5 text-white"></i>
+              <div class="max-h-96 overflow-y-auto" id="notificationsContainer">
+                @php
+                  $notifications = auth()->user() ? auth()->user()->unreadNotifications()->latest()->take(10)->get() : collect();
+                @endphp
+                
+                @if($notifications->count() > 0)
+                  @foreach($notifications as $notification)
+                    <li class="px-4 py-3 hover:scale-105 transition-all notification-item" data-notification-id="{{ $notification->id }}">
+                      <a class="bg-blue-700/50 flex items-start gap-3" onclick="markAsRead('{{ $notification->id }}')">
+                        @php
+                          $data = is_string($notification->data) ? json_decode($notification->data, true) : $notification->data;
+                          $type = $notification->type;
+                          $title = $data['title'] ?? 'Notification';
+                          $message = $data['message'] ?? $data['body'] ?? '';
+                          $notificationType = $data['type'] ?? 'info';
+                          
+                          // Determine icon and color based on type
+                          $icon = 'bell';
+                          $bgColor = 'bg-blue-600/30';
+                          $iconColor = 'text-blue-300';
+                          $badge = '';
+                          $bgCard = 'bg-blue-700/50';
+                          
+                          if (isset($data['model_type'])) {
+                            // Use model_type from data if available
+                            $modelType = strtolower($data['model_type']);
+                            
+                            if ($modelType === 'document' || str_contains(strtolower($type), 'document') || str_contains(strtolower($type), 'expiration')) {
+                            $icon = 'file-text';
+                            $bgColor = 'bg-yellow-600/30';
+                            $iconColor = 'text-yellow-300';
+                            $badge = '<span class="text-xs px-1.5 py-0.5 bg-yellow-600 rounded-full">Expiring</span>';
+                            $bgCard = 'bg-yellow-700/50';
+                            } elseif ($modelType === 'facility' || str_contains(strtolower($type), 'facility')) {
+                              $icon = 'building';
+                              $bgColor = 'bg-blue-600/30';
+                              $iconColor = 'text-blue-300';
+                              $badge = '<span class="text-xs px-1.5 py-0.5 bg-blue-600 rounded-full">New</span>';
+                              $bgCard = 'bg-blue-700/50';
+                            } elseif ($modelType === 'visitor' || str_contains(strtolower($type), 'visitor') || str_contains(strtolower($type), 'check')) {
+                              $icon = 'check-circle';
+                              $bgColor = 'bg-green-600/30';
+                              $iconColor = 'text-green-300';
+                              $badge = '<span class="text-xs px-1.5 py-0.5 bg-green-600 rounded-full">New</span>';
+                              $bgCard = 'bg-green-700/50';
+                            } elseif ($modelType === 'legal_case' || str_contains(strtolower($type), 'legal')) {
+                              $icon = 'scale';
+                              $bgColor = 'bg-purple-600/30';
+                              $iconColor = 'text-purple-300';
+                              $bgCard = 'bg-purple-700/50';
+                            } elseif (str_contains(strtolower($type), 'maintenance') || str_contains(strtolower($type), 'alert') || str_contains(strtolower($type), 'security')) {
+                              $icon = 'alert-triangle';
+                              $bgColor = 'bg-red-600/30';
+                              $iconColor = 'text-red-300';
+                              $badge = '<span class="text-xs px-1.5 py-0.5 bg-red-600 rounded-full">Urgent</span>';
+                              $bgCard = 'bg-red-600';
+                            } elseif (str_contains(strtolower($type), 'reservation')) {
+                              $icon = 'calendar-check';
+                              $bgColor = 'bg-blue-600/30';
+                              $iconColor = 'text-blue-300';
+                              $badge = '<span class="text-xs px-1.5 py-0.5 bg-blue-600 rounded-full">New</span>';
+                              $bgCard = 'bg-blue-700/50';
+                            } elseif (str_contains(strtolower($type), 'message')) {
+                              $icon = 'message-circle';
+                              $bgColor = 'bg-purple-600/30';
+                              $iconColor = 'text-purple-300';
+                              $bgCard = 'bg-purple-700/50';
+                            } elseif (str_contains(strtolower($type), 'payment')) {
+                              $icon = 'credit-card';
+                              $bgColor = 'bg-green-600/30';
+                              $iconColor = 'text-green-300';
+                              $bgCard = 'bg-green-700/50';
+                            }
+                          } elseif (str_contains(strtolower($type), 'document') || str_contains(strtolower($type), 'expiration')) {
+                            $icon = 'file-text';
+                            $bgColor = 'bg-yellow-600/30';
+                            $iconColor = 'text-yellow-300';
+                            $badge = '<span class="text-xs px-1.5 py-0.5 bg-yellow-600 rounded-full">Expiring</span>';
+                            $bgCard = 'bg-yellow-700/50';
+                          } elseif (str_contains(strtolower($type), 'maintenance') || str_contains(strtolower($type), 'alert')) {
+                            $icon = 'alert-triangle';
+                            $bgColor = 'bg-red-600/30';
+                            $iconColor = 'text-red-300';
+                            $badge = '<span class="text-xs px-1.5 py-0.5 bg-red-600 rounded-full">Urgent</span>';
+                            $bgCard = 'bg-red-600';
+                          } elseif (str_contains(strtolower($type), 'visitor') || str_contains(strtolower($type), 'check')) {
+                            $icon = 'check-circle';
+                            $bgColor = 'bg-green-600/30';
+                            $iconColor = 'text-green-300';
+                            $badge = '<span class="text-xs px-1.5 py-0.5 bg-green-600 rounded-full">New</span>';
+                            $bgCard = 'bg-green-700/50';
+                          } elseif (str_contains(strtolower($type), 'reservation')) {
+                            $icon = 'calendar-check';
+                            $bgColor = 'bg-blue-600/30';
+                            $iconColor = 'text-blue-300';
+                            $badge = '<span class="text-xs px-1.5 py-0.5 bg-blue-600 rounded-full">New</span>';
+                            $bgCard = 'bg-blue-700/50';
+                          } elseif (str_contains(strtolower($type), 'security')) {
+                            $icon = 'alert-octagon';
+                            $bgColor = 'bg-red-600/30';
+                            $iconColor = 'text-red-300';
+                            $badge = '<span class="text-xs px-1.5 py-0.5 bg-red-600 rounded-full">Alert</span>';
+                            $bgCard = 'bg-red-600';
+                          } elseif (str_contains(strtolower($type), 'message')) {
+                            $icon = 'message-circle';
+                            $bgColor = 'bg-purple-600/30';
+                            $iconColor = 'text-purple-300';
+                            $bgCard = 'bg-purple-700/50';
+                          } elseif (str_contains(strtolower($type), 'payment')) {
+                            $icon = 'credit-card';
+                            $bgColor = 'bg-green-600/30';
+                            $iconColor = 'text-green-300';
+                            $bgCard = 'bg-green-700/50';
+                          }
+                        @endphp
+                        <div class="p-2 rounded-full {{ $bgColor }}">
+                          <i data-lucide="{{ $icon }}" class="text-lg md:text-xl lg:text-2xl text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                     </div>
                     <div class="flex-1">
                       <p class="font-medium text-white flex items-center gap-2">
-                        New Reservation
-                        <span class="text-xs px-1.5 py-0.5 bg-blue-600 rounded-full">New</span>
+                            {{ $title }}
+                            {!! $badge !!}
                       </p>
-                      <p class="text-sm text-white mt-1">John Doe booked Deluxe Suite for 3 nights</p>
+                          <p class="text-sm text-white mt-1">{{ $message }}</p>
                       <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
-                        10 minutes ago
+                        <i data-lucide="clock" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
+                            {{ $notification->created_at->diffForHumans() }}
                       </p>
                     </div>
                   </a>
                 </li>
-                
-                <li class="px-4 py-3 hover:scale-105 transition-all">
-                  <a class="bg-blue-700/50  flex items-start gap-3">
-                    <div class="p-2 rounded-full bg-green-600/30 text-green-300">
-                      <i data-lucide="check-circle" class="w-5 h-5 text-white"></i>
+                  @endforeach
+                @else
+                  <!-- Empty State -->
+                  <li class="px-4 py-8 text-center">
+                    <div class="flex flex-col items-center gap-2">
+                      <div class="p-4 rounded-full bg-blue-600/20">
+                        <i data-lucide="bell-off" class="text-4xl text-blue-300"></i>
                     </div>
-                    <div class="flex-1">
-                      <p class="font-medium text-white">Check-in Complete</p>
-                      <p class="text-sm text-white mt-1">Room 302 has been checked in</p>
-                      <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
-                        1 hour ago
-                      </p>
+                      <p class="text-white font-medium">No notifications</p>
+                      <p class="text-sm text-blue-300">You're all caught up!</p>
                     </div>
-                  </a>
                 </li>
-                
-                <li class="px-4 py-3 hover:scale-105 transition-all">
-                  <a class="bg-red-600 flex items-start gap-3">
-                    <div class="p-2 rounded-full bg-yellow-600/30 text-yellow-300">
-                      <i data-lucide="alert-triangle" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-medium text-white flex items-center gap-2">
-                        Maintenance Request
-                        <span class="text-xs px-1.5 py-0.5 bg-yellow-600 rounded-full">Urgent</span>
-                      </p>
-                      <p class="text-sm text-white mt-1">AC not working in Room 215</p>
-                      <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
-                        3 hours ago
-                      </p>
-                    </div>
-                  </a>
-                </li>
-
-                <li class="px-4 py-3 hover:scale-105 transition-all">
-                  <a class="bg-blue-700/50  flex items-start gap-3">
-                    <div class="p-2 rounded-full bg-purple-600/30 text-purple-300">
-                      <i data-lucide="message-circle" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-medium text-white">Guest Message</p>
-                      <p class="text-sm text-white mt-1">Request for late checkout</p>
-                      <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
-                        5 hours ago
-                      </p>
-                    </div>
-                  </a>
-                </li>
-
-                <li class="px-4 py-3 hover:scale-105 transition-all">
-                  <a class="bg-red-600 flex items-start gap-3">
-                    <div class="p-2 rounded-full bg-red-600/30 text-red-300">
-                      <i data-lucide="alert-octagon" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-medium text-white">Security Alert</p>
-                      <p class="text-sm text-white mt-1">Unauthorized access attempt</p>
-                      <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
-                        1 day ago
-                      </p>
-                    </div>
-                  </a>
-                </li>
-
-                <li class="px-4 py-3 hover:scale-105 transition-all">
-                  <a class="bg-blue-700/50  flex items-start gap-3">
-                    <div class="p-2 rounded-full bg-blue-600/30 text-blue-300">
-                      <i data-lucide="credit-card" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-medium text-white">Payment Received</p>
-                      <p class="text-sm text-white mt-1">$450 for Room 204</p>
-                      <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
-                        2 days ago
-                      </p>
-                    </div>
-                  </a>
-                </li>
+                @endif
               </div>
               
               <!-- Footer -->
               <li class="px-4 py-2 border-t  sticky bottom-0 bg-[#001f54] backdrop-blur-sm">
-                <a class="text-center text-blue-300 hover:text-white text-sm flex items-center justify-center gap-1">
-                  <i data-lucide="list" class="w-4 h-4"></i>
+                <a href="#" class="text-center text-blue-300 hover:text-white text-sm flex items-center justify-center gap-1 cursor-pointer">
+                  <i data-lucide="list" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
                   <span>View All Notifications</span>
                 </a>
               </li>
@@ -154,7 +200,7 @@
 
           <!-- User Dropdown -->
           <div class="dropdown dropdown-end">
-            <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+            <label tabindex="0" class="btn btn-ghost btn-circle avatar cursor-pointer">
               <div class="w-8 rounded-full">
                 <img src="{{asset('images/avatars/empl.jpg')}}" alt="User Avatar" />
               </div>
@@ -202,20 +248,20 @@
               
               <!-- Menu Items -->
               <li>
-                <a class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
-                  <i data-lucide="user" class="w-4 h-4"></i>
+                <a class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors cursor-pointer">
+                  <i data-lucide="user" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
                   <span>Profile</span>
                 </a>
               </li>
               <li>
-                <a class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
-                  <i data-lucide="settings" class="w-4 h-4"></i>
+                <a class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors cursor-pointer">
+                  <i data-lucide="settings" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
                   <span>Settings</span>
                 </a>
               </li>
               <li>
-                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors">
-                  <i data-lucide="log-out" class="w-4 h-4"></i>
+                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-4 py-2 text-white hover:bg-blue-700/50 transition-colors cursor-pointer">
+                  <i data-lucide="log-out" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
                   <span>Sign out</span>
                 </a>
               </li>
@@ -230,5 +276,176 @@
     </div>
   </header>
 
-<style>
-</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clearAllBtn = document.getElementById('clearAllNotificationsBtn');
+    const notificationItems = document.querySelectorAll('.notification-item');
+    
+    // Clear All Notifications functionality
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Show confirmation
+            if (confirm('Are you sure you want to clear all notifications?')) {
+                // Call API to mark all notifications as read
+                fetch('/notifications/mark-all-as-read', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove all notification items except View All button
+                    const itemsToRemove = document.querySelectorAll('.notification-item');
+                    itemsToRemove.forEach(item => {
+                        item.style.transition = 'opacity 0.3s ease-out';
+                        item.style.opacity = '0';
+                        setTimeout(() => {
+                            item.remove();
+                        }, 300);
+                    });
+                    
+                    // Update badge count to 0
+                    const badge = document.querySelector('.badge-error.indicator-item');
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Show success message
+                    showNotification('All notifications cleared successfully!', 'success');
+                })
+                .catch(error => {
+                    console.error('Error clearing notifications:', error);
+                    showNotification('Error clearing notifications', 'error');
+                });
+            }
+        });
+    }
+    
+    // View All Notifications functionality
+    const viewAllLinks = document.querySelectorAll('.dropdown-content li a');
+    if (viewAllLinks.length > 0) {
+        // Find the link with "View All Notifications" text (the last one)
+        const viewAllLink = Array.from(viewAllLinks).find(link => 
+            link.textContent.trim().includes('View All')
+        );
+        
+        if (viewAllLink) {
+            viewAllLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Redirecting to all notifications page...', 'info');
+                
+                // You can uncomment this to redirect to a notifications page if you have one
+                // window.location.href = '/notifications';
+            });
+        }
+    }
+    
+    // Handle individual notification clicks
+    notificationItems.forEach(item => {
+        const link = item.querySelector('a');
+        if (link) {
+            link.addEventListener('click', function(e) {
+                // Mark as read by adding visual feedback
+                if (!this.classList.contains('opacity-70')) {
+                    this.classList.add('opacity-70');
+                }
+                
+                // You can add more functionality here for specific notification types
+                const notificationTitle = this.querySelector('.font-medium')?.textContent;
+                
+                if (notificationTitle) {
+                    // Example: Route to specific pages based on notification type
+                    if (notificationTitle.includes('Reservation')) {
+                        // Handle reservation notification
+                        console.log('Reservation notification clicked');
+                    } else if (notificationTitle.includes('Maintenance')) {
+                        // Handle maintenance notification
+                        console.log('Maintenance notification clicked');
+                    } else if (notificationTitle.includes('Check-in')) {
+                        // Handle check-in notification
+                        console.log('Check-in notification clicked');
+                    }
+                }
+            });
+        }
+    });
+    
+    // Function to show notification messages
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[200] ${
+            type === 'success' ? 'bg-green-500' : 
+            type === 'error' ? 'bg-red-500' : 
+            'bg-blue-500'
+        } text-white`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.transition = 'opacity 0.3s ease-out';
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Auto-refresh notification count every 2 seconds
+    let lastNotificationCount = {{ auth()->user() ? auth()->user()->unreadNotifications()->count() : 0 }};
+    
+    setInterval(() => {
+        fetch('/api/notifications/count', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.count !== lastNotificationCount) {
+                // If new notifications arrived, reload the page to show them
+                if (data.count > lastNotificationCount) {
+                    location.reload();
+                } else {
+                    lastNotificationCount = data.count;
+                }
+            }
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+    }, 2000); // Check every 2 seconds
+});
+
+// Mark notification as read
+function markAsRead(notificationId) {
+    fetch('/notifications/' + notificationId + '/mark-as-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update badge count
+        const badge = document.querySelector('.badge-error.indicator-item');
+        if (badge) {
+            const currentCount = parseInt(badge.textContent) || 0;
+            const newCount = Math.max(0, currentCount - 1);
+            if (newCount > 0) {
+                badge.textContent = newCount;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+</script>

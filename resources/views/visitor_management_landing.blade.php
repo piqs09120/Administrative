@@ -100,6 +100,126 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
+        .file-upload-container {
+            position: relative;
+        }
+        
+        .file-upload-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 120px;
+        }
+        
+        .file-upload-label:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        .upload-icon {
+            font-size: 2rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-text {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        
+        .upload-hint {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .file-preview {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        
+        .file-info span:first-child {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .file-info span:last-child {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .remove-file-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .remove-file-btn:hover {
+            background-color: #dc2626;
+        }
+        
+        .validation-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .validation-indicator.valid {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .validation-indicator.invalid {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .validation-indicator.pending {
+            background-color: #f59e0b;
+            color: white;
+        }
     </style>
 </head>
 
@@ -338,18 +458,37 @@
                                         <select id="id_type" name="id_type" required
                                                 class="form-input w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50 appearance-none">
                                             <option value="">Select ID Type</option>
-                                            <option value="Passport">Passport</option>
-                                            <option value="Driver's License">Driver's License</option>
-                                            <option value="National ID">National ID</option>
-                                            <option value="Company ID">Company ID</option>
-                                            <option value="Other">Other</option>
+                                            <optgroup label="Primary IDs">
+                                                <option value="philnational_id" data-accept="image/*">Philippine National ID (PhilSys)</option>
+                                                <option value="passport" data-accept="image/*">Philippine Passport</option>
+                                                <option value="drivers_license" data-accept="image/*">Driver's License</option>
+                                            </optgroup>
+                                            <optgroup label="Government IDs">
+                                                <option value="umid" data-accept="image/*">Unified Multipurpose ID (UMID)</option>
+                                                <option value="postal_id" data-accept="image/*">Postal ID</option>
+                                                <option value="voters_id" data-accept="image/*">Voter's ID</option>
+                                                <option value="sss_id" data-accept="image/*">SSS ID</option>
+                                                <option value="gsis_id" data-accept="image/*">GSIS ID</option>
+                                                <option value="tin_id" data-accept="image/*">TIN ID</option>
+                                            </optgroup>
+                                            <optgroup label="Professional IDs">
+                                                <option value="prc_id" data-accept="image/*">Professional Regulation Commission (PRC)</option>
+                                                <option value="barangay_id" data-accept="image/*">Barangay ID</option>
+                                                <option value="senior_citizen_id" data-accept="image/*">Senior Citizen ID</option>
+                                                <option value="pwd_id" data-accept="image/*">PWD ID</option>
+                                            </optgroup>
+                                            <optgroup label="Other Valid IDs">
+                                                <option value="company_id" data-accept="image/*">Company ID</option>
+                                                <option value="school_id" data-accept="image/*">School ID</option>
+                                                <option value="other_id" data-accept="image/*">Other Valid ID</option>
+                                            </optgroup>
                                         </select>
                                         <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                                     </div>
                                 </div>
                                 
                                 <!-- ID/Passport Number -->
-                                <div class="space-y-2 md:col-span-2">
+                                <div class="space-y-2">
                                     <label for="id_number" class="block text-sm font-semibold text-gray-700">
                                         ID/Passport Number <span class="text-red-500">*</span>
                                     </label>
@@ -358,6 +497,42 @@
                                         <input type="text" id="id_number" name="id_number" required
                                                class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50"
                                                placeholder="Enter ID or passport number">
+                                    </div>
+                                </div>
+
+                                <!-- ID Document Upload -->
+                                <div class="space-y-2">
+                                    <label for="id_document" class="block text-sm font-semibold text-gray-700">
+                                        ID Document Upload <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="file-upload-container">
+                                        <input type="file" name="id_document" id="id_document" 
+                                               class="file-upload-input" accept="image/*,.pdf" required>
+                                        <label for="id_document" class="file-upload-label">
+                                            <i class="fas fa-upload upload-icon"></i>
+                                            <span class="upload-text" id="upload_text">Upload ID Document</span>
+                                            <span class="upload-hint" id="upload_hint">Supported: JPG, PNG, PDF (Max 5MB)</span>
+                                        </label>
+                                        <div class="file-preview" id="id_document_preview" style="display: none;">
+                                            <img id="preview_image" src="" alt="ID Document Preview" style="max-width: 200px; max-height: 150px;">
+                                            <div class="file-info">
+                                                <span id="file_name"></span>
+                                                <span id="file_size"></span>
+                                            </div>
+                                            <button type="button" onclick="removeFilePreview()" class="remove-file-btn">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- ID Type Specific Instructions -->
+                                    <div id="id_instructions" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                                        <div class="flex items-start">
+                                            <i class="fas fa-info-circle text-blue-600 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-sm text-blue-800 font-medium" id="id_instruction_title">Please upload the correct ID document</p>
+                                                <p class="text-xs text-blue-700 mt-1" id="id_instruction_text">Make sure the document is clear and readable</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -415,14 +590,49 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Visit Type -->
+                                <div class="space-y-2 md:col-span-2">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-4">
+                                        Visit Type <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-all duration-200 bg-yellow-50">
+                                            <input type="radio" name="visit_type" value="immediate" class="mr-3 text-blue-600" checked>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">Immediate Visit</div>
+                                                <div class="text-sm text-gray-600">Visit today or soon</div>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-all duration-200 bg-yellow-50">
+                                            <input type="radio" name="visit_type" value="preschedule" class="mr-3 text-blue-600">
+                                            <div>
+                                                <div class="font-semibold text-gray-900">Pre-Schedule Visit</div>
+                                                <div class="text-sm text-gray-600">Schedule for a future date</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <!-- Arrival Date -->
-                                <div class="space-y-2">
+                                <div class="space-y-2" id="arrival_date_container">
                                     <label for="arrival_date" class="block text-sm font-semibold text-gray-700">
                                         Arrival Date <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                         <input type="date" id="arrival_date" name="arrival_date" required
+                                               class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50">
+                                    </div>
+                                </div>
+
+                                <!-- Scheduled Date (for pre-schedule) -->
+                                <div class="space-y-2 hidden" id="scheduled_date_container">
+                                    <label for="scheduled_date" class="block text-sm font-semibold text-gray-700">
+                                        Scheduled Date <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        <input type="date" id="scheduled_date" name="scheduled_date"
                                                class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50">
                                     </div>
                                 </div>
@@ -498,7 +708,7 @@
                         <!-- Submit Button -->
                         <div class="text-center pt-6">
                             <button type="submit" 
-                                    class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto">
+                                    class="bg-gradient-to-r from-[#F7A923] to-[#E6940F] hover:from-[#E6940F] hover:to-[#D2840E] text-[#2C3E50] px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto">
                                 <i class="fas fa-user-plus mr-3"></i>
                                 Register Visitor
                             </button>
@@ -642,6 +852,29 @@
             });
         });
         
+        // Visit Type Toggle
+        document.querySelectorAll('input[name="visit_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const arrivalDateContainer = document.getElementById('arrival_date_container');
+                const scheduledDateContainer = document.getElementById('scheduled_date_container');
+                const arrivalDateInput = document.getElementById('arrival_date');
+                const scheduledDateInput = document.getElementById('scheduled_date');
+                
+                if (this.value === 'preschedule') {
+                    arrivalDateContainer.classList.add('hidden');
+                    scheduledDateContainer.classList.remove('hidden');
+                    arrivalDateInput.removeAttribute('required');
+                    scheduledDateInput.setAttribute('required', 'required');
+                    scheduledDateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+                } else {
+                    arrivalDateContainer.classList.remove('hidden');
+                    scheduledDateContainer.classList.add('hidden');
+                    arrivalDateInput.setAttribute('required', 'required');
+                    scheduledDateInput.removeAttribute('required');
+                }
+            });
+        });
+
         // Visitor Registration Form Handling
         document.getElementById('visitorRegistrationForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -663,11 +896,25 @@
             }
             
             // Add additional fields that might be needed
+            const visitType = formData.get('visit_type');
             const arrivalDate = formData.get('arrival_date');
             const arrivalTime = formData.get('arrival_time');
-            if (arrivalDate && arrivalTime) {
-                formData.append('time_in', `${arrivalDate} ${arrivalTime}`);
+            const scheduledDate = formData.get('scheduled_date');
+            
+            if (visitType === 'preschedule') {
+                // For pre-scheduled visits
+                if (scheduledDate && arrivalTime) {
+                    formData.append('scheduled_date', scheduledDate);
+                    formData.append('scheduled_time', arrivalTime);
+                    formData.append('status', 'scheduled');
+                }
+            } else {
+                // For immediate visits
+                if (arrivalDate && arrivalTime) {
+                    formData.append('time_in', `${arrivalDate} ${arrivalTime}`);
+                }
             }
+            
             if (formData.get('special_requirements')) {
                 formData.append('special_instructions', formData.get('special_requirements'));
             }
@@ -692,16 +939,12 @@
                     throw new Error('INVALID_JSON_RESPONSE');
                 }
                 if (response.ok && data && data.success) {
-                    // Keep user on landing page, show success with link to New Visitors
-                    showNotification('Visitor registered! Open New Visitors to review.', 'success');
-                    // Optional: provide quick link
-                    setTimeout(() => {
-                        const a = document.createElement('a');
-                        a.href = data.redirect || '{{ route('visitor.create') }}';
-                        a.target = '_blank';
-                        a.rel = 'noopener noreferrer';
-                        a.click();
-                    }, 500);
+                    // Success: stay on landing page only; do not open admin tab
+                    if (visitType === 'preschedule') {
+                        showNotification('Visitor pre-scheduled successfully! You will receive an email with your QR pass and code for the scheduled date.', 'success');
+                    } else {
+                        showNotification('Visitor registered! Entry added to New Visitors queue.', 'success');
+                    }
                     form.reset();
                     return;
                 }
@@ -749,6 +992,268 @@
                 }, 300);
             }, 5000);
         }
+
+        // ID Document Upload Functions
+        function removeFilePreview() {
+            const fileInput = document.getElementById('id_document');
+            const preview = document.getElementById('id_document_preview');
+            
+            fileInput.value = '';
+            preview.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // ID Type Instructions Mapping
+        const idTypeInstructions = {
+            'philnational_id': {
+                title: 'Philippine National ID (PhilSys)',
+                text: 'Upload a clear photo of your Philippine National ID card. Make sure all text is readable.'
+            },
+            'passport': {
+                title: 'Philippine Passport',
+                text: 'Upload a clear photo of your passport information page. Ensure passport number and personal details are visible.'
+            },
+            'drivers_license': {
+                title: 'Driver\'s License',
+                text: 'Upload a clear photo of your driver\'s license. Both front and back sides are acceptable.'
+            },
+            'umid': {
+                title: 'Unified Multipurpose ID (UMID)',
+                text: 'Upload a clear photo of your UMID card. Make sure the ID number and personal information are visible.'
+            },
+            'postal_id': {
+                title: 'Postal ID',
+                text: 'Upload a clear photo of your Postal ID. Ensure the ID number and address are readable.'
+            },
+            'voters_id': {
+                title: 'Voter\'s ID',
+                text: 'Upload a clear photo of your Voter\'s ID. Make sure the voter\'s number is visible.'
+            },
+            'sss_id': {
+                title: 'SSS ID',
+                text: 'Upload a clear photo of your SSS ID card. Ensure the SSS number is readable.'
+            },
+            'gsis_id': {
+                title: 'GSIS ID',
+                text: 'Upload a clear photo of your GSIS ID card. Make sure the GSIS number is visible.'
+            },
+            'tin_id': {
+                title: 'TIN ID',
+                text: 'Upload a clear photo of your TIN ID card. Ensure the TIN number is readable.'
+            },
+            'prc_id': {
+                title: 'Professional Regulation Commission (PRC)',
+                text: 'Upload a clear photo of your PRC ID. Make sure the PRC number and profession are visible.'
+            },
+            'barangay_id': {
+                title: 'Barangay ID',
+                text: 'Upload a clear photo of your Barangay ID. Ensure the barangay name and ID number are readable.'
+            },
+            'senior_citizen_id': {
+                title: 'Senior Citizen ID',
+                text: 'Upload a clear photo of your Senior Citizen ID. Make sure the ID number is visible.'
+            },
+            'pwd_id': {
+                title: 'PWD ID',
+                text: 'Upload a clear photo of your PWD ID. Ensure the ID number and disability type are readable.'
+            },
+            'company_id': {
+                title: 'Company ID',
+                text: 'Upload a clear photo of your Company ID. Make sure the company name and employee details are visible.'
+            },
+            'school_id': {
+                title: 'School ID',
+                text: 'Upload a clear photo of your School ID. Ensure the school name and student information are readable.'
+            },
+            'other_id': {
+                title: 'Other Valid ID',
+                text: 'Upload a clear photo of your valid ID document. Make sure all important information is visible.'
+            }
+        };
+
+        // ID Type Change Handler
+        function handleIdTypeChange() {
+            const idTypeSelect = document.getElementById('id_type');
+            const instructionsDiv = document.getElementById('id_instructions');
+            const instructionTitle = document.getElementById('id_instruction_title');
+            const instructionText = document.getElementById('id_instruction_text');
+            const uploadText = document.getElementById('upload_text');
+            const fileInput = document.getElementById('id_document');
+            
+            if (idTypeSelect.value && idTypeInstructions[idTypeSelect.value]) {
+                const instruction = idTypeInstructions[idTypeSelect.value];
+                
+                // Show instructions
+                instructionTitle.textContent = instruction.title;
+                instructionText.textContent = instruction.text;
+                instructionsDiv.classList.remove('hidden');
+                
+                // Update upload text
+                uploadText.textContent = `Upload ${instruction.title}`;
+                
+                // Clear any existing file
+                fileInput.value = '';
+                removeFilePreview();
+                
+                // Set file input accept attribute based on ID type
+                fileInput.setAttribute('accept', 'image/*,.pdf');
+                
+            } else {
+                // Hide instructions if no ID type selected
+                instructionsDiv.classList.add('hidden');
+                uploadText.textContent = 'Upload ID Document';
+            }
+        }
+
+        // Enhanced File Upload Handler with AI Validation
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            const idTypeSelect = document.getElementById('id_type');
+            const idNumberInput = document.getElementById('id_number');
+            
+            if (!file) return;
+
+            // Check if ID type is selected
+            if (!idTypeSelect.value) {
+                alert('Please select an ID type first before uploading a document.');
+                event.target.value = '';
+                return;
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                event.target.value = '';
+                return;
+            }
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload a valid image (JPG, PNG) or PDF file');
+                event.target.value = '';
+                return;
+            }
+
+            // Get selected ID type instruction
+            const selectedIdType = idTypeSelect.value;
+            const instruction = idTypeInstructions[selectedIdType];
+            
+            // Show AI validation loading message
+            showNotification('Analyzing document with AI... Please wait.', 'info');
+            
+            // Show preview immediately
+            const preview = document.getElementById('id_document_preview');
+            const previewImage = document.getElementById('preview_image');
+            const fileName = document.getElementById('file_name');
+            const fileSize = document.getElementById('file_size');
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImage.style.display = 'none';
+            }
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            preview.style.display = 'flex';
+            
+            // Perform AI validation via AJAX
+            validateIdDocumentWithAI(file, selectedIdType, idNumberInput.value);
+        }
+
+        // AI Validation Function
+        function validateIdDocumentWithAI(file, idType, idNumber) {
+            const formData = new FormData();
+            formData.append('id_document', file);
+            formData.append('id_type', idType);
+            formData.append('id_number', idNumber);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+            fetch('/api/validate-id-document', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.validation.is_valid) {
+                        showNotification(`✅ Document validated! This appears to be a valid ${data.validation.id_type_name} (Score: ${data.validation.score.toFixed(2)}, Confidence: ${data.validation.confidence.toFixed(1)}%)`, 'success');
+                        
+                        // Add validation indicator to the preview
+                        const preview = document.getElementById('id_document_preview');
+                        const validationIndicator = document.createElement('div');
+                        validationIndicator.className = 'validation-indicator valid';
+                        validationIndicator.innerHTML = '<i class="fas fa-check-circle"></i> Validated';
+                        preview.appendChild(validationIndicator);
+                        
+                    } else {
+                        let statusMessage = '';
+                        if (data.validation.status === 'review') {
+                            statusMessage = '⚠️ Document requires manual review. ';
+                        } else {
+                            statusMessage = '❌ Document validation failed! ';
+                        }
+                        
+                        showNotification(`${statusMessage}This does not appear to be a valid ${data.validation.id_type_name}. (Score: ${data.validation.score.toFixed(2)}, Confidence: ${data.validation.confidence.toFixed(1)}%)`, 'error');
+                        
+                        // Clear the file input
+                        document.getElementById('id_document').value = '';
+                        removeFilePreview();
+                        
+                        // Show detailed validation message
+                        if (data.validation.reasons && data.validation.reasons.length > 0) {
+                            let errorMessage = 'Validation failed:\n';
+                            errorMessage += data.validation.reasons.join('\n');
+                            
+                            if (data.validation.predicted_id_type && data.validation.predicted_id_type !== idType) {
+                                errorMessage += `\n\nDetected ID type: ${data.validation.predicted_id_type}`;
+                                errorMessage += `\nSelected ID type: ${idType}`;
+                                errorMessage += '\n\nPlease select the correct ID type or upload the correct document.';
+                            }
+                            
+                            alert(errorMessage);
+                        }
+                    }
+                } else {
+                    showNotification('⚠️ Validation service temporarily unavailable. Document uploaded but not validated.', 'warning');
+                }
+            })
+            .catch(error => {
+                console.error('Validation error:', error);
+                showNotification('⚠️ Validation service temporarily unavailable. Document uploaded but not validated.', 'warning');
+            });
+        }
+
+        // Initialize file upload event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('id_document');
+            const idTypeSelect = document.getElementById('id_type');
+            
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+            
+            if (idTypeSelect) {
+                idTypeSelect.addEventListener('change', handleIdTypeChange);
+            }
+        });
     </script>
 </body>
 </html>

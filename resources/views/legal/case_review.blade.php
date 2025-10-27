@@ -12,40 +12,28 @@
   
   <style>
     :root {
-      --color-regal-navy: #1e3a8a;
-      --color-charcoal-ink: #1f2937;
+      --color-regal-navy: #F7A923;
+      --color-charcoal-ink: #2C3E50;
       --color-snow-mist: #f3f4f6;
       --color-white: #ffffff;
       --color-modern-teal: #0d9488;
-      --color-golden-ember: #d97706;
+      --color-golden-ember: #E6940F;
       --color-danger-red: #dc2626;
+      --color-button-secondary: #E6940F;
     }
     
-    .timeline-item {
-      position: relative;
-      padding-left: 2rem;
+    /* Force button primary to use orange-yellow */
+    .btn.btn-primary {
+      background-color: #F7A923 !important;
+      border-color: #F7A923 !important;
+      color: #2C3E50 !important;
     }
     
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: 0.5rem;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: #e5e7eb;
+    .btn.btn-primary:hover {
+      background-color: #E6940F !important;
+      border-color: #E6940F !important;
     }
     
-    .timeline-item::after {
-      content: '';
-      position: absolute;
-      left: 0.25rem;
-      top: 0.5rem;
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 50%;
-      background: var(--color-regal-navy);
-    }
     
     .evidence-card {
       transition: all 0.2s ease;
@@ -94,9 +82,9 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="w-full">
           <!-- Main Content - Case Details -->
-          <div class="lg:col-span-2 space-y-6">
+          <div class="space-y-6">
             <!-- Case Overview -->
             <div class="card bg-white shadow-xl">
               <div class="card-body">
@@ -113,7 +101,7 @@
                   </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <h3 class="font-semibold text-gray-700 mb-2">Case Title</h3>
                     <p class="text-gray-900">{{ $case->case_title ?? 'Untitled Case' }}</p>
@@ -178,7 +166,7 @@
                   </button>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="evidenceGrid">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="evidenceGrid">
                   <!-- Sample Evidence Cards -->
                   <div class="evidence-card card bg-base-100 shadow-md border">
                     <div class="card-body p-4">
@@ -227,174 +215,60 @@
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Investigation Timeline -->
-            <div class="card bg-white shadow-xl">
-              <div class="card-body">
-                <h2 class="card-title text-xl mb-6 flex items-center">
-                  <i data-lucide="clock" class="w-5 h-5 text-orange-500 mr-2" style="color: var(--color-golden-ember);"></i>
-                  Investigation Timeline
-                </h2>
-                
-                <div class="space-y-4">
-                  <div class="timeline-item">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  
+                  <div class="evidence-card card bg-base-100 shadow-md border">
+                    <div class="card-body p-4">
                       <div class="flex items-center gap-3 mb-2">
-                        <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i>
-                        <h4 class="font-semibold text-blue-800">Case Created</h4>
-                        <span class="text-sm text-blue-600">{{ $case->created_at ? $case->created_at->format('M d, Y H:i') : 'N/A' }}</span>
+                        <i data-lucide="file-check" class="w-8 h-8 text-orange-500"></i>
+                        <div class="flex-1">
+                          <h4 class="font-semibold text-sm">Legal Documents</h4>
+                          <p class="text-xs text-gray-500">PDF • 3.2 MB</p>
+                        </div>
                       </div>
-                      <p class="text-sm text-blue-700">Legal case was created and assigned for review</p>
+                      <div class="flex gap-2">
+                        <button class="btn btn-xs btn-outline">View</button>
+                        <button class="btn btn-xs btn-primary">Download</button>
+                      </div>
                     </div>
                   </div>
                   
-                  <div class="timeline-item">
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div class="evidence-card card bg-base-100 shadow-md border">
+                    <div class="card-body p-4">
                       <div class="flex items-center gap-3 mb-2">
-                        <i data-lucide="search" class="w-5 h-5 text-yellow-600"></i>
-                        <h4 class="font-semibold text-yellow-800">Investigation Started</h4>
-                        <span class="text-sm text-yellow-600">Pending</span>
+                        <i data-lucide="phone" class="w-8 h-8 text-red-500"></i>
+                        <div class="flex-1">
+                          <h4 class="font-semibold text-sm">Audio Recording</h4>
+                          <p class="text-xs text-gray-500">MP3 • 4.1 MB</p>
+                        </div>
                       </div>
-                      <p class="text-sm text-yellow-700">Initial investigation and evidence gathering phase</p>
+                      <div class="flex gap-2">
+                        <button class="btn btn-xs btn-outline">View</button>
+                        <button class="btn btn-xs btn-primary">Download</button>
+                      </div>
                     </div>
                   </div>
                   
-                  <div class="timeline-item">
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div class="evidence-card card bg-base-100 shadow-md border">
+                    <div class="card-body p-4">
                       <div class="flex items-center gap-3 mb-2">
-                        <i data-lucide="gavel" class="w-5 h-5 text-gray-600"></i>
-                        <h4 class="font-semibold text-gray-800">Legal Review</h4>
-                        <span class="text-sm text-gray-600">Pending</span>
+                        <i data-lucide="mail" class="w-8 h-8 text-indigo-500"></i>
+                        <div class="flex-1">
+                          <h4 class="font-semibold text-sm">Email Evidence</h4>
+                          <p class="text-xs text-gray-500">EML • 0.8 MB</p>
+                        </div>
                       </div>
-                      <p class="text-sm text-gray-700">Legal team review and compliance assessment</p>
-                    </div>
-                  </div>
-                  
-                  <div class="timeline-item">
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div class="flex items-center gap-3 mb-2">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-gray-600"></i>
-                        <h4 class="font-semibold text-gray-800">Resolution</h4>
-                        <span class="text-sm text-gray-600">Pending</span>
+                      <div class="flex gap-2">
+                        <button class="btn btn-xs btn-outline">View</button>
+                        <button class="btn btn-xs btn-primary">Download</button>
                       </div>
-                      <p class="text-sm text-gray-700">Final decision and case resolution</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
 
-          <!-- Sidebar - Review Actions -->
-          <div class="space-y-6">
-            <!-- Review Actions -->
-            <div class="card bg-white shadow-xl">
-              <div class="card-body">
-                <h2 class="card-title text-xl mb-6 flex items-center">
-                  <i data-lucide="edit" class="w-5 h-5 text-purple-500 mr-2"></i>
-                  Review Actions
-                </h2>
-                
-                <div class="space-y-4">
-                  <button onclick="openInvestigationModal()" class="btn btn-outline w-full justify-start">
-                    <i data-lucide="search" class="w-4 h-4 mr-2"></i>
-                    Start Investigation
-                  </button>
-                  
-                  <button onclick="openLegalNotesModal()" class="btn btn-outline w-full justify-start">
-                    <i data-lucide="sticky-note" class="w-4 h-4 mr-2"></i>
-                    Add Legal Notes
-                  </button>
-                  
-                  <a href="{{ route('legal.cases.compliance', $case->id) }}" class="btn btn-outline w-full justify-start">
-                    <i data-lucide="shield-check" class="w-4 h-4 mr-2"></i>
-                    Compliance Review
-                  </a>
-                  
-                  <button onclick="openWitnessModal()" class="btn btn-outline w-full justify-start">
-                    <i data-lucide="users" class="w-4 h-4 mr-2"></i>
-                    Interview Witnesses
-                  </button>
-                  
-                  <button onclick="openExternalCounselModal()" class="btn btn-outline w-full justify-start">
-                    <i data-lucide="briefcase" class="w-4 h-4 mr-2"></i>
-                    Consult External Counsel
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Legal Decision -->
-            <div class="card bg-white shadow-xl">
-              <div class="card-body">
-                <h2 class="card-title text-xl mb-6 flex items-center">
-                  <i data-lucide="gavel" class="w-5 h-5 text-red-500 mr-2"></i>
-                  Legal Decision
-                </h2>
-                
-                <div class="space-y-4">
-                  <button onclick="openApproveModal()" class="btn btn-success w-full">
-                    <i data-lucide="check" class="w-4 h-4 mr-2"></i>
-                    Approve Case
-                  </button>
-                  
-                  <button onclick="openDeclineModal()" class="btn btn-error w-full">
-                    <i data-lucide="x" class="w-4 h-4 mr-2"></i>
-                    Decline Case
-                  </button>
-                  
-                  <button onclick="openEscalateModal()" class="btn btn-warning w-full">
-                    <i data-lucide="arrow-up" class="w-4 h-4 mr-2"></i>
-                    Escalate Case
-                  </button>
-                  
-                  <button onclick="openHoldModal()" class="btn btn-info w-full">
-                    <i data-lucide="pause" class="w-4 h-4 mr-2"></i>
-                    Put on Hold
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Case Statistics -->
-            <div class="card bg-white shadow-xl">
-              <div class="card-body">
-                <h2 class="card-title text-xl mb-6 flex items-center">
-                  <i data-lucide="bar-chart" class="w-5 h-5 text-indigo-500 mr-2"></i>
-                  Case Statistics
-                </h2>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Days Open</span>
-                    <span class="font-semibold">{{ $case->created_at ? $case->created_at->diffInDays(now()) : 0 }}</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Evidence Items</span>
-                    <span class="font-semibold">3</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Witnesses</span>
-                    <span class="font-semibold">2</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Legal Notes</span>
-                    <span class="font-semibold">5</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
 
   <!-- Investigation Modal -->
   <div id="investigationModal" class="modal">

@@ -4,10 +4,11 @@
   --color-charcoal-ink: #2C3E50;
   --color-white: #FFFFFF;
   --color-snow-mist: #F9FAFC;
-  --color-regal-navy: #1A2C5B;
+  --color-regal-navy: #F7A923; /* Changed to warm orange-yellow */
   --color-modern-teal: #4A8C8C;
   --color-golden-ember: #F7B32B;
-  --color-button-secondary: #CC921C; /* For secondary button color */
+  --color-button-secondary: #E6940F; /* Updated for secondary button - darker orange */
+  --color-button-dark: #D2840E; /* Darker shade for active states */
   --color-danger-red: #DC3545; /* Added for consistency with occupied status */
 }
 
@@ -31,23 +32,27 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary {
   background-color: var(--color-regal-navy) !important;
   border-color: var(--color-regal-navy) !important;
-  color: var(--color-white) !important;
+  color: var(--color-charcoal-ink) !important;
+  font-weight: 600;
 }
 
 .btn-primary:hover {
-  background-color: color-mix(in srgb, var(--color-regal-navy), black 10%) !important;
-  border-color: color-mix(in srgb, var(--color-regal-navy), black 10%) !important;
+  background-color: var(--color-button-secondary) !important;
+  border-color: var(--color-button-secondary) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(247, 169, 35, 0.3);
 }
 
 .btn-outline {
   color: var(--color-regal-navy) !important;
   border-color: var(--color-regal-navy) !important;
   background-color: transparent !important;
+  font-weight: 600;
 }
 
 .btn-outline:hover {
   background-color: var(--color-regal-navy) !important;
-  color: var(--color-white) !important;
+  color: var(--color-charcoal-ink) !important;
 }
 
 /* Ensure main content area also uses the snow-mist background */

@@ -12,6 +12,7 @@ use App\Http\Controllers\FacilitiesController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Controllers\SuperAdminDashboardController;
 
 
 /*
@@ -32,6 +33,11 @@ Route::get('/visitor-management', [App\Http\Controllers\LandingController::class
 Route::get('/facilities-reservation', [App\Http\Controllers\LandingController::class, 'facilitiesReservation'])->name('facilities.reservation.landing');
 // Public endpoint to accept registration from landing page (AJAX)
 Route::post('/visitor/public-store', [App\Http\Controllers\VisitorController::class, 'publicStore'])->name('visitor.public_store');
+
+// Temporary test route for ID verification
+Route::get('/test-id-verification', [App\Http\Controllers\VisitorController::class, 'idVerification']);
+
+
 
 // Temporary: New Request route without auth for testing
 Route::get('/facility_reservations/new-request', [App\Http\Controllers\FacilityReservationController::class, 'newRequest'])->name('facility_reservations.new_request');
@@ -436,6 +442,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account-logs/export', [AccessController::class, 'exportAccountLogs'])->name('access.account_logs.export');
     Route::get('/audit-logs/export', [AccessController::class, 'exportAuditLogs'])->name('access.audit_logs.export');
 });
+
+// Super Admin Analytics Dashboard
+Route::middleware(['auth','can:super-admin'])->group(function () {
+    Route::get('/superadmin/analytics', [SuperAdminDashboardController::class, 'index'])->name('superadmin.analytics');
+    Route::get('/superadmin/analytics.json', [SuperAdminDashboardController::class, 'json'])->name('superadmin.analytics.json');
+});
     
     
     
@@ -486,7 +498,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/legal/documents/{id}', [DocumentController::class, 'showLegalDocument'])->name('legal.documents.show');
         Route::get('/legal/documents/{id}/edit', [DocumentController::class, 'editLegalDocument'])->name('legal.documents.edit');
         Route::put('/legal/documents/{id}', [DocumentController::class, 'updateLegalDocument'])->name('legal.documents.update');
-        Route::delete('/legal/documents/{id}', [DocumentController::class, 'deleteLegalDocument'])->name('legal.documents.delete');
+        Route::post('/legal/documents/{id}/archive-only', [DocumentController::class, 'archiveLegalDocument'])->name('legal.documents.archive_only');
         Route::get('/legal/documents/{id}/download', [DocumentController::class, 'downloadLegalDocument'])->name('legal.documents.download');
         Route::post('/legal/documents/{id}/archive', [DocumentController::class, 'archive'])->name('legal.documents.archive_doc');
         Route::post('/legal/documents/{id}/approve-doc', [DocumentController::class, 'approveLegalDocument'])->name('legal.documents.approve_doc');
@@ -500,6 +512,22 @@ Route::middleware(['auth'])->group(function () {
         // General Document Routes
         Route::post('/documents', [LegalController::class, 'store'])->name('document.store');
         Route::post('/documents/bulk-upload', [LegalController::class, 'bulkUpload'])->name('document.bulkUpload');
+        
+        // Enhanced Legal Management Routes
+        Route::get('/legal/enhanced-dashboard', [LegalController::class, 'enhancedDashboard'])->name('legal.enhanced_dashboard');
+        Route::post('/legal/documents/{id}/archive', [LegalController::class, 'archiveDocument'])->name('legal.documents.archive_enhanced');
+        Route::post('/legal/bulk-ai-analysis', [LegalController::class, 'bulkAiAnalysis'])->name('legal.bulk_ai_analysis');
+        
+        // Enhanced Document Management Routes
+        Route::get('/legal/enhanced-document-management', [LegalController::class, 'enhancedDocumentManagement'])->name('legal.enhanced_document_management');
+        Route::post('/legal/documents/{id}/view', [LegalController::class, 'logDocumentView'])->name('legal.documents.log_view');
+        Route::post('/legal/documents/{id}/download', [LegalController::class, 'logDocumentDownload'])->name('legal.documents.log_download');
+        Route::get('/legal/documents/{id}/history', [LegalController::class, 'getDocumentHistory'])->name('legal.documents.history');
+        Route::get('/legal/documents/{id}/activity-tracking', [LegalController::class, 'getDocumentActivityTracking'])->name('legal.documents.activity_tracking');
+        Route::post('/legal/documents/{id}/collaborators', [LegalController::class, 'addCollaborator'])->name('legal.documents.add_collaborator');
+        Route::get('/legal/documents/{id}/collaborators', [LegalController::class, 'getCollaborators'])->name('legal.documents.get_collaborators');
+        Route::delete('/legal/documents/{id}/collaborators/{userId}', [LegalController::class, 'removeCollaborator'])->name('legal.documents.remove_collaborator');
+        Route::get('/legal/documents/stats', [LegalController::class, 'getDocumentStats'])->name('legal.documents.stats');
     });
     
     // Legal Documents route is now properly protected above
@@ -512,6 +540,33 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/legal/cases/{id}/edit', [LegalController::class, 'edit'])->name('legal.cases.edit');
         Route::put('/legal/cases/{id}', [LegalController::class, 'update'])->name('legal.cases.update');
         Route::delete('/legal/cases/{id}', [LegalController::class, 'destroy'])->name('legal.cases.destroy');
+    });
+
+    // Enhanced Legal Management Routes - All Legal Roles
+    Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
+        // Company Policies
+        Route::get('/legal/policies', [LegalController::class, 'policies'])->name('legal.policies');
+        Route::get('/legal/policies/create', [LegalController::class, 'createPolicy'])->name('legal.policies.create');
+        Route::post('/legal/policies', [LegalController::class, 'storePolicy'])->name('legal.policies.store');
+        
+        // Employee Complaints
+        Route::get('/legal/complaints', [LegalController::class, 'complaints'])->name('legal.complaints');
+        Route::get('/legal/complaints/create', [LegalController::class, 'createComplaint'])->name('legal.complaints.create');
+        Route::post('/legal/complaints', [LegalController::class, 'storeComplaint'])->name('legal.complaints.store');
+        Route::get('/legal/complaints/{id}', [LegalController::class, 'showComplaint'])->name('legal.complaints.show');
+        
+        // Violation Reports
+        Route::get('/legal/violation-reports', [LegalController::class, 'violationReports'])->name('legal.violation_reports');
+        Route::get('/legal/violation-reports/create', [LegalController::class, 'createViolationReport'])->name('legal.violation_reports.create');
+        Route::post('/legal/violation-reports', [LegalController::class, 'storeViolationReport'])->name('legal.violation_reports.store');
+        Route::get('/legal/violation-reports/{id}', [LegalController::class, 'showViolationReport'])->name('legal.violation_reports.show');
+        
+        // AI Analyses
+        Route::get('/legal/ai-analyses', [LegalController::class, 'aiAnalyses'])->name('legal.ai_analyses');
+        Route::get('/legal/ai-analyses/{id}', [LegalController::class, 'showAiAnalysis'])->name('legal.ai_analyses.show');
+        
+        // Audit Logs
+        Route::get('/legal/audit-logs', [LegalController::class, 'auditLogs'])->name('legal.audit_logs');
     });
     
     // Document Management - Administrator, Super Admin only
@@ -639,6 +694,11 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('visitor', VisitorController::class);
         Route::get('/visitor/{id}/details', [App\Http\Controllers\VisitorController::class, 'getDetails'])->name('visitor.details');
         
+        // ID Verification Routes
+        Route::get('/visitor/id-verification', [App\Http\Controllers\VisitorController::class, 'idVerification'])->name('visitor.id_verification');
+        Route::post('/visitor/{id}/verify-id', [App\Http\Controllers\VisitorController::class, 'verifyId'])->name('visitor.verify_id');
+        Route::post('/visitor/{id}/reject-id', [App\Http\Controllers\VisitorController::class, 'rejectId'])->name('visitor.reject_id');
+        
         // Visitor Logs Routes
         Route::prefix('visitor-logs')->name('visitor.logs.')->group(function () {
             Route::get('/', [App\Http\Controllers\VisitorLogController::class, 'index'])->name('index');
@@ -665,7 +725,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checkin-existing/{id}', [App\Http\Controllers\VisitorController::class, 'checkInExisting'])->name('checkin_existing');
         Route::post('/checkout/{id}', [App\Http\Controllers\VisitorController::class, 'checkOut'])->name('checkout');
         Route::get('/current', [App\Http\Controllers\VisitorController::class, 'getCurrentVisitors'])->name('current');
-        Route::get('/scheduled', [App\Http\Controllers\VisitorController::class, 'getScheduledVisits'])->name('scheduled');
+        Route::get('/scheduled-today', [App\Http\Controllers\VisitorController::class, 'getScheduledVisits'])->name('scheduled.today');
         Route::get('/stats', [App\Http\Controllers\VisitorController::class, 'getVisitorStats'])->name('stats');
         
         // Monitoring Routes
@@ -676,6 +736,19 @@ Route::middleware(['auth'])->group(function () {
         // Visitor Pass Routes
         Route::get('/{id}/pass', [App\Http\Controllers\VisitorController::class, 'getVisitorPass'])->name('pass');
         Route::get('/{id}/pass/download', [App\Http\Controllers\VisitorController::class, 'downloadVisitorPass'])->name('pass.download');
+
+        // Pre-Schedule Routes
+        Route::post('/preschedule', [App\Http\Controllers\VisitorController::class, 'preschedule'])->name('preschedule');
+        Route::get('/preschedule/list', [App\Http\Controllers\VisitorController::class, 'getScheduledVisitors'])->name('preschedule.list');
+        Route::delete('/preschedule/{id}', [App\Http\Controllers\VisitorController::class, 'cancelScheduledVisitor'])->name('preschedule.cancel');
+        Route::post('/validate-access-code', [App\Http\Controllers\VisitorController::class, 'validateAccessCode'])->name('validate.access.code');
+        
+        // Pre-Visit Management Routes
+        Route::get('/scheduled', [App\Http\Controllers\VisitorController::class, 'getScheduledVisitors'])->name('scheduled');
+        Route::post('/scheduled/{id}/approve', [App\Http\Controllers\VisitorController::class, 'approveScheduledVisitor'])->name('scheduled.approve');
+        Route::post('/scheduled/{id}/decline', [App\Http\Controllers\VisitorController::class, 'declineScheduledVisitor'])->name('scheduled.decline');
+        Route::post('/scheduled/{id}/cancel', [App\Http\Controllers\VisitorController::class, 'cancelScheduledVisitor'])->name('scheduled.cancel');
+        Route::post('/scheduled/{id}/restore', [App\Http\Controllers\VisitorController::class, 'restoreScheduledVisitor'])->name('scheduled.restore');
 
         // Approve/Decline newly registered visitors
         Route::post('/{id}/approve', [App\Http\Controllers\VisitorController::class, 'approveVisitor'])->name('approve');
@@ -693,6 +766,31 @@ Route::middleware(['auth'])->group(function () {
                         'name' => $v->name,
                         'pass_id' => $v->pass_id,
                         'status' => $v->status
+                    ];
+                })
+            ]);
+        });
+        
+        // Debug route for scheduled visitors
+        Route::get('/debug/scheduled-visitors', function() {
+            $scheduledVisitors = \App\Models\Visitor::where('status', 'scheduled')
+                ->whereNotNull('scheduled_date')
+                ->orderBy('scheduled_date')
+                ->orderBy('scheduled_time')
+                ->get();
+                
+            return response()->json([
+                'success' => true,
+                'count' => $scheduledVisitors->count(),
+                'visitors' => $scheduledVisitors->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'name' => $v->name,
+                        'email' => $v->email,
+                        'status' => $v->status,
+                        'scheduled_date' => $v->scheduled_date,
+                        'scheduled_time' => $v->scheduled_time,
+                        'created_at' => $v->created_at
                     ];
                 })
             ]);
@@ -776,6 +874,46 @@ Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeA
     Route::get('/legal/approved', [LegalController::class, 'approvedRequests'])->name('legal.approved');
     Route::get('/legal/denied', [LegalController::class, 'deniedRequests'])->name('legal.denied');
     
+    // Users list for collaborator selection
+    Route::get('/users/list', function() {
+        try {
+            $users = \App\Models\User::select('id', 'name', 'email')
+                ->where('id', '!=', auth()->id()) // Exclude current user
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'users' => $users
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading users: ' . $e->getMessage(),
+                'users' => []
+            ], 500);
+        }
+    })->name('users.list');
+
+    // Debug route for collaborators
+    Route::get('/debug/collaborators/{id}', function($id) {
+        $logs = \App\Models\AccessLog::where('document_id', $id)
+            ->where('action', 'collaborator_added')
+            ->get();
+        
+        return response()->json([
+            'document_id' => $id,
+            'total_logs' => $logs->count(),
+            'logs' => $logs->map(function($log) {
+                return [
+                    'id' => $log->id,
+                    'user_id' => $log->user_id,
+                    'metadata' => $log->metadata,
+                    'created_at' => $log->created_at
+                ];
+            })
+        ]);
+    });
+    
     // Legal Case Approval Routes - Administrator and Super Admin only
     Route::middleware(['auth', 'role:Administrator,Super Admin'])->group(function () {
         Route::get('/legal/cases/{id}/review', [LegalController::class, 'reviewCase'])->name('legal.cases.review');
@@ -827,6 +965,8 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
 
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/api/notifications/count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('api.notifications.count');
+    Route::get('/notifications/list', [App\Http\Controllers\NotificationController::class, 'list'])->name('notifications.list');
     Route::post('/notifications/{id}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 
@@ -869,5 +1009,99 @@ Route::get('/test-otp-route', function() {
         'timestamp' => now()
     ]);
 });
+
+// Debug login test route
+Route::get('/debug-login', function() {
+    $users = \App\Models\DeptAccount::all();
+    $otpCodes = \App\Models\OtpCode::where('is_used', false)->get();
+    
+    return response()->json([
+        'users' => $users->map(function($user) {
+            return [
+                'employee_id' => $user->employee_id,
+                'employee_name' => $user->employee_name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'status' => $user->status
+            ];
+        }),
+        'active_otps' => $otpCodes->map(function($otp) {
+            return [
+                'employee_id' => $otp->employee_id,
+                'otp_code' => $otp->otp_code,
+                'expires_at' => $otp->expires_at,
+                'is_used' => $otp->is_used
+            ];
+        }),
+        'mail_config' => [
+            'driver' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'username' => config('mail.mailers.smtp.username'),
+            'encryption' => config('mail.mailers.smtp.encryption')
+        ]
+    ]);
+});
+
+// Test login bypass (for debugging only - REMOVE IN PRODUCTION)
+Route::post('/test-login-bypass', function(\Illuminate\Http\Request $request) {
+    $employeeId = $request->input('employee_id');
+    $password = $request->input('password');
+    
+    $deptAccount = \App\Models\DeptAccount::where('employee_id', $employeeId)->first();
+    
+    if (!$deptAccount) {
+        return response()->json(['error' => 'User not found'], 404);
+    }
+    
+    // Check password (accept both hashed and plain text)
+    $validPassword = false;
+    try {
+        $validPassword = \Illuminate\Support\Facades\Hash::check($password, $deptAccount->password);
+    } catch (\Throwable $e) {
+        $validPassword = false;
+    }
+    if (!$validPassword) {
+        $validPassword = $deptAccount->password === $password;
+    }
+    
+    if ($validPassword) {
+        // Create Laravel user
+        $laravelUser = \App\Models\User::updateOrCreate(
+            ['email' => $deptAccount->employee_id . '@soliera.local'],
+            [
+                'name' => $deptAccount->employee_name ?? 'User',
+                'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)),
+                'email_verified_at' => now(),
+                'role' => $deptAccount->role ?? 'employee',
+                'employee_id' => $deptAccount->employee_id,
+                'department' => $deptAccount->dept_name ?? 'general',
+            ]
+        );
+        
+        // Login user
+        \Illuminate\Support\Facades\Auth::login($laravelUser);
+        $request->session()->regenerate();
+        
+        // Store session data
+        session(['emp_id' => $deptAccount->employee_id]);
+        session(['user_role' => $deptAccount->role]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful (bypass mode)',
+            'user' => $deptAccount->employee_name,
+            'role' => $deptAccount->role
+        ]);
+    }
+    
+    return response()->json(['error' => 'Invalid credentials'], 401);
+});
+
+// Test route for icon responsive design
+Route::get('/test-icon-responsive', function() {
+    return view('test-icon-responsive');
+})->name('test.icon.responsive');
+
 
 require __DIR__.'/auth.php';

@@ -1,13 +1,8 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-63cf7d05.css",
+    "file": "assets/app-4e280b42.css",
     "isEntry": true,
     "src": "resources/css/app.css"
-  },
-  "resources/css/responsive.css": {
-    "file": "assets/responsive-995988ab.css",
-    "isEntry": true,
-    "src": "resources/css/responsive.css"
   },
   "resources/css/sidebar-collapse.css": {
     "file": "assets/sidebar-collapse-3390c380.css",
@@ -15,7 +10,7 @@
     "src": "resources/css/sidebar-collapse.css"
   },
   "resources/css/soliera.css": {
-    "file": "assets/soliera-cbb67be7.css",
+    "file": "assets/soliera-0eccdda3.css",
     "isEntry": true,
     "src": "resources/css/soliera.css"
   },
@@ -23,10 +18,5 @@
     "file": "assets/app-88df8f85.js",
     "isEntry": true,
     "src": "resources/js/app.js"
-  },
-  "resources/js/responsive.js": {
-    "file": "assets/responsive-7b7cd920.js",
-    "isEntry": true,
-    "src": "resources/js/responsive.js"
   }
 }

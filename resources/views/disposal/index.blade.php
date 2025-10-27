@@ -36,7 +36,7 @@
         @endif
 
         <!-- Header -->
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-6">
           <div>
             <h1 class="text-3xl font-bold" style="color: var(--color-charcoal-ink);">Disposal History</h1>
             <p class="text-gray-600 mt-1">View all disposed documents and disposal audit trail</p>
@@ -50,8 +50,6 @@
             </a>
           </div>
         </div>
-        <!-- underline divider (matches other modules) -->
-        <div class="border-b border-gray-200 mb-6"></div>
 
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
@@ -148,17 +146,8 @@
 
 
         <!-- Disposed Documents Table -->
-        <div class="card bg-white shadow-xl">
-          <div class="card-body">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold text-gray-900">Disposed Documents</h3>
-              <div class="text-sm text-gray-500">
-                Showing {{ $disposedDocuments->count() }} of {{ $disposedDocuments->total() }} documents
-              </div>
-            </div>
-            
-            <div class="overflow-x-auto">
-              <table class="table table-zebra w-full">
+        <x-table-card :title="'Disposed Documents'" :pagination="$disposedDocuments->hasPages() ? $disposedDocuments->links() : null">
+          <table class="table table-zebra w-full">
                 <thead>
                   <tr class="bg-gray-50">
                     <th class="text-left py-4 px-4 font-semibold text-gray-700">Document</th>
@@ -248,16 +237,7 @@
                   @endforelse
                 </tbody>
               </table>
-            </div>
-            
-            <!-- Pagination -->
-            @if($disposedDocuments->hasPages())
-              <div class="flex justify-center p-6 border-t border-gray-200">
-                {{ $disposedDocuments->links() }}
-              </div>
-            @endif
-          </div>
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>

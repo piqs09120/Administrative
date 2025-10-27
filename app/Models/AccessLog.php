@@ -12,7 +12,11 @@ class AccessLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'action', 'description', 'ip_address'
+        'user_id', 'action', 'description', 'ip_address', 'document_id', 'metadata'
+    ];
+
+    protected $casts = [
+        'metadata' => 'array',
     ];
 
     /**
@@ -21,6 +25,14 @@ class AccessLog extends Model
     public function user()
     {
         return $this->belongsTo(DeptAccount::class, 'user_id', 'Dept_no');
+    }
+
+    /**
+     * Get the document that this access log belongs to.
+     */
+    public function document()
+    {
+        return $this->belongsTo(Document::class);
     }
 
     /**

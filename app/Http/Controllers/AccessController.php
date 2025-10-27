@@ -154,13 +154,19 @@ class AccessController extends Controller
     public function logs()
     {
         try {
-            // Get the actual logs with DeptAccount user relationship
-            $logs = AccessLog::with('user')->latest()->get();
+            // Get only login and logout logs with DeptAccount user relationship
+            $logs = AccessLog::with('user')
+                ->whereIn('action', ['Login', 'Logout'])
+                ->latest()
+                ->get();
             
-            // If no logs exist, create some sample logs for demonstration
+            // If no logs exist, create some sample login/logout logs for demonstration
             if ($logs->count() === 0) {
-                $this->createSampleLogs();
-                $logs = AccessLog::with('user')->latest()->get();
+                $this->createSampleLoginLogoutLogs();
+                $logs = AccessLog::with('user')
+                    ->whereIn('action', ['Login', 'Logout'])
+                    ->latest()
+                    ->get();
             }
             
             // Debug: Log the results
@@ -220,6 +226,37 @@ class AccessController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Error creating sample logs: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Create sample login and logout logs for demonstration
+     */
+    private function createSampleLoginLogoutLogs()
+    {
+        try {
+            // Get some sample users from DeptAccount
+            $users = \App\Models\DeptAccount::take(3)->get();
+            
+            if ($users->count() > 0) {
+                $loginLogoutActions = [
+                    'Login' => 'User logged in successfully',
+                    'Logout' => 'User logged out successfully'
+                ];
+                
+                foreach ($users as $user) {
+                    foreach ($loginLogoutActions as $action => $description) {
+                        AccessLog::create([
+                            'user_id' => $user->Dept_no,
+                            'action' => $action,
+                            'description' => $description,
+                            'ip_address' => '127.0.0.1'
+                        ]);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error creating sample login/logout logs: ' . $e->getMessage());
         }
     }
 
@@ -478,8 +515,9 @@ class AccessController extends Controller
     public function auditLogs()
     {
         try {
-            // Get all system audit logs with user information
+            // Get all system audit logs EXCEPT login and logout actions
             $logs = AccessLog::with('user')
+                ->whereNotIn('action', ['Login', 'Logout'])
                 ->latest()
                 ->get();
             
@@ -487,6 +525,7 @@ class AccessController extends Controller
             if ($logs->count() === 0) {
                 $this->createSampleAuditLogs();
                 $logs = AccessLog::with('user')
+                    ->whereNotIn('action', ['Login', 'Logout'])
                     ->latest()
                     ->get();
             }
@@ -536,15 +575,34 @@ class AccessController extends Controller
             
             if ($users->count() > 0) {
                 $sampleActions = [
-                    'Table added' => 'Table Management',
-                    'Login' => 'Authentication',
-                    'Document_uploaded' => 'Document Management',
-                    'Access_control_check' => 'Security',
-                    'Profile_updated' => 'User Management'
+                    'save_legal_draft' => 'Saved legal document draft: HR Policy Template',
+                    'document_view' => 'Document view: Service Agreement - XYZ Ltd (ID: 294)',
+                    'Document_uploaded' => 'Document uploaded and processed successfully',
+                    'Access_control_check' => 'User passed authorization check for sensitive data',
+                    'Profile_updated' => 'User profile information updated',
+                    'Table_added' => 'New table configuration added to system',
+                    'Facility_reserved' => 'Facility reservation created and approved',
+                    'Visitor_registered' => 'New visitor registered in the system',
+                    'Report_generated' => 'Monthly report generated and exported',
+                    'Settings_updated' => 'System settings updated by administrator',
+                    'Data_exported' => 'User data exported to CSV format',
+                    'Notification_sent' => 'System notification sent to user',
+                    'Backup_created' => 'System backup created successfully',
+                    'Permission_granted' => 'User permissions updated and granted',
+                    'File_deleted' => 'File deleted from document storage'
                 ];
                 
                 foreach ($users as $index => $user) {
-                    foreach ($sampleActions as $action => $description) {
+                    // Create 5-8 random actions per user
+                    $randomActions = array_rand($sampleActions, rand(5, 8));
+                    if (!is_array($randomActions)) {
+                        $randomActions = [$randomActions];
+                    }
+                    
+                    foreach ($randomActions as $actionKey) {
+                        $action = array_keys($sampleActions)[$actionKey];
+                        $description = $sampleActions[$action];
+                        
                         AccessLog::create([
                             'user_id' => $user->Dept_no,
                             'action' => $action,

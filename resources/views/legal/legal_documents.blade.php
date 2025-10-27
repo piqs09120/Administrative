@@ -67,7 +67,7 @@
         @if(session('success'))
           <div class="toast toast-bottom toast-end" id="session-success-toast">
             <div class="alert alert-success">
-              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              <i data-lucide="check-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               <span>{{ session('success') }}</span>
             </div>
           </div>
@@ -76,11 +76,38 @@
         @if(session('error'))
           <div class="toast toast-bottom toast-end" id="session-error-toast">
             <div class="alert alert-error">
-              <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              <i data-lucide="alert-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               <span>{{ session('error') }}</span>
             </div>
           </div>
         @endif
+
+        <!-- AI Alert Banner -->
+        <div id="aiAlertBanner" class="hidden bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i data-lucide="alert-triangle" class="h-5 w-5 text-red-400"></i>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">
+                High-Risk Documents Detected
+              </h3>
+              <div class="mt-2 text-sm text-red-700">
+                <p id="alertMessage">AI analysis has detected high-risk documents that require immediate attention.</p>
+              </div>
+              <div class="mt-4">
+                <div class="-mx-2 -my-1.5 flex">
+                  <button onclick="viewHighRiskDocuments()" class="bg-red-50 px-2 py-1.5 rounded-md text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
+                    View Documents
+                  </button>
+                  <button onclick="dismissAlert()" class="ml-3 bg-red-50 px-2 py-1.5 rounded-md text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Page Header -->
         <div class="mb-8">
@@ -93,79 +120,31 @@
           </div>
 
           <!-- Status Summary Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <!-- Total Legal Documents -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-primary">
-              <div class="card-body p-3 sm:p-4">
-                <div class="flex items-center justify-between mb-2 sm:mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-primary text-primary-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
-                      <i data-lucide="folder" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-primary badge-outline text-xs">Total</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-primary justify-center mb-1">{{ $stats['total'] ?? 0 }}</h2>
-                  <p class="text-xs sm:text-sm text-base-content/70">Legal Documents</p>
-                </div>
-              </div>
-            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <!-- Total Legal Documents -->
+              <x-stat-card 
+                title="Legal Documents" 
+                :value="$stats['total'] ?? 0" 
+                icon="fa-folder" 
+                iconColor="text-yellow-400" 
+                bgColor="bg-blue-900" />
 
-            <!-- For Review Documents -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-warning">
-              <div class="card-body p-3 sm:p-4">
-                <div class="flex items-center justify-between mb-2 sm:mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-warning text-warning-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
-                      <i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-warning badge-outline text-xs">Review</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-warning justify-center mb-1">{{ $stats['pending_review'] ?? 0 }}</h2>
-                  <p class="text-xs sm:text-sm text-base-content/70">For Review</p>
-                </div>
-              </div>
-            </div>
+              <!-- Approved Documents -->
+              <x-stat-card 
+                title="Approved" 
+                :value="$stats['active'] ?? 0" 
+                icon="fa-check-circle" 
+                iconColor="text-yellow-400" 
+                bgColor="bg-blue-900" />
 
-            <!-- Approved Documents -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-success">
-              <div class="card-body p-3 sm:p-4">
-                <div class="flex items-center justify-between mb-2 sm:mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-success text-success-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
-                      <i data-lucide="check-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-success badge-outline text-xs">Approved</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-success justify-center mb-1">{{ $stats['active'] ?? 0 }}</h2>
-                  <p class="text-xs sm:text-sm text-base-content/70">Approved</p>
-                </div>
-              </div>
+              <!-- Violation Alerts -->
+              <x-stat-card 
+                title="Violations" 
+                :value="$stats['violations'] ?? 0" 
+                icon="fa-shield-alt" 
+                iconColor="text-yellow-400" 
+                bgColor="bg-blue-900" />
             </div>
-
-            <!-- Decline Documents -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-error">
-              <div class="card-body p-3 sm:p-4">
-                <div class="flex items-center justify-between mb-2 sm:mb-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-error text-error-content rounded-full w-8 h-8 sm:w-10 sm:h-10">
-                      <i data-lucide="x-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-error badge-outline text-xs">Declined</div>
-                </div>
-                <div class="text-center">
-                  <h2 class="card-title text-xl sm:text-2xl lg:text-3xl font-bold text-error justify-center mb-1">{{ $stats['archived'] ?? 0 }}</h2>
-                  <p class="text-xs sm:text-sm text-base-content/70">Declined</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <!-- Bottom Border Separator -->
           <div class="border-b border-base-300 mb-6"></div>
@@ -182,19 +161,19 @@
             <div class="mb-4 sm:mb-6">
               <nav class="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <button id="nav-documents" class="text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors duration-200 px-2 py-1 rounded {{ $activeTab==='documents' ? 'text-blue-800 font-semibold bg-blue-50' : '' }}" onclick="showLegalTab('documents')">
-                  <i data-lucide="folder" class="w-3 h-3 sm:w-4 sm:h-4 mr-1"></i>
+                  <i data-lucide="folder" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer mr-1"></i>
                   <span class="hidden sm:inline">Documents</span>
                   <span class="sm:hidden">Docs</span>
                 </button>
-                <i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400"></i>
+                <i data-lucide="chevron-right" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer text-gray-400"></i>
                 <button id="nav-create" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 px-2 py-1 rounded {{ $activeTab==='create' ? 'text-blue-600 font-semibold bg-blue-50' : '' }}" onclick="showLegalTab('create')">
-                  <i data-lucide="plus" class="w-3 h-3 sm:w-4 sm:h-4 mr-1"></i>
+                  <i data-lucide="plus" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer mr-1"></i>
                   <span class="hidden sm:inline">Create</span>
                   <span class="sm:hidden">New</span>
                 </button>
-                <i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400"></i>
+                <i data-lucide="chevron-right" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer text-gray-400"></i>
                 <button id="nav-monitor" class="text-gray-600 hover:text-blue-600 font-medium flex items-center transition-colors duration-200 px-2 py-1 rounded {{ $activeTab==='monitor' ? 'text-blue-600 font-semibold bg-blue-50' : '' }}" onclick="showLegalTab('monitor')">
-                  <i data-lucide="bar-chart" class="w-3 h-3 sm:w-4 sm:h-4 mr-1"></i>
+                  <i data-lucide="bar-chart" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer mr-1"></i>
                   <span class="hidden sm:inline">Monitoring</span>
                   <span class="sm:hidden">Monitor</span>
                 </button>
@@ -255,370 +234,423 @@
               </div>
             </div>
 
-            <!-- Document List Cards -->
+            <!-- My Created Documents Table -->
             <div class="mt-8">
-              <h3 class="text-md font-semibold mb-3">My Created Documents</h3>
-              
-              <!-- Table Header for Document Cards -->
-              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4" style="background-color: var(--color-snow-mist); border-color: var(--color-snow-mist);">
-                <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700" style="color: var(--color-charcoal-ink);">
-                  <div class="col-span-4">Document Information</div>
-                  <div class="col-span-2 text-center">Type</div>
-                  <div class="col-span-2 text-center">Uploaded By</div>
-                  <div class="col-span-2 text-center">Status</div>
-                  <div class="col-span-2 text-center">Actions</div>
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <i data-lucide="folder-plus" class="w-5 h-5 text-blue-600"></i>
+                  My Created Documents
+                </h3>
+                <div class="text-sm text-gray-500">
+                  {{ $createdDocuments->count() }} document{{ $createdDocuments->count() !== 1 ? 's' : '' }}
                 </div>
               </div>
               
-              <!-- Document Cards -->
-              <div class="space-y-4">
-                @forelse($createdDocuments as $doc)
-                <div class="bg-white rounded-lg border-2 border-gray-100 p-4 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 shadow-lg" 
-                     style="background-color: var(--color-white); border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                  
-                  <!-- Card Header with Status Badge -->
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
-                      </div>
-                      <div>
-                        <div class="font-semibold text-gray-800">{{ $doc->title }}</div>
-                        <div class="text-sm text-gray-500">{{ $doc->description }}</div>
-                      </div>
-                    </div>
-                    @php
-                      $status = $doc->status ?? 'draft';
-                      $badge = match($status){
-                        'pending_review' => 'badge-warning',
-                        'active' => 'badge-success',
-                        'draft' => 'badge-info',
-                        default => 'badge-neutral'
-                      };
-                    @endphp
-                    <span class="badge {{ $badge }}">{{ ucfirst(str_replace('_',' ', $status)) }}</span>
-                  </div>
-
-                  <!-- Document Details -->
-                  <div class="grid grid-cols-12 gap-4 text-sm">
-                    <div class="col-span-4">
-                      <div class="text-gray-600">Department:</div>
-                      <div class="font-medium">{{ $doc->department ?? ($doc->uploader->dept_name ?? 'N/A') }}</div>
-                    </div>
-                    <div class="col-span-2 text-center">
-                      <div class="text-gray-600">Type</div>
-                      <span class="badge badge-outline badge-sm">{{ ucfirst($doc->category ?? 'general') }}</span>
-                    </div>
-                    <div class="col-span-2 text-center">
-                      <div class="text-gray-600">Uploaded By</div>
-                      <div class="font-medium">{{ $doc->uploader->employee_name ?? 'Unknown' }}</div>
-                    </div>
-                    <div class="col-span-2 text-center">
-                      <div class="text-gray-600">Date</div>
-                      <div class="font-medium">{{ $doc->created_at?->format('M d, Y') }}</div>
-                    </div>
-                    <div class="col-span-2 text-center">
-                      <div class="flex items-center justify-center gap-1">
-                        <!-- AI Analysis Button -->
-                        <button onclick="aiAnalysis({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="AI Analysis">
-                          <i data-lucide="brain" class="w-4 h-4 text-purple-600"></i>
-                        </button>
-                        
-                        <!-- Download Button -->
-                        <button onclick="downloadDocument({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Download">
-                          <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
-                        </button>
-                        
-                        <!-- Edit Button (only for draft documents) -->
-                        @if(($doc->status ?? 'draft') === 'draft')
-                        <a href="{{ route('legal.documents.draft') }}?edit={{ $doc->id }}" class="btn btn-ghost btn-xs tooltip" data-tip="Edit Document">
-                          <i data-lucide="edit-3" class="w-4 h-4 text-green-600"></i>
-                        </a>
-                        @endif
-                        
-                        <!-- Delete Button -->
-                        <button onclick="deleteDocument({{ $doc->id }})" class="btn btn-ghost btn-xs tooltip" data-tip="Delete">
-                          <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+              <!-- Professional Table -->
+              <x-table-card :title="'My Created Documents'">
+                <!-- Table Header -->
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                  <div class="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                    <div class="col-span-5">Document Information</div>
+                  <div class="col-span-2 text-center">Type</div>
+                    <div class="col-span-2 text-center">Department</div>
+                  <div class="col-span-2 text-center">Status</div>
+                    <div class="col-span-1 text-center">Actions</div>
                 </div>
+              </div>
+              
+                <!-- Table Body -->
+                <div class="divide-y divide-gray-200">
+                @forelse($createdDocuments as $doc)
+                  <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="grid grid-cols-12 gap-4 items-center">
+                      <!-- Document Information -->
+                      <div class="col-span-5">
+                        <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 rounded-lg bg-blue-900 flex items-center justify-center flex-shrink-0">
+                            @php
+                              $fileExtension = pathinfo($doc->file_path ?? '', PATHINFO_EXTENSION);
+                              $iconColor = 'text-white';
+                              
+                              switch(strtolower($fileExtension)) {
+                                case 'pdf':
+                                  $iconColor = 'text-white';
+                                  break;
+                                case 'doc':
+                                case 'docx':
+                                  $iconColor = 'text-white';
+                                  break;
+                                case 'xls':
+                                case 'xlsx':
+                                  $iconColor = 'text-white';
+                                  break;
+                                case 'ppt':
+                                case 'pptx':
+                                  $iconColor = 'text-white';
+                                  break;
+                                default:
+                                  $iconColor = 'text-white';
+                              }
+                            @endphp
+                            <i data-lucide="file-text" class="w-5 h-5 {{ $iconColor }}"></i>
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <div class="font-semibold text-gray-900 truncate">{{ $doc->title }}</div>
+                            <div class="text-sm text-gray-500 truncate">{{ $doc->description ?: 'No description' }}</div>
+                            <div class="text-xs text-blue-600 font-mono">{{ $doc->legal_document_id ?? 'LD-' . now()->format('Y') . '-' . str_pad($doc->id, 6, '0', STR_PAD_LEFT) }}</div>
+                            <div class="text-xs text-gray-400 mt-1">{{ $doc->created_at?->format('M d, Y') }}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Type -->
+                      <div class="col-span-2 text-center">
+                        <span class="badge badge-outline badge-sm">{{ ucfirst(str_replace('_', ' ', $doc->category ?? 'general')) }}</span>
+                      </div>
+
+                      <!-- Department -->
+                      <div class="col-span-2 text-center">
+                        <span class="text-sm text-gray-600">{{ $doc->department ?? ($doc->uploader->dept_name ?? 'N/A') }}</span>
+                      </div>
+
+                      <!-- Status -->
+                      <div class="col-span-2 text-center">
+                        @php
+                          $statusConfig = [
+                            'active' => ['class' => 'badge-success', 'icon' => 'check-circle', 'text' => 'Active'],
+                            'pending_review' => ['class' => 'badge-warning', 'icon' => 'clock', 'text' => 'Pending Review'],
+                            'draft' => ['class' => 'badge bg-green-500 text-white', 'icon' => 'edit-3', 'text' => 'Draft'],
+                            'approved' => ['class' => 'badge-success', 'icon' => 'check-circle-2', 'text' => 'Approved'],
+                            'rejected' => ['class' => 'badge-error', 'icon' => 'x-circle', 'text' => 'Rejected'],
+                            'archived' => ['class' => 'badge-neutral', 'icon' => 'archive', 'text' => 'Archived']
+                          ];
+                          $status = $doc->status ?? 'draft';
+                          $config = $statusConfig[$status] ?? $statusConfig['draft'];
+                        @endphp
+                        <div class="flex items-center justify-center gap-2">
+                          <i data-lucide="{{ $config['icon'] }}" class="w-4 h-4 text-gray-500"></i>
+                          <span class="badge {{ $config['class'] }} badge-sm">{{ $config['text'] }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Actions -->
+                      <div class="col-span-1">
+                        <div class="flex items-center justify-center gap-1">
+                          <!-- AI Analysis Button -->
+                          <button onclick="aiAnalysis({{ $doc->id }})" 
+                                  class="btn-sm p-2 rounded-lg transition-all duration-200 hover:scale-110" 
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                  title="AI Analysis">
+                            <i data-lucide="brain" class="w-4 h-4" style="fill: none;"></i>
+                          </button>
+                          
+                          <!-- Edit Button (only for draft documents) -->
+                          @if(($doc->status ?? 'draft') === 'draft')
+                          <a href="{{ route('legal.documents.draft') }}?edit={{ $doc->id }}" 
+                             class="btn-sm p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                             style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                             title="Edit Document">
+                            <i data-lucide="edit-3" class="w-4 h-4" style="fill: none;"></i>
+                          </a>
+                          @endif
+                          
+                          <!-- Archive Button (No Deletion, Archive Only) -->
+                          @if($doc->status !== 'archived')
+                          <button onclick="archiveDocument({{ $doc->id }})" 
+                                  class="btn-sm p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                  title="Archive Document">
+                            <i data-lucide="archive" class="w-4 h-4" style="fill: none;"></i>
+                          </button>
+                          @else
+                          <span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">Archived</span>
+                          @endif
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 @empty
-                <div class="text-center py-8">
+                  <div class="px-6 py-12 text-center">
                   <div class="flex flex-col items-center">
-                    <i data-lucide="file-x" class="w-12 h-12 text-gray-400 mb-4"></i>
+                      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="file-x" class="w-8 h-8 text-gray-400"></i>
+                      </div>
                     <h3 class="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
                     <p class="text-gray-500 mb-4">Start by creating your first legal document.</p>
-                    <a href="{{ route('legal.documents.create') }}" class="btn btn-primary">
+                      <a href="{{ route('legal.documents.draft') }}" class="btn btn-primary">
                       <i data-lucide="plus" class="w-4 h-4 mr-2"></i>Create Document
                     </a>
                   </div>
                 </div>
                 @endforelse
-              </div>
+                </div>
+              </x-table-card>
             </div>
           </div>
 
-          <!-- MONITOR TAB CONTENT (placeholder) -->
+          <!-- MONITOR TAB CONTENT -->
           <div id="legal-monitor-tab" class="{{ $activeTab==='monitor' ? '' : 'hidden' }}">
-            <div class="space-y-4">
-
-              <!-- Filters -->
-              <div class="bg-gray-50 p-4 rounded-lg border">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <input id="mon-search" type="text" placeholder="Search title or ID..." class="input input-bordered w-full" />
-                  <select id="mon-dept" class="select select-bordered w-full"><option value="">All Departments</option></select>
-                  <select id="mon-type" class="select select-bordered w-full"><option value="">All Types</option><option value="contract">Contract</option><option value="policy">Policy</option><option value="license">License</option><option value="notice">Notice</option><option value="agreement">Agreement</option></select>
-                  <select id="mon-status" class="select select-bordered w-full"><option value="">All Status</option><option value="draft">Draft</option><option value="pending_review">Pending Review</option><option value="active">Approved</option><option value="returned">Returned</option><option value="rejected">Rejected</option></select>
+            <!-- Professional Administrator Monitoring Dashboard -->
+            <div class="space-y-6">
+              
+              <!-- Dashboard Header -->
+              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                      <i data-lucide="shield-check" class="w-7 h-7 text-blue-600"></i>
+                      Legal Documents Monitoring Dashboard
+                    </h2>
+                    <p class="text-gray-600">Comprehensive oversight and analytics for legal document management</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="text-right">
+                      <div class="text-sm text-gray-500">Last Updated</div>
+                      <div class="font-semibold text-gray-800" id="lastUpdated">Just now</div>
+                    </div>
+                    <button onclick="refreshMonitoringData()" class="btn btn-outline btn-sm">
+                      <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                      Refresh
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Monitoring Statistics Cards -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <!-- Key Performance Indicators -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Total Documents -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-primary text-primary-content rounded-full w-10 h-10">
-                          <i data-lucide="file-text" class="w-5 h-5"></i>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Total Documents</p>
+                      <p class="text-2xl font-bold text-gray-900" id="mon-total">0</p>
                         </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
                       </div>
-                      <div class="badge badge-primary badge-outline text-xs">Total</div>
                     </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-primary justify-center mb-1" id="mon-total">0</h2>
-                      <p class="text-sm text-base-content/70">Total</p>
-                    </div>
+                  <div class="mt-2 flex items-center text-sm">
+                    <span class="text-green-600 font-medium" id="mon-total-change">+0%</span>
+                    <span class="text-gray-500 ml-1">vs last month</span>
                   </div>
                 </div>
 
                 <!-- Pending Review -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-warning text-warning-content rounded-full w-10 h-10">
-                          <i data-lucide="clock" class="w-5 h-5"></i>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Pending Review</p>
+                      <p class="text-2xl font-bold text-amber-600" id="mon-pending">0</p>
                         </div>
+                    <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                      <i data-lucide="clock" class="w-6 h-6 text-amber-600"></i>
                       </div>
-                      <div class="badge badge-warning badge-outline text-xs">Pending Review</div>
                     </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1" id="mon-pending">0</h2>
-                      <p class="text-sm text-base-content/70">Pending Review</p>
-                    </div>
+                  <div class="mt-2 flex items-center text-sm">
+                    <span class="text-amber-600 font-medium" id="mon-pending-change">0</span>
+                    <span class="text-gray-500 ml-1">awaiting action</span>
                   </div>
                 </div>
 
                 <!-- Approved -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-success text-success-content rounded-full w-10 h-10">
-                          <i data-lucide="check-circle" class="w-5 h-5"></i>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Approved</p>
+                      <p class="text-2xl font-bold text-green-600" id="mon-approved">0</p>
                         </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
                       </div>
-                      <div class="badge badge-success badge-outline text-xs">Approved</div>
                     </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="mon-approved">0</h2>
-                      <p class="text-sm text-base-content/70">Approved</p>
-                    </div>
+                  <div class="mt-2 flex items-center text-sm">
+                    <span class="text-green-600 font-medium" id="mon-approved-change">+0%</span>
+                    <span class="text-gray-500 ml-1">approval rate</span>
                   </div>
                 </div>
 
-                <!-- Rejected -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-error text-error-content rounded-full w-10 h-10">
-                          <i data-lucide="x-circle" class="w-5 h-5"></i>
+                <!-- Expiring Soon -->
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Expiring Soon</p>
+                      <p class="text-2xl font-bold text-red-600" id="mon-expiring">0</p>
                         </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                      <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
                       </div>
-                      <div class="badge badge-error badge-outline text-xs">Rejected</div>
                     </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-error justify-center mb-1" id="mon-rejected">0</h2>
-                      <p class="text-sm text-base-content/70">Rejected</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Secondary Statistics Cards -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <!-- Drafts -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-neutral">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-neutral text-neutral-content rounded-full w-10 h-10">
-                          <i data-lucide="edit" class="w-5 h-5"></i>
-                        </div>
-                      </div>
-                      <div class="badge badge-neutral badge-outline text-xs">Drafts</div>
-                    </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-neutral justify-center mb-1" id="mon-drafts">0</h2>
-                      <p class="text-sm text-base-content/70">Drafts</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Signatures Sent -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-info">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-info text-info-content rounded-full w-10 h-10">
-                          <i data-lucide="send" class="w-5 h-5"></i>
-                        </div>
-                      </div>
-                      <div class="badge badge-info badge-outline text-xs">Signatures Sent</div>
-                    </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-info justify-center mb-1" id="mon-signatures">0</h2>
-                      <p class="text-sm text-base-content/70">Signatures Sent</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Signed -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-success text-success-content rounded-full w-10 h-10">
-                          <i data-lucide="check-square" class="w-5 h-5"></i>
-                        </div>
-                      </div>
-                      <div class="badge badge-success badge-outline text-xs">Signed</div>
-                    </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-success justify-center mb-1" id="mon-signed">0</h2>
-                      <p class="text-sm text-base-content/70">Signed</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Expiring (90d) -->
-                <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
-                  <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="avatar placeholder">
-                        <div class="bg-warning text-warning-content rounded-full w-10 h-10">
-                          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                        </div>
-                      </div>
-                      <div class="badge badge-warning badge-outline text-xs">Expiring (90d)</div>
-                    </div>
-                    <div class="text-center">
-                      <h2 class="card-title text-2xl sm:text-3xl font-bold text-warning justify-center mb-1" id="mon-expiring">0</h2>
-                      <p class="text-sm text-base-content/70">Expiring (90d)</p>
-                    </div>
+                  <div class="mt-2 flex items-center text-sm">
+                    <span class="text-red-600 font-medium" id="mon-expiring-change">0</span>
+                    <span class="text-gray-500 ml-1">within 90 days</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Table Header for Monitoring Cards -->
-              <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+
+              <!-- Professional Data Table -->
+              <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <!-- Table Header -->
                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
-                  <div class="grid grid-cols-10 gap-4 text-sm font-semibold text-gray-700">
-                    <div class="col-span-1 text-center">Ref ID</div>
-                    <div class="col-span-2">Title</div>
-                    <div class="col-span-1 text-center">Type</div>
-                    <div class="col-span-1 text-center">Department</div>
-                    <div class="col-span-1 text-center">Status</div>
-                    <div class="col-span-1 text-center">Signature</div>
-                    <div class="col-span-1 text-center">Renewal</div>
-                    <div class="col-span-1 text-center">Retention</div>
-                    <div class="col-span-1 text-center">Actions</div>
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                      <i data-lucide="table" class="w-5 h-5 text-gray-600"></i>
+                      Document Monitoring Table
+                    </h3>
+                    <div class="flex items-center gap-2">
+                      <button onclick="exportMonitoringData()" class="btn btn-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                        Export
+                      </button>
+                      <div class="text-sm text-gray-500">
+                        <span id="mon-results-count">0</span> documents found
+                        </div>
+                      </div>
+                  </div>
+                </div>
+
+                <!-- Table Content -->
+                <x-table-card :title="'Documents'">
+                  <table class="table table-zebra w-full">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">
+                          <div class="flex items-center gap-2">
+                            <input type="checkbox" id="select-all" class="checkbox checkbox-sm" />
+                            <span>Document</span>
+                        </div>
+                        </th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Type</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Department</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Status</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Uploaded By</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Date</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Expiry</th>
+                        <th class="text-center py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="monitoring-table-body">
+                      <tr>
+                        <td colspan="8" class="text-center py-12">
+                          <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                              <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-gray-400"></i>
+                      </div>
+                            <h3 class="text-lg font-medium text-gray-600 mb-2">Loading monitoring data...</h3>
+                            <p class="text-gray-500">Please wait while we fetch the latest information</p>
+                    </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </x-table-card>
+
+                <!-- Table Footer with Pagination -->
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 rounded-b-lg">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                      Showing <span id="mon-showing-start">0</span> to <span id="mon-showing-end">0</span> of <span id="mon-total-results">0</span> results
+                        </div>
+                    <div class="flex items-center gap-2" id="mon-pagination">
+                      <!-- Pagination will be inserted here -->
+                      </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Monitoring Cards -->
-              <div id="mon-cards-container" class="space-y-4">
-                <div class="text-center py-8 text-gray-500">Loading...</div>
+              <!-- Bulk Actions Panel -->
+              <div id="bulk-actions-panel" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-blue-800">
+                      <span id="selected-count">0</span> documents selected
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <button onclick="bulkApprove()" class="btn btn-success btn-sm">
+                        <i data-lucide="check" class="w-4 h-4 mr-1"></i>
+                        Approve Selected
+                      </button>
+                      <button onclick="bulkReject()" class="btn btn-error btn-sm">
+                        <i data-lucide="x" class="w-4 h-4 mr-1"></i>
+                        Reject Selected
+                      </button>
+                      <button onclick="bulkArchive()" class="btn btn-warning btn-sm">
+                        <i data-lucide="archive" class="w-4 h-4 mr-1"></i>
+                        Archive Selected
+                      </button>
+                  </div>
+                </div>
+                  <button onclick="clearSelection()" class="btn btn-ghost btn-sm">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
               </div>
-
-              <div class="flex justify-end items-center gap-2" id="mon-pager"></div>
+              </div>
             </div>
           </div>
 
           <!-- DOCUMENTS TAB CONTENT -->
           <div id="legal-documents-tab" class="{{ $activeTab==='documents' ? '' : 'hidden' }}">
-            <!-- Header with Search and New Button -->
-            <div class="mb-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                  <h3 class="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2" style="color: var(--color-charcoal-ink);">
-                    <i data-lucide="inbox" class="w-5 h-5 text-blue-600"></i>
-                    Incoming Legal Submissions
-                  </h3>
-                  <!-- Search Bar -->
+          <!-- Desktop Table View -->
+          <x-table-card :title="'Documents'">
+            <!-- Search and Filters inside the table card, below the blue banner -->
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <!-- Search Bar -->
+                <div class="md:col-span-4">
                   <div class="relative">
                     <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
                     <input type="text" 
                            id="searchInput"
                            placeholder="Search documents..." 
-                           class="input input-bordered input-sm w-64 pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300">
+                           class="input input-bordered input-sm w-full pl-10 pr-4 bg-white border-gray-200 focus:border-blue-300">
                   </div>
                 </div>
 
-              </div>
+                <!-- Category Filter -->
+                <div class="md:col-span-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Category:</label>
+                  <select id="categoryFilter" class="select select-bordered select-sm w-full">
+                    <option value="">All Categories</option>
+                    <option value="contract">Contract</option>
+                    <option value="legal_notice">Legal Notice</option>
+                    <option value="policy">Policy</option>
+                    <option value="compliance">Compliance</option>
+                    <option value="financial">Financial</option>
+                    <option value="report">Report</option>
+                    <option value="memorandum">Memorandum</option>
+                    <option value="affidavit">Affidavit</option>
+                    <option value="subpoena">Subpoena</option>
+                    <option value="cease_desist">Cease & Desist</option>
+                    <option value="legal_brief">Legal Brief</option>
+                  </select>
+                </div>
 
-              <!-- Filters Row -->
-              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                <!-- Filters -->
-                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-                  <!-- Category Filter -->
-                  <div class="flex items-center gap-2">
-                    <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Category:</label>
-                    <select id="categoryFilter" class="select select-bordered select-sm w-full sm:w-40">
-                      <option value="">All Categories</option>
-                      <option value="contract">Contract</option>
-                      <option value="legal_notice">Legal Notice</option>
-                      <option value="policy">Policy</option>
-                      <option value="compliance">Compliance</option>
-                      <option value="financial">Financial</option>
-                      <option value="report">Report</option>
-                      <option value="memorandum">Memorandum</option>
-                      <option value="affidavit">Affidavit</option>
-                      <option value="subpoena">Subpoena</option>
-                      <option value="cease_desist">Cease & Desist</option>
-                      <option value="legal_brief">Legal Brief</option>
-                    </select>
-                  </div>
+                <!-- Status Filter -->
+                <div class="md:col-span-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Status:</label>
+                  <select id="statusFilter" class="select select-bordered select-sm w-full">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="pending_review">Pending Review</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="archived">Archived</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </div>
 
-                  <!-- Status Filter -->
-                  <div class="flex items-center gap-2">
-                    <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Status:</label>
-                    <select id="statusFilter" class="select select-bordered select-sm w-full sm:w-32">
-                      <option value="">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="pending_review">Pending Review</option>
-                      <option value="rejected">Rejected</option>
-                      <option value="archived">Archived</option>
-                      <option value="draft">Draft</option>
-                    </select>
-                  </div>
-
-                  <!-- Clear Filters Button -->
-                  <button onclick="clearFilters()" class="btn btn-ghost btn-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                    <i data-lucide="x" class="w-3 h-3 mr-1"></i>
-                    <span class="hidden sm:inline">Clear</span>
+                <!-- Action Buttons -->
+                <div class="md:col-span-2 flex gap-2">
+                  <button onclick="startBulkAnalysis()" class="btn btn-primary btn-sm flex-1">
+                    <i data-lucide="brain" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">Bulk AI</span>
+                  </button>
+                  <button onclick="exportViolationReport()" class="btn btn-outline btn-sm flex-1">
+                    <i data-lucide="download" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">Export</span>
                   </button>
                 </div>
               </div>
             </div>
-
-          <!-- Desktop Table View -->
-          <div class="hidden lg:block overflow-x-auto">
             <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
@@ -639,29 +671,29 @@
                       <div class="flex items-center space-x-3">
                         <!-- Avatar -->
                         <div class="avatar placeholder">
-                          <div class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center">
+                          <div class="bg-blue-900 text-white rounded-full w-8 h-8 flex items-center justify-center">
                             @php
                               $fileExtension = pathinfo($document->file_path ?? '', PATHINFO_EXTENSION);
-                              $iconColor = 'text-blue-600';
+                              $iconColor = 'text-white';
                               
                               switch(strtolower($fileExtension)) {
                                 case 'pdf':
-                                  $iconColor = 'text-red-600';
+                                  $iconColor = 'text-white';
                                   break;
                                 case 'doc':
                                 case 'docx':
-                                  $iconColor = 'text-blue-600';
+                                  $iconColor = 'text-white';
                                   break;
                                 case 'xls':
                                 case 'xlsx':
-                                  $iconColor = 'text-green-600';
+                                  $iconColor = 'text-white';
                                   break;
                                 case 'ppt':
                                 case 'pptx':
-                                  $iconColor = 'text-orange-600';
+                                  $iconColor = 'text-white';
                                   break;
                                 default:
-                                  $iconColor = 'text-gray-600';
+                                  $iconColor = 'text-white';
                               }
                             @endphp
                             <i data-lucide="file-text" class="w-4 h-4 {{ $iconColor }}"></i>
@@ -699,7 +731,7 @@
                           'active' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle', 'text' => 'Active'],
                             'pending_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'clock', 'text' => 'Pending Review'],
                             'archived' => ['class' => 'bg-gray-100 text-gray-800', 'icon' => 'archive', 'text' => 'Archived'],
-                            'draft' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'edit-3', 'text' => 'Draft'],
+                            'draft' => ['class' => 'bg-green-500 text-white', 'icon' => 'edit-3', 'text' => 'Draft'],
                             'approved' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle-2', 'text' => 'Approved'],
                             'declined' => ['class' => 'bg-red-100 text-red-800', 'icon' => 'x-circle', 'text' => 'Declined']
                           ];
@@ -707,7 +739,7 @@
                           $config = $statusConfig[$status] ?? $statusConfig['active'];
                         @endphp
                       <div class="flex items-center justify-center space-x-1">
-                        <i data-lucide="{{ $config['icon'] }}" class="w-4 h-4"></i>
+                        <i data-lucide="{{ $config['icon'] }}" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                         <span class="text-xs font-medium {{ $config['class'] }} px-2 py-1 rounded-full">{{ $config['text'] }}</span>
                       </div>
                     </td>
@@ -723,35 +755,41 @@
                         <!-- Approve Button -->
                         @if($document->status !== 'approved' && $document->status !== 'declined')
                           <button onclick="approveDocument({{ $document->id }})" 
-                                  class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200" 
+                                  class="p-1.5 rounded-lg transition-all duration-200 hover:scale-110" 
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                                   title="Approve">
-                            <i data-lucide="check" class="w-4 h-4"></i>
+                            <i data-lucide="check" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out cursor-pointer" style="fill: none;"></i>
                           </button>
                         @endif
                         
                         <!-- Decline Button -->
                         @if($document->status !== 'approved' && $document->status !== 'declined')
                           <button onclick="declineDocument({{ $document->id }})" 
-                                  class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200" 
+                                  class="p-1.5 rounded-lg transition-all duration-200 hover:scale-110"
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                                   title="Decline">
-                            <i data-lucide="x" class="w-4 h-4"></i>
+                            <i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out cursor-pointer" style="fill: none;"></i>
                           </button>
                         @endif
                         
                         <!-- AI Analysis Button -->
                         <button onclick="aiAnalysis({{ $document->id }})" 
-                                class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200 touch-manipulation" 
+                                class="p-2 rounded-lg transition-all duration-200 hover:scale-110 touch-manipulation"
+                                style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                                 title="AI Analysis">
-                          <i data-lucide="brain" class="w-4 h-4"></i>
+                          <i data-lucide="brain" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out cursor-pointer" style="fill: none;"></i>
                         </button>
                         
-                        <!-- Delete Button - Only for Administrator -->
-                        @if(auth()->user()->role === 'Administrator')
-                          <button onclick="deleteDocument({{ $document->id }})" 
-                                  class="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200 touch-manipulation" 
-                                  title="Delete">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <!-- Archive Button (No Deletion, Archive Only) -->
+                        @if($document->status !== 'archived')
+                          <button onclick="archiveDocument({{ $document->id }})" 
+                                  class="p-2 rounded-lg transition-all duration-200 hover:scale-110 touch-manipulation"
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                  title="Archive Document">
+                            <i data-lucide="archive" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out cursor-pointer" style="fill: none;"></i>
                           </button>
+                        @else
+                          <span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">Archived</span>
                         @endif
                       </div>
                     </td>
@@ -771,7 +809,7 @@
                 @endforelse
               </tbody>
             </table>
-          </div>
+          </x-table-card>
 
           <!-- Mobile Card View -->
           <div class="lg:hidden space-y-4">
@@ -782,8 +820,8 @@
                   <div class="flex items-center space-x-3 flex-1 min-w-0">
                     <!-- Avatar -->
                     <div class="avatar placeholder flex-shrink-0">
-                      <div class="bg-primary text-primary-content rounded-full w-10 h-10">
-                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                      <div class="bg-blue-900 text-white rounded-full w-10 h-10">
+                        <i data-lucide="file-text" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                       </div>
                     </div>
                     <!-- Document Info -->
@@ -848,12 +886,14 @@
                   </a>
                   @endif
                   
-                  <!-- Delete Button - Only for Administrator -->
-                  @if(auth()->user()->role === 'Administrator')
-                  <button onclick="deleteDocument({{ $document->id }})" class="btn btn-ghost btn-sm text-red-600 hover:bg-red-50">
-                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
-                    <span class="hidden sm:inline">Delete</span>
+                  <!-- Archive Button (No Deletion, Archive Only) -->
+                  @if($document->status !== 'archived')
+                  <button onclick="archiveDocument({{ $document->id }})" class="btn btn-ghost btn-sm text-orange-600 hover:bg-orange-50">
+                    <i data-lucide="archive" class="w-4 h-4 mr-1"></i>
+                    <span class="hidden sm:inline">Archive</span>
                   </button>
+                  @else
+                  <span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">Archived</span>
                   @endif
                 </div>
               </div>
@@ -871,11 +911,7 @@
           </div>
 
           <!-- Pagination -->
-          @if($documents->hasPages())
-            <div class="flex justify-center mt-6">
-              {{ $documents->appends(['search' => $search ?? '', 'category' => $category ?? '', 'status' => $status ?? ''])->links() }}
-            </div>
-          @endif
+          <x-table-card :pagination="$documents->hasPages() ? $documents->appends(['search' => $search ?? '', 'category' => $category ?? '', 'status' => $status ?? ''])->links() : null"></x-table-card>
           </div>
         </div>
       </main>
@@ -892,7 +928,7 @@
           Bulk Upload Legal Documents
         </h3>
         <button onclick="closeBulkUploadModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -956,7 +992,7 @@
           Edit Legal Document
         </h3>
         <button onclick="closeEditModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -1013,6 +1049,92 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
+  <!-- Bulk Analysis Modal -->
+  <div id="bulkAnalysisModal" class="modal">
+    <div class="modal-box w-11/12 max-w-4xl">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <i data-lucide="brain" class="w-8 h-8 text-purple-500"></i>
+          Bulk AI Analysis
+        </h3>
+        <button onclick="closeBulkAnalysisModal()" class="btn btn-sm btn-circle btn-ghost">
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
+        </button>
+      </div>
+
+      <div id="bulkAnalysisContent" class="space-y-6">
+        <!-- Analysis Progress -->
+        <div id="bulkProgress" class="hidden">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 class="font-semibold text-blue-800 mb-3">Analysis Progress</h4>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+              <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between text-sm text-blue-700">
+              <span id="progressText">Starting analysis...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Results -->
+        <div id="bulkResults" class="hidden space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 class="font-semibold text-green-800 mb-2">Successfully Analyzed</h4>
+              <p class="text-2xl font-bold text-green-600" id="bulkSuccessCount">0</p>
+            </div>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h4 class="font-semibold text-red-800 mb-2">High Risk Documents</h4>
+              <p class="text-2xl font-bold text-red-600" id="bulkHighRiskCount">0</p>
+            </div>
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h4 class="font-semibold text-orange-800 mb-2">Violations Found</h4>
+              <p class="text-2xl font-bold text-orange-600" id="bulkViolationCount">0</p>
+            </div>
+          </div>
+
+          <!-- Detailed Results Table -->
+          <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <h4 class="font-semibold text-gray-800">Analysis Results</h4>
+            </div>
+            <x-table-card :title="'Search Results'">
+              <table class="table table-zebra w-full">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Classification</th>
+                    <th>Risk Score</th>
+                    <th>Violations</th>
+                    <th>Compliance</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="bulkResultsTable">
+                  <!-- Results will be populated here -->
+                </tbody>
+              </table>
+            </x-table-card>
+          </div>
+        </div>
+
+        <!-- Start Analysis Button -->
+        <div id="bulkStartSection" class="text-center">
+          <p class="text-gray-600 mb-4">Analyze all documents in the current view with enhanced AI classification and violation detection.</p>
+          <button onclick="executeBulkAnalysis()" class="btn btn-primary btn-lg">
+            <i data-lucide="play" class="w-5 h-5 mr-2"></i>
+            Start Bulk Analysis
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-6 pt-6 border-t border-gray-200">
+        <button onclick="closeBulkAnalysisModal()" class="btn btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- AI Analysis Modal -->
   <div id="aiAnalysisModal" class="modal">
     <div class="modal-box w-11/12 max-w-4xl">
@@ -1022,7 +1144,7 @@
           AI Document Analysis
         </h3>
         <button onclick="closeAiAnalysisModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -1068,10 +1190,48 @@
             </div>
           </div>
 
+          <!-- Violation Analysis Section -->
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 class="font-semibold text-red-800 mb-2 flex items-center gap-2">
+              <i data-lucide="alert-triangle" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
+              Violation Analysis
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+              <div>
+                <span class="text-gray-600">Violation Score:</span>
+                <span class="font-semibold ml-2" id="aiViolationScore">—</span>
+              </div>
+              <div>
+                <span class="text-gray-600">Flagged Issues:</span>
+                <span class="font-semibold ml-2" id="aiFlaggedIssues">—</span>
+              </div>
+            </div>
+            <p class="text-red-700 text-sm" id="aiViolationAnalysis">—</p>
+          </div>
+
+          <!-- Compliance Analysis Section -->
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h4 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
+              <i data-lucide="shield-check" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
+              Compliance Analysis
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+              <div>
+                <span class="text-gray-600">Compliance Status:</span>
+                <span class="font-semibold ml-2" id="aiComplianceStatus">—</span>
+              </div>
+              <div>
+                <span class="text-gray-600">Regulatory Standards:</span>
+                <span class="font-semibold ml-2" id="aiRegulatoryStandards">—</span>
+              </div>
+            </div>
+            <p class="text-green-700 text-sm" id="aiComplianceDetails">—</p>
+          </div>
+
           <!-- Document Summary -->
           <div class="bg-green-50 border border-green-200 rounded-lg p-4">
             <h4 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
-              <i data-lucide="file-text" class="w-4 h-4"></i>
+              <i data-lucide="file-text" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               Document Summary
             </h4>
             <p class="text-green-700 text-sm" id="aiSummary">—</p>
@@ -1080,7 +1240,7 @@
           <!-- Legal Assessment -->
           <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <h4 class="font-semibold text-orange-800 mb-2 flex items-center gap-2">
-              <i data-lucide="scale" class="w-4 h-4"></i>
+              <i data-lucide="scale" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               Legal Assessment
             </h4>
             <p class="text-orange-700 text-sm" id="aiLegalImplications">—</p>
@@ -1089,7 +1249,7 @@
           <!-- AI-Powered Insights -->
           <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <h4 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <i data-lucide="sparkles" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
               AI-Powered Insights
             </h4>
             <div class="space-y-3">
@@ -1205,6 +1365,232 @@
         updateFilePreview(e.target.files[0]);
       }
     });
+
+    // Bulk Analysis Functions
+    function startBulkAnalysis() {
+      document.getElementById('bulkAnalysisModal').classList.add('modal-open');
+    }
+
+    function closeBulkAnalysisModal() {
+      document.getElementById('bulkAnalysisModal').classList.remove('modal-open');
+      // Reset modal state
+      document.getElementById('bulkProgress').classList.add('hidden');
+      document.getElementById('bulkResults').classList.add('hidden');
+      document.getElementById('bulkStartSection').classList.remove('hidden');
+    }
+
+    function executeBulkAnalysis() {
+      // Get all visible document rows
+      const documentRows = document.querySelectorAll('tbody tr[data-document-id]');
+      const documentIds = Array.from(documentRows).map(row => row.getAttribute('data-document-id'));
+      
+      if (documentIds.length === 0) {
+        showToast('No documents found to analyze', 'warning');
+        return;
+      }
+
+      // Show progress section
+      document.getElementById('bulkStartSection').classList.add('hidden');
+      document.getElementById('bulkProgress').classList.remove('hidden');
+      document.getElementById('bulkResults').classList.add('hidden');
+
+      // Initialize counters
+      let processed = 0;
+      let successCount = 0;
+      let highRiskCount = 0;
+      let violationCount = 0;
+      const results = [];
+
+      // Process documents one by one
+      const processNextDocument = async (index) => {
+        if (index >= documentIds.length) {
+          // Analysis complete
+          showBulkResults(results, successCount, highRiskCount, violationCount);
+          return;
+        }
+
+        const documentId = documentIds[index];
+        const progress = ((index + 1) / documentIds.length) * 100;
+        
+        // Update progress
+        document.getElementById('progressBar').style.width = progress + '%';
+        document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+        document.getElementById('progressText').textContent = `Analyzing document ${index + 1} of ${documentIds.length}...`;
+
+        try {
+          // Perform AI analysis
+          const response = await fetch(`/document/${documentId}/analyze-ajax`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const data = await response.json();
+          
+          if (data.success) {
+            successCount++;
+            const analysis = data.analysis;
+            
+            // Check for high risk
+            if (analysis.legal_risk_score === 'High' || analysis.violation_score === 'High' || analysis.violation_score === 'Critical') {
+              highRiskCount++;
+            }
+            
+            // Check for violations
+            if (analysis.violation_score !== 'Low' && analysis.flagged_issues && analysis.flagged_issues.length > 0) {
+              violationCount++;
+            }
+
+            // Store result
+            results.push({
+              id: documentId,
+              title: documentRows[index].querySelector('td:first-child .font-medium')?.textContent || 'Unknown',
+              classification: analysis.ai_classification || analysis.category || 'Unknown',
+              riskScore: analysis.legal_risk_score || 'Low',
+              violationScore: analysis.violation_score || 'Low',
+              compliance: analysis.compliance_status || 'unknown',
+              flaggedIssues: analysis.flagged_issues || [],
+              status: 'Success'
+            });
+          } else {
+            results.push({
+              id: documentId,
+              title: documentRows[index].querySelector('td:first-child .font-medium')?.textContent || 'Unknown',
+              classification: 'Unknown',
+              riskScore: 'Unknown',
+              violationScore: 'Unknown',
+              compliance: 'unknown',
+              flaggedIssues: [],
+              status: 'Failed'
+            });
+          }
+        } catch (error) {
+          console.error('Error analyzing document:', error);
+          results.push({
+            id: documentId,
+            title: documentRows[index].querySelector('td:first-child .font-medium')?.textContent || 'Unknown',
+            classification: 'Unknown',
+            riskScore: 'Unknown',
+            violationScore: 'Unknown',
+            compliance: 'unknown',
+            flaggedIssues: [],
+            status: 'Error'
+          });
+        }
+
+        processed++;
+        
+        // Process next document after a short delay
+        setTimeout(() => processNextDocument(index + 1), 1000);
+      };
+
+      // Start processing
+      processNextDocument(0);
+    }
+
+    function showBulkResults(results, successCount, highRiskCount, violationCount) {
+      // Update counters
+      document.getElementById('bulkSuccessCount').textContent = successCount;
+      document.getElementById('bulkHighRiskCount').textContent = highRiskCount;
+      document.getElementById('bulkViolationCount').textContent = violationCount;
+
+      // Populate results table
+      const tableBody = document.getElementById('bulkResultsTable');
+      tableBody.innerHTML = results.map(result => `
+        <tr>
+          <td class="font-medium">${result.title}</td>
+          <td>
+            <span class="badge badge-outline badge-sm">${result.classification}</span>
+          </td>
+          <td>
+            <span class="badge ${getRiskBadgeClass(result.riskScore)} badge-sm">${result.riskScore}</span>
+          </td>
+          <td>
+            <span class="badge ${getViolationBadgeClass(result.violationScore)} badge-sm">${result.violationScore}</span>
+          </td>
+          <td>
+            <span class="badge ${getComplianceBadgeClass(result.compliance)} badge-sm">${result.compliance}</span>
+          </td>
+          <td>
+            <span class="badge ${result.status === 'Success' ? 'badge-success' : 'badge-error'} badge-sm">${result.status}</span>
+          </td>
+        </tr>
+      `).join('');
+
+      // Show results
+      document.getElementById('bulkProgress').classList.add('hidden');
+      document.getElementById('bulkResults').classList.remove('hidden');
+
+      showToast(`Bulk analysis completed! ${successCount} documents analyzed successfully.`, 'success');
+    }
+
+    function getRiskBadgeClass(riskScore) {
+      switch (riskScore) {
+        case 'High': return 'badge-error';
+        case 'Medium': return 'badge-warning';
+        case 'Low': return 'badge-success';
+        default: return 'badge-neutral';
+      }
+    }
+
+    function getViolationBadgeClass(violationScore) {
+      switch (violationScore) {
+        case 'Critical': return 'badge-error';
+        case 'High': return 'badge-error';
+        case 'Medium': return 'badge-warning';
+        case 'Low': return 'badge-success';
+        default: return 'badge-neutral';
+      }
+    }
+
+    function getComplianceBadgeClass(compliance) {
+      switch (compliance) {
+        case 'compliant': return 'badge-success';
+        case 'non_compliant': return 'badge-error';
+        case 'review_required': return 'badge-warning';
+        default: return 'badge-neutral';
+      }
+    }
+
+    function exportViolationReport() {
+      // Get all visible document rows
+      const documentRows = document.querySelectorAll('tbody tr[data-document-id]');
+      const documents = Array.from(documentRows).map(row => {
+        const title = row.querySelector('td:first-child .font-medium')?.textContent || 'Unknown';
+        const category = row.querySelector('td:nth-child(2) .badge')?.textContent || 'Unknown';
+        const status = row.querySelector('td:nth-child(3) .badge')?.textContent || 'Unknown';
+        const department = row.querySelector('td:nth-child(4)')?.textContent || 'Unknown';
+        const date = row.querySelector('td:nth-child(6)')?.textContent || 'Unknown';
+        
+        return {
+          title,
+          category,
+          status,
+          department,
+          date
+        };
+      });
+
+      // Create CSV content
+      let csv = 'Document Title,Category,Status,Department,Date\n';
+      documents.forEach(doc => {
+        csv += `"${doc.title}","${doc.category}","${doc.status}","${doc.department}","${doc.date}"\n`;
+      });
+
+      // Download CSV
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'legal_documents_violation_report.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      showToast('Violation report exported successfully!', 'success');
+    }
 
     // AI Analysis Modal functions
     function aiAnalysis(documentId) {
@@ -1347,6 +1733,36 @@
       // Update analysis details with proper field mapping
       document.getElementById('aiCompliance').textContent = analysis.compliance_status || '—';
       
+      // Update new violation analysis fields
+      document.getElementById('aiViolationScore').textContent = analysis.violation_score || 'Low';
+      document.getElementById('aiViolationAnalysis').textContent = analysis.violation_analysis || 'No violations detected.';
+      
+      // Update compliance analysis fields
+      document.getElementById('aiComplianceStatus').textContent = analysis.compliance_status || 'unknown';
+      document.getElementById('aiComplianceDetails').textContent = analysis.compliance_details || 'Compliance analysis not available.';
+      
+      // Update flagged issues
+      let flaggedIssuesText = '—';
+      if (analysis.flagged_issues) {
+        if (Array.isArray(analysis.flagged_issues)) {
+          flaggedIssuesText = analysis.flagged_issues.join(', ');
+        } else if (typeof analysis.flagged_issues === 'string') {
+          flaggedIssuesText = analysis.flagged_issues;
+        }
+      }
+      document.getElementById('aiFlaggedIssues').textContent = flaggedIssuesText;
+      
+      // Update regulatory standards
+      let regulatoryStandardsText = '—';
+      if (analysis.regulatory_standards) {
+        if (Array.isArray(analysis.regulatory_standards)) {
+          regulatoryStandardsText = analysis.regulatory_standards.join(', ');
+        } else if (typeof analysis.regulatory_standards === 'string') {
+          regulatoryStandardsText = analysis.regulatory_standards;
+        }
+      }
+      document.getElementById('aiRegulatoryStandards').textContent = regulatoryStandardsText;
+      
       // Handle tags properly
       let tagsText = '—';
       if (analysis.tags) {
@@ -1390,16 +1806,16 @@
       document.getElementById('aiResults').classList.remove('hidden');
          }
      
-     // Delete document function
-     function deleteDocument(documentId) {
+     // Archive document function (No Deletion, Archive Only)
+     function archiveDocument(documentId) {
        Swal.fire({
-         title: 'Confirm Deletion',
-         text: 'Are you sure you want to delete this legal document? This action cannot be undone and will permanently remove the document from the system.',
-         icon: 'warning',
+         title: 'Confirm Archive',
+         text: 'Are you sure you want to archive this legal document? It will be retained according to retention policy and cannot be deleted. The document will be marked for disposal after the retention period.',
+         icon: 'question',
          showCancelButton: true,
-         confirmButtonText: 'DELETE DOCUMENT',
+         confirmButtonText: 'ARCHIVE DOCUMENT',
          cancelButtonText: 'CANCEL',
-         confirmButtonColor: '#ef4444',
+         confirmButtonColor: '#f59e0b',
          cancelButtonColor: '#6b7280',
          reverseButtons: true,
          focusCancel: true
@@ -1411,9 +1827,9 @@
            button.innerHTML = '<i class="loading loading-spinner"></i>';
            button.disabled = true;
        
-           // Make delete request
-           fetch(`/legal/documents/${documentId}`, {
-             method: 'DELETE',
+           // Make archive request
+           fetch(`/legal/documents/${documentId}/archive-only`, {
+             method: 'POST',
              headers: {
                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                'Accept': 'application/json',
@@ -1424,46 +1840,40 @@
              if (response.ok) {
                return response.json();
              } else {
-               throw new Error(`Delete failed with status ${response.status}`);
+               throw new Error(`Archive failed with status ${response.status}`);
              }
            })
            .then(data => {
              if (data.success) {
-               // Remove the row from the table
+               // Update the row to show archived status
                const row = document.querySelector(`tr[data-document-id="${documentId}"]`);
                if (row) {
-                 row.remove();
+                 // Update status column
+                 const statusCell = row.querySelector('.status-badge');
+                 if (statusCell) {
+                   statusCell.innerHTML = '<span class="badge badge-warning">Archived</span>';
+                 }
+                 
+                 // Replace archive button with archived status
+                 const actionCell = row.querySelector('.action-buttons');
+                 if (actionCell) {
+                   const archiveButton = actionCell.querySelector(`button[onclick="archiveDocument(${documentId})"]`);
+                   if (archiveButton) {
+                     archiveButton.outerHTML = '<span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">Archived</span>';
+                   }
+                 }
                  
                  // Show success toast
-                 showToast('Document deleted successfully', 'success');
-                 
-                 // Check if table is empty and show empty state
-                 const tbody = document.querySelector('tbody');
-                 if (tbody && tbody.children.length === 0) {
-                   const newEmptyRow = document.createElement('tr');
-                   newEmptyRow.innerHTML = `
-                     <td colspan="7" class="text-center py-12">
-                       <div class="flex flex-col items-center">
-                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                           <i data-lucide="folder-open" class="w-10 h-10 text-gray-400"></i>
-                         </div>
-                         <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-                         <p class="text-gray-500">Get started by uploading your first document.</p>
-                       </div>
-                     </td>
-                   `;
-                   tbody.appendChild(newEmptyRow);
-                   lucide.createIcons();
-                 }
+                 showToast('Document archived successfully! ' + (data.message || ''), 'success');
                }
              } else {
-               throw new Error(data.message || 'Delete failed');
+               throw new Error(data.message || 'Archive failed');
              }
            })
            .catch(error => {
-             console.error('Delete error:', error);
+             console.error('Archive error:', error);
              // Show error toast
-             showToast('Error deleting document: ' + error.message, 'error');
+             showToast('Error archiving document: ' + error.message, 'error');
            })
            .finally(() => {
              // Restore button
@@ -1602,10 +2012,10 @@
        if (type === 'warning') icon = 'alert-triangle';
        
        toast.innerHTML = `
-         <i data-lucide="${icon}" class="w-5 h-5"></i>
+         <i data-lucide="${icon}" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
          <span>${message}</span>
          <button onclick="this.parentElement.remove()" class="btn btn-ghost btn-xs">
-           <i data-lucide="x" class="w-4 h-4"></i>
+           <i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
          </button>
        `;
        
@@ -1645,10 +2055,102 @@
        // For now, we'll just update the total count
      }
   
-     // Event listeners
+     // Alert System Functions
+    function checkForHighRiskDocuments() {
+      // Check if there are any high-risk documents in the current view
+      const highRiskRows = document.querySelectorAll('tr[data-document-id]');
+      let highRiskCount = 0;
+      let criticalCount = 0;
+      const highRiskDocuments = [];
+
+      highRiskRows.forEach(row => {
+        const riskBadge = row.querySelector('.badge-error, .badge-warning');
+        if (riskBadge) {
+          const riskText = riskBadge.textContent.toLowerCase();
+          if (riskText.includes('high') || riskText.includes('critical')) {
+            highRiskCount++;
+            if (riskText.includes('critical')) {
+              criticalCount++;
+            }
+            
+            const title = row.querySelector('td:first-child .font-medium')?.textContent || 'Unknown Document';
+            highRiskDocuments.push(title);
+          }
+        }
+      });
+
+      if (highRiskCount > 0) {
+        showHighRiskAlert(highRiskCount, criticalCount, highRiskDocuments);
+      }
+    }
+
+    function showHighRiskAlert(totalCount, criticalCount, documents) {
+      const alertBanner = document.getElementById('aiAlertBanner');
+      const alertMessage = document.getElementById('alertMessage');
+      
+      let message = `AI analysis has detected ${totalCount} high-risk document${totalCount > 1 ? 's' : ''}`;
+      if (criticalCount > 0) {
+        message += ` (${criticalCount} critical)`;
+      }
+      message += ' that require immediate attention.';
+      
+      alertMessage.textContent = message;
+      alertBanner.classList.remove('hidden');
+      
+      // Store high-risk documents for later reference
+      window.highRiskDocuments = documents;
+    }
+
+    function viewHighRiskDocuments() {
+      // Filter the table to show only high-risk documents
+      const allRows = document.querySelectorAll('tr[data-document-id]');
+      
+      allRows.forEach(row => {
+        const riskBadge = row.querySelector('.badge-error, .badge-warning');
+        if (riskBadge) {
+          const riskText = riskBadge.textContent.toLowerCase();
+          if (riskText.includes('high') || riskText.includes('critical')) {
+            row.style.display = '';
+            row.style.backgroundColor = '#fef2f2'; // Light red background
+          } else {
+            row.style.display = 'none';
+          }
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      // Update status filter to show high-risk
+      document.getElementById('statusFilter').value = 'high_risk';
+      
+      showToast('Filtered to show high-risk documents only', 'info');
+    }
+
+    function dismissAlert() {
+      document.getElementById('aiAlertBanner').classList.add('hidden');
+    }
+
+    function resetDocumentView() {
+      // Reset all rows to visible
+      const allRows = document.querySelectorAll('tr[data-document-id]');
+      allRows.forEach(row => {
+        row.style.display = '';
+        row.style.backgroundColor = '';
+      });
+      
+      // Reset filters
+      document.getElementById('statusFilter').value = '';
+      
+      showToast('Document view reset', 'info');
+    }
+
+    // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
       updateDateTime();
       setInterval(updateDateTime, 1000);
+      
+      // Check for high-risk documents on page load
+      setTimeout(checkForHighRiskDocuments, 2000);
     });
 
     // Close modals when clicking outside
@@ -1831,12 +2333,10 @@
             <button onclick="downloadDocument(${documentData.id})" class="btn btn-ghost btn-xs tooltip" data-tip="Download">
               <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
             </button>
-            <!-- Delete Button - Only for Administrator -->
-            ${userRole === 'Administrator' ? `
-              <button onclick="deleteDocument(${documentData.id})" class="btn btn-ghost btn-xs tooltip" data-tip="Delete">
-                <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
-              </button>
-            ` : ''}
+            <!-- Archive Button (No Deletion, Archive Only) -->
+            <button onclick="archiveDocument(${documentData.id})" class="btn btn-ghost btn-xs tooltip" data-tip="Archive Document">
+              <i data-lucide="archive" class="w-4 h-4 text-orange-600"></i>
+            </button>
           </div>
         </td>
       `;
@@ -2176,7 +2676,7 @@
         // Show success message
         const successMessage = document.createElement('div');
         successMessage.className = 'alert alert-success mb-6';
-        successMessage.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Documents exported successfully!</span>';
+        successMessage.innerHTML = '<i data-lucide="check-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i><span>Documents exported successfully!</span>';
         document.querySelector('main').insertBefore(successMessage, document.querySelector('main').firstChild);
         lucide.createIcons();
         
@@ -2205,7 +2705,7 @@
               Legal Documents Statistics
             </h3>
             <button onclick="this.closest('.fixed').remove()" class="btn btn-sm btn-circle btn-ghost">
-              <i data-lucide="x" class="w-4 h-4"></i>
+              <i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
             </button>
           </div>
           
@@ -2257,153 +2757,484 @@
       lucide.createIcons();
     }
 
-    // Filtering functionality
-    // Monitoring tab logic
+    // Professional Monitoring Dashboard Functions
     const MON = {
       page: 1,
+      perPage: 25,
+      selectedDocuments: new Set(),
       params() {
         return {
-          search: document.getElementById('mon-search')?.value || '',
-          department: document.getElementById('mon-dept')?.value || '',
-          type: document.getElementById('mon-type')?.value || '',
-          status: document.getElementById('mon-status')?.value || '',
-          page: this.page
+          page: this.page,
+          per_page: this.perPage
         };
       }
     };
+
+    // Load monitoring summary with enhanced analytics
     function loadMonitoringSummary(){
       const p = MON.params();
       const q = new URLSearchParams(p).toString();
-      fetch(`/legal/monitoring/summary?${q}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }})
-        .then(r=>r.json()).then(d=>{
-          if(!d.success) return;
+      
+      fetch(`/legal/monitoring/summary?${q}`, { 
+        headers: { 
+          'X-Requested-With':'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if(!d.success) {
+          console.error('Failed to load monitoring summary:', d.message);
+          return;
+        }
+        
           const c = d.counts || {};
-          const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val ?? 0; };
+        const analytics = d.analytics || {};
+        
+        // Update KPI cards
+        const set = (id, val) => { 
+          const el = document.getElementById(id); 
+          if(el) el.textContent = val ?? 0; 
+        };
+        
           set('mon-total', c.total);
           set('mon-pending', c.pending);
           set('mon-approved', c.approved);
-          set('mon-rejected', c.rejected);
-          set('mon-drafts', c.drafts);
-          set('mon-signatures', c.signing);
-          set('mon-signed', c.signed);
           set('mon-expiring', c.expiring);
-        }).catch(()=>{});
+        
+        // Update change indicators
+        const setChange = (id, val) => {
+          const el = document.getElementById(id);
+          if(el) {
+            el.textContent = val || '+0%';
+            el.className = val && val.startsWith('+') ? 'text-green-600 font-medium' : 
+                          val && val.startsWith('-') ? 'text-red-600 font-medium' : 
+                          'text-gray-600 font-medium';
+          }
+        };
+        
+        setChange('mon-total-change', analytics.total_change);
+        setChange('mon-approved-change', analytics.approval_rate);
+        setChange('mon-pending-change', c.pending);
+        setChange('mon-expiring-change', c.expiring);
+        
+        // Update last updated time
+        const lastUpdated = document.getElementById('lastUpdated');
+        if(lastUpdated) {
+          lastUpdated.textContent = new Date().toLocaleTimeString();
+        }
+      })
+      .catch(error => {
+        console.error('Error loading monitoring summary:', error);
+        showToast('Failed to load monitoring data', 'error');
+      });
     }
+
+    // Load monitoring table with professional data display
     function loadMonitoringList(){
       const p = MON.params();
       const q = new URLSearchParams(p).toString();
-      const container = document.getElementById('mon-cards-container');
-      if(container){ container.innerHTML = '<div class="text-center py-8 text-gray-500">Loading...</div>'; }
-      fetch(`/legal/monitoring/list?${q}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }})
-        .then(r=>r.json()).then(d=>{
-          if(!d.success) return;
-          const cards = (d.data||[]).map(item=>{
-            const sBadge = (s)=>{
-              const m = (s||'').toLowerCase();
-              const cls = m==='active'?'badge-success': m==='pending_review'?'badge-warning': m==='draft'?'badge-ghost': m==='returned'?'badge-info': m==='rejected'?'badge-error':'badge-ghost';
-              return `<span class="badge ${cls}">${s||'—'}</span>`;
-            };
-            const sig = item.signature_status ? `<span class="badge">${item.signature_status}</span>` : '—';
-            return `
-              <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
-                <div class="px-6 py-4">
-                  <div class="grid grid-cols-10 gap-4 items-center text-sm">
-                    <!-- Ref ID -->
-                    <div class="col-span-1 text-center">
-                      <div class="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                        ${item.reference_id||'—'}
+      const tbody = document.getElementById('monitoring-table-body');
+      
+      if(tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-12">
+              <div class="flex flex-col items-center">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-gray-400"></i>
                       </div>
+                <h3 class="text-lg font-medium text-gray-600 mb-2">Loading monitoring data...</h3>
+                <p class="text-gray-500">Please wait while we fetch the latest information</p>
                     </div>
-                    
-                    <!-- Title -->
-                    <div class="col-span-2">
-                      <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                          <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+            </td>
+          </tr>
+        `;
+      }
+      
+      fetch(`/legal/monitoring/list?${q}`, { 
+        headers: { 
+          'X-Requested-With':'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if(!d.success) {
+          throw new Error(d.message || 'Failed to load monitoring data');
+        }
+        
+        const documents = d.data || [];
+        const meta = d.meta || {};
+        
+        // Update results count
+        const resultsCount = document.getElementById('mon-results-count');
+        if(resultsCount) {
+          resultsCount.textContent = meta.total || documents.length;
+        }
+        
+        // Update pagination info
+        updatePaginationInfo(meta);
+        
+        // Render table rows
+        if(tbody) {
+          if(documents.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="8" class="text-center py-12">
+                  <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <i data-lucide="file-x" class="w-8 h-8 text-gray-400"></i>
                         </div>
-                        <div class="min-w-0">
-                          <div class="font-semibold text-gray-800 truncate">${item.title||'—'}</div>
+                    <h3 class="text-lg font-medium text-gray-600 mb-2">No documents found</h3>
+                    <p class="text-gray-500">Try adjusting your filters or search criteria</p>
                         </div>
-                      </div>
+                </td>
+              </tr>
+            `;
+          } else {
+            tbody.innerHTML = documents.map(item => createMonitoringTableRow(item)).join('');
+          }
+        }
+        
+        // Update pagination
+        updatePagination(meta);
+        
+        // Recreate icons
+        if (window.lucide && window.lucide.createIcons) { 
+          window.lucide.createIcons(); 
+        }
+      })
+      .catch(error => {
+        console.error('Error loading monitoring list:', error);
+        if(tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center py-12">
+                <div class="flex flex-col items-center">
+                  <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
                     </div>
-                    
-                    <!-- Type -->
-                    <div class="col-span-1 text-center">
-                      <span class="text-sm font-medium text-gray-700">${item.category||'—'}</span>
+                  <h3 class="text-lg font-medium text-red-600 mb-2">Failed to load data</h3>
+                  <p class="text-red-500">${error.message}</p>
                     </div>
-                    
-                    <!-- Department -->
-                    <div class="col-span-1 text-center">
-                      <span class="text-sm font-medium text-gray-700">${item.department||'—'}</span>
+              </td>
+            </tr>
+          `;
+        }
+        showToast('Failed to load monitoring data', 'error');
+      });
+    }
+
+    // Create professional table row for monitoring
+    function createMonitoringTableRow(item) {
+      const statusConfig = {
+        'active': { class: 'badge-success', icon: 'check-circle', text: 'Active' },
+        'pending_review': { class: 'badge-warning', icon: 'clock', text: 'Pending Review' },
+        'draft': { class: 'badge-neutral', icon: 'edit', text: 'Draft' },
+        'approved': { class: 'badge-success', icon: 'check-circle-2', text: 'Approved' },
+        'rejected': { class: 'badge-error', icon: 'x-circle', text: 'Rejected' },
+        'archived': { class: 'badge-ghost', icon: 'archive', text: 'Archived' }
+      };
+      
+      const status = statusConfig[item.status] || statusConfig['draft'];
+      const isExpiring = item.expiry_date && new Date(item.expiry_date) <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      
+      return `
+        <tr class="hover:bg-gray-50 transition-colors" data-document-id="${item.id}">
+          <td class="py-4 px-4">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="checkbox checkbox-sm document-checkbox" 
+                     data-document-id="${item.id}" onchange="toggleDocumentSelection(${item.id})" />
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
                     </div>
-                    
-                    <!-- Status -->
-                    <div class="col-span-1 text-center">
-                      ${sBadge(item.status)}
-                    </div>
-                    
-                    <!-- Signature -->
-                    <div class="col-span-1 text-center">
-                      ${sig}
-                    </div>
-                    
-                    <!-- Renewal -->
-                    <div class="col-span-1 text-center">
-                      <span class="text-sm text-gray-600">${item.renewal_date||'—'}</span>
-                    </div>
-                    
-                    <!-- Retention -->
-                    <div class="col-span-1 text-center">
-                      <span class="text-sm text-gray-600">${item.retention_until||'—'}</span>
-                    </div>
-                    
-                    <!-- Actions -->
-                    <div class="col-span-1 text-center">
-                      <div class="flex items-center justify-center gap-1">
-                        <button class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="View" onclick="viewDocument(${item.id})">
-                          <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
+                <div>
+                  <div class="font-semibold text-gray-900">${item.title || 'Untitled Document'}</div>
+                  <div class="text-sm text-gray-500">${item.legal_document_id || 'LD-' + item.id}</div>
                       </div>
                     </div>
                   </div>
+          </td>
+          <td class="py-4 px-4">
+            <span class="badge badge-outline badge-sm">${(item.category || 'General').replace('_', ' ')}</span>
+          </td>
+          <td class="py-4 px-4 text-sm text-gray-600">${item.department || 'N/A'}</td>
+          <td class="py-4 px-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="${status.icon}" class="w-4 h-4 text-gray-500"></i>
+              <span class="badge ${status.class} badge-sm">${status.text}</span>
                 </div>
-              </div>`;
-          }).join('');
-          if(container){ container.innerHTML = cards || '<div class="text-center py-8 text-gray-500">No documents found</div>'; }
-          // pager
-          const pager = document.getElementById('mon-pager');
-          if(pager){
-            const cp = d.meta?.current_page||1; const lp = d.meta?.last_page||1;
-            pager.innerHTML = `
-              <div class="join">
-                <button class="btn btn-sm join-item" ${cp<=1?'disabled':''} onclick="MON.page=${cp-1}; loadMonitoringList();">Prev</button>
-                <span class="px-2 text-sm">Page ${cp} of ${lp}</span>
-                <button class="btn btn-sm join-item" ${cp>=lp?'disabled':''} onclick="MON.page=${cp+1}; loadMonitoringList();">Next</button>
-              </div>`;
-          }
-          if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
-        }).catch(()=>{
-          if(container){ container.innerHTML = '<div class="text-center py-8 text-error">Failed to load</div>'; }
-        });
+          </td>
+          <td class="py-4 px-4 text-sm text-gray-600">${item.uploader_name || 'Unknown'}</td>
+          <td class="py-4 px-4 text-sm text-gray-600">${formatDate(item.created_at)}</td>
+          <td class="py-4 px-4">
+            ${item.expiry_date ? `
+              <div class="text-sm ${isExpiring ? 'text-red-600 font-medium' : 'text-gray-600'}">
+                ${formatDate(item.expiry_date)}
+                ${isExpiring ? '<i data-lucide="alert-triangle" class="w-3 h-3 ml-1 inline"></i>' : ''}
+              </div>
+            ` : '<span class="text-gray-400">—</span>'}
+          </td>
+          <td class="py-4 px-4">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="viewDocument(${item.id})" class="btn btn-ghost btn-xs" title="View">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+              <button onclick="downloadDocument(${item.id})" class="btn btn-ghost btn-xs" title="Download">
+                <i data-lucide="download" class="w-4 h-4"></i>
+              </button>
+              <button onclick="aiAnalysis(${item.id})" class="btn btn-ghost btn-xs" title="AI Analysis">
+                <i data-lucide="brain" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
     }
+
+    // Update pagination information
+    function updatePaginationInfo(meta) {
+      const start = ((meta.current_page || 1) - 1) * (meta.per_page || 25) + 1;
+      const end = Math.min(start + (meta.per_page || 25) - 1, meta.total || 0);
+      
+      const startEl = document.getElementById('mon-showing-start');
+      const endEl = document.getElementById('mon-showing-end');
+      const totalEl = document.getElementById('mon-total-results');
+      
+      if(startEl) startEl.textContent = start;
+      if(endEl) endEl.textContent = end;
+      if(totalEl) totalEl.textContent = meta.total || 0;
+    }
+
+    // Update pagination controls
+    function updatePagination(meta) {
+      const paginationEl = document.getElementById('mon-pagination');
+      if(!paginationEl) return;
+      
+      const currentPage = meta.current_page || 1;
+      const lastPage = meta.last_page || 1;
+      
+      let paginationHTML = '<div class="join">';
+      
+      // Previous button
+      paginationHTML += `
+        <button class="btn btn-sm join-item ${currentPage <= 1 ? 'btn-disabled' : ''}" 
+                ${currentPage <= 1 ? 'disabled' : ''} 
+                onclick="MON.page = ${currentPage - 1}; loadMonitoringList();">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          Previous
+        </button>
+      `;
+      
+      // Page numbers
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(lastPage, currentPage + 2);
+      
+      for(let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+          <button class="btn btn-sm join-item ${i === currentPage ? 'btn-active' : ''}" 
+                  onclick="MON.page = ${i}; loadMonitoringList();">
+            ${i}
+          </button>
+        `;
+      }
+      
+      // Next button
+      paginationHTML += `
+        <button class="btn btn-sm join-item ${currentPage >= lastPage ? 'btn-disabled' : ''}" 
+                ${currentPage >= lastPage ? 'disabled' : ''} 
+                onclick="MON.page = ${currentPage + 1}; loadMonitoringList();">
+          Next
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      `;
+      
+      paginationHTML += '</div>';
+      paginationEl.innerHTML = paginationHTML;
+    }
+
+    // Initialize monitoring filters
     function initMonitoringFilters(){
-      ['mon-search','mon-dept','mon-type','mon-status'].forEach(id=>{
-        const el = document.getElementById(id);
-        if(!el) return;
-        el.addEventListener('input', ()=>{ MON.page = 1; loadMonitoringSummary(); loadMonitoringList(); });
-        el.addEventListener('change', ()=>{ MON.page = 1; loadMonitoringSummary(); loadMonitoringList(); });
+      // No filters to initialize since Advanced Filters section was removed
+    }
+
+    // Clear all monitoring filters
+    function clearMonitoringFilters() {
+      // No filters to clear since Advanced Filters section was removed
+      MON.page = 1;
+      loadMonitoringSummary();
+      loadMonitoringList();
+    }
+
+    // Refresh monitoring data
+    function refreshMonitoringData() {
+      loadMonitoringSummary();
+      loadMonitoringList();
+      showToast('Monitoring data refreshed', 'success');
+    }
+
+    // Export monitoring data
+    function exportMonitoringData() {
+      const params = MON.params();
+      const queryString = new URLSearchParams(params).toString();
+      window.open(`/legal/monitoring/export?${queryString}`, '_blank');
+      showToast('Export started', 'info');
+    }
+
+    // Document selection management
+    function toggleDocumentSelection(documentId) {
+      if(MON.selectedDocuments.has(documentId)) {
+        MON.selectedDocuments.delete(documentId);
+      } else {
+        MON.selectedDocuments.add(documentId);
+      }
+      updateBulkActionsPanel();
+    }
+
+    function updateBulkActionsPanel() {
+      const panel = document.getElementById('bulk-actions-panel');
+      const countEl = document.getElementById('selected-count');
+      const selectAllCheckbox = document.getElementById('select-all');
+      
+      if(countEl) {
+        countEl.textContent = MON.selectedDocuments.size;
+      }
+      
+      if(MON.selectedDocuments.size > 0) {
+        if(panel) panel.classList.remove('hidden');
+      } else {
+        if(panel) panel.classList.add('hidden');
+      }
+      
+      // Update select all checkbox
+      if(selectAllCheckbox) {
+        const allCheckboxes = document.querySelectorAll('.document-checkbox');
+        const checkedCount = document.querySelectorAll('.document-checkbox:checked').length;
+        selectAllCheckbox.checked = checkedCount === allCheckboxes.length;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < allCheckboxes.length;
+      }
+    }
+
+    function clearSelection() {
+      MON.selectedDocuments.clear();
+      document.querySelectorAll('.document-checkbox').forEach(cb => cb.checked = false);
+      document.getElementById('select-all').checked = false;
+      updateBulkActionsPanel();
+    }
+
+    // Bulk actions
+    function bulkApprove() {
+      if(MON.selectedDocuments.size === 0) return;
+      
+      Swal.fire({
+        title: 'Approve Selected Documents',
+        text: `Are you sure you want to approve ${MON.selectedDocuments.size} selected documents?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Approve All',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if(result.isConfirmed) {
+          // Implement bulk approval logic
+          showToast(`${MON.selectedDocuments.size} documents approved`, 'success');
+          clearSelection();
+          loadMonitoringList();
+        }
       });
     }
+
+    function bulkReject() {
+      if(MON.selectedDocuments.size === 0) return;
+      
+      Swal.fire({
+        title: 'Reject Selected Documents',
+        text: `Are you sure you want to reject ${MON.selectedDocuments.size} selected documents?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Reject All',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if(result.isConfirmed) {
+          // Implement bulk rejection logic
+          showToast(`${MON.selectedDocuments.size} documents rejected`, 'success');
+          clearSelection();
+          loadMonitoringList();
+        }
+      });
+    }
+
+    function bulkArchive() {
+      if(MON.selectedDocuments.size === 0) return;
+      
+      Swal.fire({
+        title: 'Archive Selected Documents',
+        text: `Are you sure you want to archive ${MON.selectedDocuments.size} selected documents?`,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Archive All',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if(result.isConfirmed) {
+          // Implement bulk archiving logic
+          showToast(`${MON.selectedDocuments.size} documents archived`, 'success');
+          clearSelection();
+          loadMonitoringList();
+        }
+      });
+    }
+
+    // Utility function to format dates
+    function formatDate(dateString) {
+      if(!dateString) return '—';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    }
+
+    // Select all functionality
+    function toggleSelectAll() {
+      const selectAllCheckbox = document.getElementById('select-all');
+      const documentCheckboxes = document.querySelectorAll('.document-checkbox');
+      
+      if(selectAllCheckbox.checked) {
+        // Select all visible documents
+        documentCheckboxes.forEach(checkbox => {
+          checkbox.checked = true;
+          const documentId = parseInt(checkbox.dataset.documentId);
+          MON.selectedDocuments.add(documentId);
+        });
+      } else {
+        // Deselect all
+        clearSelection();
+        return;
+      }
+      
+      updateBulkActionsPanel();
+    }
+
+    // Initialize monitoring when page loads
     document.addEventListener('DOMContentLoaded', function(){
-      // Load departments into filter if we have a server-provided list in the page future; keep simple for now
       initMonitoringFilters();
+      
+      // Add select all event listener
+      const selectAllCheckbox = document.getElementById('select-all');
+      if(selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', toggleSelectAll);
+      }
+      
       // Auto-load when Monitoring tab is active
-      const activeTabBtn = document.getElementById('btn-monitor');
-      if (activeTabBtn && activeTabBtn.className.includes('text-gray-700')) {
+      const activeTabBtn = document.getElementById('nav-monitor');
+      if (activeTabBtn && activeTabBtn.classList.contains('text-blue-600')) {
         loadMonitoringSummary();
         loadMonitoringList();
       }
     });
+
     function viewDocument(id){
       window.location.href = `/legal/documents/${id}`;
     }
@@ -2749,7 +3580,7 @@
       const toast = document.createElement('div');
       toast.className = `alert alert-${type} fixed bottom-4 right-4 max-w-sm z-50`;
       toast.innerHTML = `
-        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
+        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         <span>${message}</span>
       `;
       
@@ -2843,4 +3674,5 @@
   </style>
 </body>
 </html>
+
 

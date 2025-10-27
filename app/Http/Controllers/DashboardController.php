@@ -18,68 +18,46 @@ class DashboardController extends Controller
         \Log::info('User ID: ' . (Auth::id() ?? 'NULL'));
         \Log::info('Session user_role: ' . Session::get('user_role', 'NOT_SET'));
         
-        // Get key metrics for dashboard
-        $totalRooms = 150; // This would come from Room::count() in real implementation
-        $occupiedRooms = 128; // This would come from Room::where('status', 'occupied')->count()
-        $occupancyRate = round(($occupiedRooms / $totalRooms) * 100);
+        // Get real data for dashboard
+        $todayDate = now()->toDateString();
         
-        $revenueToday = 18450; // This would come from actual revenue calculations
-        $todaysReservations = 24; // Today's reservations count
-        $activeUsers = 18; // Active users count
-        $inventoryAlerts = 3; // Low stock items
+        // Visitors
+        $visitorsToday = \App\Models\Visitor::whereDate('time_in', $todayDate)->count();
+        $visitorsCheckedIn = \App\Models\Visitor::whereNull('time_out')->count();
+        $visitorsThisWeek = \App\Models\Visitor::whereBetween('time_in', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $visitorsThisMonth = \App\Models\Visitor::whereMonth('time_in', now()->month)->whereYear('time_in', now()->year)->count();
         
-        // Recent activities (mock data - would come from activity logs)
-        $recentActivities = [
-            [
-                'type' => 'checkout',
-                'message' => 'Room 205 checked out',
-                'time' => '2 minutes ago',
-                'icon' => 'fas fa-check',
-                'color' => 'success'
-            ],
-            [
-                'type' => 'order',
-                'message' => 'New order from Table 12',
-                'time' => '5 minutes ago',
-                'icon' => 'fas fa-utensils',
-                'color' => 'info'
-            ],
-            [
-                'type' => 'reservation',
-                'message' => 'New reservation confirmed',
-                'time' => '22 minutes ago',
-                'icon' => 'fas fa-calendar',
-                'color' => 'primary'
-            ]
-        ];
+        // Reservations
+        $approvedReservationsToday = \App\Models\FacilityRequest::where('status', 'approved')->where('request_type', 'reservation')->whereDate('created_at', $todayDate)->count();
+        $pendingReservations = \App\Models\FacilityRequest::where('status', 'pending')->count();
+        $upcomingReservations = \App\Models\FacilityRequest::where('status', 'approved')->where('requested_datetime', '>', now())->count();
         
-        // System alerts (mock data)
-        $systemAlerts = [
-            [
-                'type' => 'success',
-                'title' => 'Compliance Check Passed',
-                'message' => 'All safety protocols are up to date',
-                'icon' => 'fas fa-shield-alt'
-            ],
-            [
-                'type' => 'warning',
-                'title' => 'Temperature Alert',
-                'message' => 'Kitchen freezer temperature slightly elevated',
-                'icon' => 'fas fa-thermometer-half'
-            ],
-            [
-                'type' => 'info',
-                'title' => 'Peak Hours Approaching',
-                'message' => 'Dinner rush expected in 30 minutes',
-                'icon' => 'fas fa-chart-line'
-            ]
-        ];
+        // Documents
+        $pendingLegalDocs = \App\Models\Document::where('status', 'pending_review')->count();
+        $expiringDocuments = \App\Models\Document::whereNotNull('retention_until')->where('retention_until', '<=', now()->addDays(30))->where('retention_until', '>=', now())->count();
+        
+        // Legal
+        $legalCasesTotal = \App\Models\LegalCase::count();
+        $legalCasesPending = \App\Models\LegalCase::where('status', 'pending')->count();
+        
+        // Users
+        $totalUsers = \App\Models\User::count();
+        $activeFacilities = \App\Models\Facility::where('status', 'active')->count();
         
         return view('UI', compact(
-            'revenueToday',
-            'todaysReservations',
-            'activeUsers',
-            'inventoryAlerts'
+            'visitorsToday',
+            'visitorsCheckedIn',
+            'visitorsThisWeek',
+            'visitorsThisMonth',
+            'approvedReservationsToday',
+            'pendingReservations',
+            'upcomingReservations',
+            'pendingLegalDocs',
+            'expiringDocuments',
+            'legalCasesTotal',
+            'legalCasesPending',
+            'totalUsers',
+            'activeFacilities'
         ));
     }
 

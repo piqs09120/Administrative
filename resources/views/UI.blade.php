@@ -1,15 +1,103 @@
+@php
+  // Get dashboard data
+  $todayDate = now()->toDateString();
+  $visitorsToday = \App\Models\Visitor::whereDate('time_in', $todayDate)->count();
+  $visitorsCheckedIn = \App\Models\Visitor::whereNull('time_out')->count();
+  $pendingReservations = \App\Models\FacilityRequest::where('status', 'pending')->count();
+  $pendingLegalDocs = \App\Models\Document::where('status', 'pending_review')->count();
+  $legalCasesPending = \App\Models\LegalCase::where('status', 'pending')->count();
+  $totalUsers = \App\Models\User::count();
+  $expiringDocuments = \App\Models\Document::whereNotNull('retention_until')->where('retention_until', '<=', now()->addDays(30))->where('retention_until', '>=', now())->count();
+@endphp
+
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sub - System</title>
+  <title>SOLIERA Dashboard</title>
   <link rel="icon" href="swt.jpg" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
    @vite(['resources/css/soliera.css'])
-  
+  <style>
+    /* Custom dashboard enhancements */
+    .card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* Gradient text effect */
+    .gradient-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Custom scrollbar */
+    .overflow-y-auto::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    /* Chart container styling */
+    .chart-container {
+      position: relative;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 0.75rem;
+      border: 1px solid #e2e8f0;
+    }
+    
+    /* Badge animations */
+    .badge {
+      transition: all 0.2s ease;
+    }
+    
+    .badge:hover {
+      transform: scale(1.05);
+    }
+    
+    /* Loading state for charts */
+    .chart-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+    
+    .chart-loading::before {
+      content: '';
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body class="bg-base-100">
   <div class="flex h-screen overflow-hidden">
@@ -21,100 +109,119 @@
       @include('partials.navbar')
 
       <!-- Dashboard Content -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-slow bg-gray-50">
-          <!-- Metrics row: realtime small cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6" id="metricCards">
-            <div class="card bg-base-200 shadow-lg rounded-2xl"><div class="card-body p-6">
-              <p class="text-sm text-gray-600">Reservations (Today)</p>
-              <p class="text-2xl font-bold" id="mReservations">—</p>
-            </div></div>
-            <div class="card bg-base-200 shadow-lg rounded-2xl"><div class="card-body p-6">
-              <p class="text-sm text-gray-600">Legal Pending Cases</p>
-              <p class="text-2xl font-bold" id="mLegalPending">—</p>
-            </div></div>
-            <div class="card bg-base-200 shadow-lg rounded-2xl"><div class="card-body p-6">
-              <p class="text-sm text-gray-600">Active Visitors</p>
-              <p class="text-2xl font-bold" id="mVisitors">—</p>
-            </div></div>
-            <div class="card bg-base-200 shadow-lg rounded-2xl"><div class="card-body p-6">
-              <p class="text-sm text-gray-600">Documents (Active)</p>
-              <p class="text-2xl font-bold" id="mDocsActive">—</p>
-            </div></div>
-            <div class="card bg-base-200 shadow-lg rounded-2xl"><div class="card-body p-6">
-              <p class="text-sm text-gray-600">Users (Active)</p>
-              <p class="text-2xl font-bold" id="mUsersActive">—</p>
-            </div></div>
-            <div class="card bg-base-200 shadow-lg rounded-2xl"><div class="card-body p-6">
-              <p class="text-sm text-gray-600">Documents Expiring (60d)</p>
-              <p class="text-2xl font-bold" id="mDocsExpiring">—</p>
-            </div></div>
+      <main class="flex-1 overflow-y-auto p-6">
+        
+        <!-- Module Cards - Horizontal Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          
+          <!-- Row 1 -->
+          <!-- Legal Management Card -->
+          <a href="{{ route('legal.case_deck') }}" class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block">
+            <div class="flex items-center justify-between">
+              <!-- LEFT: Text Content -->
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">LEGAL MANAGEMENT</p>
+                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $legalCasesPending }}</p>
+                <div class="flex items-center gap-1 text-orange-600 text-xs">
+                  <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                  <span>Pending Cases</span>
+                </div>
+              </div>
+              <!-- RIGHT: Blue Icon Box -->
+              <div class="w-20 h-20 bg-blue-900 rounded-xl flex items-center justify-center flex-shrink-0 ml-4">
+                <i data-lucide="scale" class="w-7 h-7 text-yellow-400"></i>
+              </div>
+            </div>
+          </a>
+
+          <!-- Document Management Card -->
+          <a href="{{ route('document.index') }}" class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block">
+            <div class="flex items-center justify-between">
+              <!-- LEFT: Text Content -->
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">DOCUMENT MANAGEMENT</p>
+                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $pendingLegalDocs }}</p>
+                <div class="flex items-center gap-1 text-purple-600 text-xs">
+                  <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                  <span>Documents Active</span>
+                </div>
+              </div>
+              <!-- RIGHT: Blue Icon Box -->
+              <div class="w-20 h-20 bg-blue-900 rounded-xl flex items-center justify-center flex-shrink-0 ml-4">
+                <i data-lucide="file-text" class="w-7 h-7 text-yellow-400"></i>
+              </div>
+            </div>
+          </a>
+
+          <!-- Row 2 -->
+          <!-- Visitor Management Card -->
+          <a href="{{ route('visitor.index') }}" class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block">
+            <div class="flex items-center justify-between">
+              <!-- LEFT: Text Content -->
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">VISITOR MANAGEMENT</p>
+                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $visitorsCheckedIn }}</p>
+                <div class="flex items-center gap-1 text-green-600 text-xs">
+                  <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                  <span>Currently In</span>
+                </div>
+              </div>
+              <!-- RIGHT: Blue Icon Box -->
+              <div class="w-20 h-20 bg-blue-900 rounded-xl flex items-center justify-center flex-shrink-0 ml-4">
+                <i data-lucide="users" class="w-7 h-7 text-yellow-400"></i>
+              </div>
+            </div>
+          </a>
+
+          <!-- Facilities Reservations Card -->
+          <a href="{{ route('facility_reservations.index') }}" class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block">
+            <div class="flex items-center justify-between">
+              <!-- LEFT: Text Content -->
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">FACILITIES RESERVATIONS</p>
+                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $pendingReservations }}</p>
+                <div class="flex items-center gap-1 text-blue-600 text-xs">
+                  <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                  <span>Pending</span>
+                </div>
+              </div>
+              <!-- RIGHT: Blue Icon Box -->
+              <div class="w-20 h-20 bg-blue-900 rounded-xl flex items-center justify-center flex-shrink-0 ml-4">
+                <i data-lucide="building" class="w-7 h-7 text-yellow-400"></i>
+              </div>
+            </div>
+          </a>
+
         </div>
 
-        <!-- Charts Grid -->
-        <div class="mt-6 grid gap-4 grid-cols-1 md:grid-cols-5 md:auto-rows-[minmax(280px,1fr)] md:h-[calc(100vh-320px)] md:overflow-visible items-stretch">
-          <!-- #7 Large: 2 col x 2 row -->
-            <div class="card bg-base-100 shadow-lg rounded-2xl md:col-span-2 md:row-span-2 h-full">
-              <div class="card-body p-4 flex flex-col h-full">
-              <h3 class="text-lg font-semibold">Facility Reservations</h3>
-              <p class="text-sm opacity-70">Administrative overview for hotel and restaurant</p>
-                <div class="mt-4 flex-1 min-h-[320px]">
-                  <canvas id="facilityChart" class="w-full h-full"></canvas>
+        <!-- Second Row - Full Width Cards -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+          
+          <!-- User Management Card - Full Width -->
+          <a href="{{ route('access.users') }}" class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block">
+            <div class="flex items-center justify-between">
+              <!-- LEFT: Text Content -->
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">USER MANAGEMENT</p>
+                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $totalUsers }}</p>
+                <div class="flex items-center gap-1 text-indigo-600 text-xs">
+                  <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                  <span>Total Users</span>
                 </div>
-            </div>
-          </div>
-
-          <!-- #8 Legal Management: compact chart only -->
-          <div class="card bg-base-100 shadow-lg rounded-2xl md:col-start-1 md:col-span-2 md:row-start-3 md:row-span-2 h-full">
-            <div class="card-body p-4 flex flex-col h-full">
-              <div class="flex items-start justify-between">
-                <div>
-              <h3 class="text-base font-semibold">Legal Management</h3>
-              <p class="text-xs opacity-70">Compliance, cases, and policy tracking</p>
-                </div>
-                <div class="text-xs opacity-70 hidden md:block">Last 15s</div>
               </div>
-              <div class="mt-4 flex-1 min-h-[320px]">
-                <canvas id="legalChart" class="w-full h-full"></canvas>
+              <!-- RIGHT: Blue Icon Box -->
+              <div class="w-20 h-20 bg-blue-900 rounded-xl flex items-center justify-center flex-shrink-0 ml-4">
+                <i data-lucide="shield" class="w-7 h-7 text-yellow-400"></i>
               </div>
             </div>
-          </div>
+          </a>
 
-          <!-- #9 Small (under #7, right of #8) -->
-            <div class="card bg-base-100 shadow-lg rounded-2xl md:col-start-4 md:col-span-2 md:row-start-3 md:row-span-2 h-full">
-              <div class="card-body p-4 flex flex-col h-full">
-              <h3 class="text-base font-semibold">Document Management</h3>
-              <p class="text-xs opacity-70">Documents, retention, and access logs</p>
-                <div class="mt-4 flex-1 min-h-[320px]">
-                  <canvas id="documentChart" class="w-full h-full"></canvas>
-                </div>
-            </div>
-          </div>
-
-          <!-- #10 Visitor Management: compact, moved to center top (row-span-2) -->
-          <div class="card bg-base-100 shadow-lg rounded-2xl md:col-start-3 md:row-span-2 h-full md:self-stretch">
-            <div class="card-body p-4 h-full flex flex-col">
-              <h3 class="text-lg font-semibold">Visitor Management</h3>
-              <p class="text-sm opacity-70">Check-ins, passes, and visitor analytics</p>
-              <div class="mt-4 flex-1 min-h-[320px]">
-                <canvas id="visitorChart" class="w-full h-full"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Combined block for #11-#14: same size behavior as #7 (2 cols x 2 rows) -->
-            <div class="card bg-base-100 shadow-lg rounded-2xl md:col-start-4 md:col-span-2 md:row-span-2 h-full">
-              <div class="card-body p-4 flex flex-col h-full">
-              <h3 class="text-lg font-semibold">User Management</h3>
-              <p class="text-sm opacity-70">Departments, roles, and account activity</p>
-                <div class="mt-4 flex-1 min-h-[320px]">
-                  <canvas id="userMgmtChart" class="w-full h-full"></canvas>
-                </div>
-            </div>
-          </div>
         </div>
+
       </main>
     </div>
   </div>
+
 @include('partials.soliera_js')
 <!-- Chart.js and dashboard charts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -290,8 +397,24 @@
       } catch (e) { console.warn('refreshMetrics failed', e); }
     }
 
+
+    // Add loading animation to metric cards
+    function addLoadingAnimation() {
+      const metricCards = document.querySelectorAll('#metricCards .card');
+      metricCards.forEach(card => {
+        card.classList.add('animate-pulse');
+        setTimeout(() => {
+          card.classList.remove('animate-pulse');
+        }, 2000);
+      });
+    }
+
+    // Initialize dashboard
     refreshCharts();
     refreshMetrics();
+    addLoadingAnimation();
+    
+    // Set up intervals
     setInterval(refreshCharts, 15000); // 15s
     setInterval(refreshMetrics, 10000); // 10s
 });

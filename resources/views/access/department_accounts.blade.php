@@ -48,74 +48,35 @@
           <!-- Statistics Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Total Accounts -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-primary">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="avatar placeholder">
-                    <div class="bg-primary text-primary-content rounded-full w-12 h-12">
-                      <i data-lucide="users" class="w-6 h-6"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-primary badge-outline">Total</div>
-                </div>
-                <div class="text-center">
-                  <h2 id="da_total_count" class="card-title text-4xl font-bold text-primary justify-center mb-2">{{ $stats['total'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">Department Accounts</p>
-                </div>
-              </div>
-            </div>
-
+            <x-stat-card 
+              title="Total Accounts" 
+              :value="$stats['total'] ?? 0" 
+              icon="fa-users" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
+            
             <!-- Active Accounts -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-success">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="avatar placeholder">
-                    <div class="bg-success text-success-content rounded-full w-12 h-12">
-                      <i data-lucide="check-circle" class="w-6 h-6"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-success badge-outline">Active</div>
-                </div>
-                <div class="text-center">
-                  <h2 id="da_active_count" class="card-title text-4xl font-bold text-success justify-center mb-2">{{ $stats['active'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">Active Accounts</p>
-                </div>
-              </div>
-            </div>
-
+            <x-stat-card 
+              title="Active Accounts" 
+              :value="$stats['active'] ?? 0" 
+              icon="fa-check-circle" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
+            
             <!-- Inactive Accounts -->
-            <div class="card bg-base-100 shadow-xl border-l-4 border-l-warning">
-              <div class="card-body p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="avatar placeholder">
-                    <div class="bg-warning text-warning-content rounded-full w-12 h-12">
-                      <i data-lucide="clock" class="w-6 h-6"></i>
-                    </div>
-                  </div>
-                  <div class="badge badge-warning badge-outline">Inactive</div>
-                </div>
-                <div class="text-center">
-                  <h2 id="da_inactive_count" class="card-title text-4xl font-bold text-warning justify-center mb-2">{{ $stats['inactive'] ?? 0 }}</h2>
-                  <p class="text-base-content/70">Inactive Accounts</p>
-                </div>
-              </div>
-            </div>
+            <x-stat-card 
+              title="Inactive Accounts" 
+              :value="$stats['inactive'] ?? 0" 
+              icon="fa-clock" 
+              iconColor="text-yellow-400" 
+              bgColor="bg-blue-900" />
           </div>
         </div>
 
         <!-- Department Accounts Management Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <!-- Header -->
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <i data-lucide="building" class="w-5 h-5 text-blue-600"></i>
-              Department Accounts List
-            </h3>
-          </div>
-
+        <x-table-card :title="'Department Accounts List'">
           <!-- Department Accounts Table -->
-          <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
+          <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
                   <th class="text-left py-3 px-4 font-medium text-gray-700">Employee</th>
@@ -130,8 +91,8 @@
                   <tr class="hover:bg-gray-50 transition-colors" data-account-id="{{ $account->Dept_no }}">
                     <td class="py-3 px-4">
                       <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+                        <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center">
+                          <i data-lucide="user" class="w-5 h-5 text-white"></i>
                         </div>
                         <div>
                           <div class="font-medium text-gray-900">{{ $account->employee_name ?? 'Unknown' }}</div>
@@ -148,24 +109,34 @@
                     <td class="py-3 px-4 text-center">
                       @php
                         $statusConfig = [
-                          'active' => ['icon' => 'check-circle', 'color' => 'text-success', 'badge' => 'badge-success'],
-                          'inactive' => ['icon' => 'clock', 'color' => 'text-warning', 'badge' => 'badge-warning']
+                          'active' => ['icon' => 'check-circle', 'color' => 'text-success', 'badge' => 'badge-success', 'badgeStyle' => 'background-color: #22c55e; color: white;'],
+                          'inactive' => ['icon' => 'clock', 'color' => 'text-warning', 'badge' => 'badge-warning', 'badgeStyle' => '']
                         ];
                         $status = $account->status ?? 'active';
                         $config = $statusConfig[$status] ?? $statusConfig['active'];
                       @endphp
                       <div class="flex items-center justify-center">
-                        <span class="badge {{ $config['badge'] }} badge-sm">{{ ucfirst($status) }}</span>
+                        <span class="badge {{ $config['badge'] }} badge-sm" style="{{ $config['badgeStyle'] }}">{{ ucfirst($status) }}</span>
                       </div>
                     </td>
                     <td class="py-3 px-4 text-center">
-                      <div class="flex items-center justify-center gap-1">
-                        <button onclick="viewAccount({{ $account->Dept_no }})" class="btn btn-ghost btn-xs tooltip" data-tip="View Details">
-                          <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
+                      <div class="flex items-center justify-center gap-2">
+                        <button onclick="viewAccount({{ $account->Dept_no }})" 
+                                class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110 tooltip" 
+                                data-tip="View Details"
+                                style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);"
+                                onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                                onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                          <i data-lucide="eye" class="w-4 h-4" style="fill: none;"></i>
                         </button>
                         @if(auth()->user()->role === 'Administrator')
-                          <button onclick="openEditModal({{ $account->Dept_no }})" class="btn btn-ghost btn-xs tooltip" data-tip="Edit Account">
-                            <i data-lucide="edit" class="w-4 h-4 text-green-600"></i>
+                          <button onclick="openEditModal({{ $account->Dept_no }})" 
+                                  class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110 tooltip" 
+                                  data-tip="Edit Account"
+                                  style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);"
+                                  onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                                  onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                            <i data-lucide="edit" class="w-4 h-4" style="fill: none;"></i>
                           </button>
                         @endif
                       </div>
@@ -186,8 +157,7 @@
                 @endforelse
               </tbody>
             </table>
-          </div>
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>
@@ -233,8 +203,8 @@
     <div class="modal-box w-11/12 max-w-2xl animate-scaleIn" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+          <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center">
+            <i data-lucide="user" class="w-5 h-5 text-white"></i>
           </div>
           <h3 class="text-xl font-bold text-gray-800" id="va_title">Employee Details</h3>
         </div>

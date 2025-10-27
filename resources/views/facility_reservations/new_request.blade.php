@@ -125,7 +125,7 @@
           </div>
 
           @if($requests->count() > 0)
-            <div class="overflow-x-auto">
+            <x-table-card :title="'Recent Reservation Requests'" :pagination="method_exists($requests, 'hasPages') && $requests->hasPages() ? $requests->links() : null">
               <table class="table table-zebra w-full" id="nrRequestsTable">
                 <thead>
                   <tr>
@@ -214,15 +214,30 @@
                     </td>
                     <td>
                       <div class="flex space-x-2">
-                        <button class="btn btn-sm btn-outline btn-info" title="View Details" onclick="viewRequestDetails({{ $request->id }})">
-                          <i data-lucide="eye" class="w-4 h-4"></i>
+                        <button class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" 
+                                title="View Details" 
+                                onclick="viewRequestDetails({{ $request->id }})"
+                                style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);"
+                                onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                                onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                          <i data-lucide="eye" class="w-4 h-4" style="fill: none;"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline btn-warning" title="Edit" onclick="editRequest({{ $request->id }})">
-                          <i data-lucide="edit" class="w-4 h-4"></i>
+                        <button class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" 
+                                title="Edit" 
+                                onclick="editRequest({{ $request->id }})"
+                                style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);"
+                                onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                                onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                          <i data-lucide="edit" class="w-4 h-4" style="fill: none;"></i>
                         </button>
                         @if($request->status === 'pending')
-                        <button class="btn btn-sm btn-outline btn-success" title="Approve" onclick="approveRequest({{ $request->id }})">
-                          <i data-lucide="check" class="w-4 h-4"></i>
+                        <button class="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:scale-110" 
+                                title="Approve" 
+                                onclick="approveRequest({{ $request->id }})"
+                                style="background: #F7A923; color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);"
+                                onmouseover="this.style.background='#E6940F'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                                onmouseout="this.style.background='#F7A923'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                          <i data-lucide="check" class="w-4 h-4" style="fill: none;"></i>
                         </button>
                         @endif
                       </div>
@@ -231,7 +246,7 @@
                   @endforeach
                 </tbody>
               </table>
-            </div>
+            </x-table-card>
           @else
             <div class="text-center py-12">
               <i data-lucide="inbox" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>

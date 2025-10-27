@@ -50,7 +50,7 @@
         </div>
 
         <!-- Department Logs Table Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
+        <x-table-card :title="'Department Activity Logs'">
           <!-- Header with Search and Actions -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
@@ -122,7 +122,6 @@
           </div>
 
           <!-- Department Logs Table -->
-          <div class="overflow-x-auto">
             <table class="table table-zebra w-full">
               <thead>
                 <tr class="bg-gray-50">
@@ -194,7 +193,6 @@
                 @endforelse
               </tbody>
             </table>
-          </div>
 
           <!-- Pagination or Load More -->
           @if($logs->count() > 10)
@@ -205,7 +203,7 @@
               </button>
             </div>
           @endif
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>

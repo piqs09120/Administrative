@@ -797,7 +797,6 @@ class DocumentController extends Controller
     public function show($id)
     {
         $document = Document::with(['uploader', 'documentRequests.requester', 'documentRequests.approver'])
-            ->where('source', 'document_management')
             ->findOrFail($id);
             
         // Check access permissions
@@ -825,17 +824,23 @@ class DocumentController extends Controller
                     'id' => $document->id,
                     'title' => $document->title,
                     'description' => $document->description,
+                    'type' => $document->type ?? $document->category, // Use category as type if type is null
                     'category' => $document->category,
                     'department' => $document->department,
                     'confidentiality' => $document->confidentiality,
+                    'confidentiality_level' => $document->confidentiality_level ?? $document->confidentiality,
                     'retention_policy' => $document->retention_policy,
+                    'retention_period' => $document->retention_period,
                     'retention_until' => $document->retention_until,
                     'status' => $document->status,
                     'file_path' => $document->file_path,
                     'created_at' => $document->created_at,
                     'updated_at' => $document->updated_at,
+                    'last_edited_at' => $document->last_edited_at,
                     'uploader' => $document->uploader,
                     'ai_analysis' => $document->ai_analysis,
+                    'view_count' => $document->view_count ?? 0,
+                    'download_count' => $document->download_count ?? 0,
                     'is_admin' => $isAdmin
                 ]
             ]);
@@ -873,13 +878,25 @@ class DocumentController extends Controller
         ]);
 
         $document = Document::where('source', 'document_management')->findOrFail($id);
+        
+        // Store old values for comparison
+        $oldValues = $document->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until']);
+        
         $document->update($request->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until']));
 
-        // Log the update
+        // Log the update to AccessLog
+        $this->logDocumentAccess($document, Auth::user(), 'edited');
+
+        // Log the update to workflow
         $document->logWorkflowStep('document_updated', 'Document updated by administrator', [
             'updated_by' => Auth::user()->name ?? Auth::user()->id,
-            'updated_fields' => array_keys($request->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until']))
+            'updated_fields' => array_keys($request->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until'])),
+            'old_values' => $oldValues,
+            'new_values' => $request->only(['title', 'description', 'department', 'category', 'confidentiality', 'retention_policy', 'retention_until'])
         ]);
+
+        // Send notification
+        \App\Services\SystemNotificationService::notifyDocumentAction('updated', $document);
 
         return redirect()->route('document.show', $id)->with('success', 'Document updated successfully!');
     }
@@ -899,7 +916,12 @@ class DocumentController extends Controller
                 Storage::disk('public')->delete($document->file_path);
             }
 
+            // Store title before deletion for notification
+            $documentTitle = $document->title;
             $document->delete();
+
+            // Send notification
+            \App\Services\SystemNotificationService::notifyDocumentAction('deleted', (object)['title' => $documentTitle]);
 
             // If the request is AJAX/JSON, return a JSON response for the frontend fetch()
             if (request()->ajax() || request()->wantsJson()) {
@@ -1057,13 +1079,13 @@ class DocumentController extends Controller
             
             // Run AI with graceful fallback
             try {
-                $aiAnalysis = $this->geminiService->analyzeDocument($documentText);
+                $aiAnalysis = $this->geminiService->analyzeDocumentEnhanced($documentText);
             } catch (\Throwable $e) {
-                \Log::error('Gemini analysis threw unexpectedly, using fallback', [
+                \Log::error('Enhanced Gemini analysis threw unexpectedly, using fallback', [
                     'document_id' => $document->id,
                     'error' => $e->getMessage()
                 ]);
-                $aiAnalysis = app(\App\Services\GeminiService::class)->fallbackAnalysis($documentText);
+                $aiAnalysis = app(\App\Services\GeminiService::class)->enhancedFallbackAnalysisWithViolations($documentText);
             }
                 
             if (isset($aiAnalysis['error']) && $aiAnalysis['error']) {
@@ -1073,15 +1095,61 @@ class DocumentController extends Controller
             
             // Optionally persist latest analysis to the document record
             try {
-                $document->update([
+                $updateData = [
                     'ai_analysis' => $aiAnalysis,
                     'category' => $aiAnalysis['category'] ?? ($document->category ?? 'general'),
                     'requires_legal_review' => $aiAnalysis['requires_legal_review'] ?? false,
-                    'legal_risk_score' => $aiAnalysis['legal_risk_score'] ?? ($document->legal_risk_score ?? 'Low')
-                ]);
+                    'legal_risk_score' => $aiAnalysis['legal_risk_score'] ?? ($document->legal_risk_score ?? 'Low'),
+                    'ai_analysis_completed' => true,
+                    'ai_analysis_date' => now()
+                ];
+
+                // Add enhanced AI fields if available
+                if (isset($aiAnalysis['ai_classification'])) {
+                    $updateData['ai_classification'] = $aiAnalysis['ai_classification'];
+                }
+                if (isset($aiAnalysis['confidence'])) {
+                    $updateData['ai_confidence'] = $aiAnalysis['confidence'];
+                }
+                if (isset($aiAnalysis['violation_score'])) {
+                    $updateData['violation_score'] = $aiAnalysis['violation_score'];
+                }
+                if (isset($aiAnalysis['violation_details'])) {
+                    $updateData['violation_details'] = $aiAnalysis['violation_details'];
+                }
+                if (isset($aiAnalysis['flagged_issues'])) {
+                    $updateData['flagged_issues'] = $aiAnalysis['flagged_issues'];
+                }
+                if (isset($aiAnalysis['compliance_status'])) {
+                    $updateData['compliance_status'] = $aiAnalysis['compliance_status'];
+                }
+                if (isset($aiAnalysis['compliance_details'])) {
+                    $updateData['compliance_details'] = $aiAnalysis['compliance_details'];
+                }
+                if (isset($aiAnalysis['regulatory_standards'])) {
+                    $updateData['regulatory_standards'] = $aiAnalysis['regulatory_standards'];
+                }
+                if (isset($aiAnalysis['ai_tags'])) {
+                    $updateData['ai_tags'] = $aiAnalysis['tags'] ?? $aiAnalysis['ai_tags'];
+                }
+                if (isset($aiAnalysis['ai_insights'])) {
+                    $updateData['ai_insights'] = $aiAnalysis['ai_insights'];
+                }
+                if (isset($aiAnalysis['requires_immediate_review'])) {
+                    $updateData['requires_immediate_review'] = $aiAnalysis['requires_immediate_review'];
+                }
+                if (isset($aiAnalysis['violation_analysis'])) {
+                    $updateData['alert_reasons'] = [
+                        'violation_analysis' => $aiAnalysis['violation_analysis'],
+                        'violation_score' => $aiAnalysis['violation_score'] ?? 'Low',
+                        'flagged_issues' => $aiAnalysis['flagged_issues'] ?? []
+                    ];
+                }
+
+                $document->update($updateData);
             } catch (\Throwable $e) {
                 // Non-fatal if persisting fails
-                \Log::warning('Failed to persist AI analysis on document', [
+                \Log::warning('Failed to persist enhanced AI analysis on document', [
                     'document_id' => $document->id,
                     'error' => $e->getMessage()
                 ]);
@@ -1532,19 +1600,28 @@ class DocumentController extends Controller
     }
 
     /**
-     * Delete legal document
+     * Archive legal document (No Deletion, Archive Only)
      */
-    public function deleteLegalDocument($id)
+public function archiveLegalDocument($id)
     {
         try {
             $document = Document::where('source', 'legal_management')->findOrFail($id);
 
-            // Delete file from storage if present
-            if (!empty($document->file_path) && Storage::disk('public')->exists($document->file_path)) {
-                Storage::disk('public')->delete($document->file_path);
+            // Check if already archived
+            if ($document->status === 'archived') {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Document is already archived!'
+                    ]);
+                }
+                return redirect()->route('legal.legal_documents')->with('error', 'Document is already archived!');
             }
 
-            // Safe deletion log (non-fatal if logging fails) - use DeptAccount Dept_no
+            // Archive with retention policy
+            $document->archiveWithRetention();
+
+            // Safe archiving log (non-fatal if logging fails) - use DeptAccount Dept_no
             try {
                 $deptNo = null;
                 $empId = session('emp_id');
@@ -1560,38 +1637,37 @@ class DocumentController extends Controller
                 }
                 AccessLog::create([
                     'user_id' => $deptNo ?? 0,
-                    'action' => 'legal_document_deleted',
-                    'description' => "Deleted legal document: {$document->title}",
+                    'action' => 'legal_document_archived',
+                    'description' => "Archived legal document: {$document->title} (Disposal: {$document->disposal_date->format('Y-m-d')})",
+                    'ip_address' => request()->ip()
                 ]);
             } catch (\Throwable $e) {
-                \Log::warning('Failed to log deletion for legal document', [
+                \Log::warning('Failed to log archiving for legal document', [
                     'id' => $document->id,
                     'error' => $e->getMessage()
                 ]);
             }
 
-            $document->delete();
-
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Legal document deleted successfully!'
+                    'message' => 'Legal document archived successfully! Disposal date: ' . $document->disposal_date->format('Y-m-d')
                 ]);
             }
 
-            return redirect()->route('legal.legal_documents')->with('success', 'Legal document deleted successfully!');
+            return redirect()->route('legal.legal_documents')->with('success', 'Legal document archived successfully! Disposal date: ' . $document->disposal_date->format('Y-m-d'));
         } catch (\Throwable $e) {
-            \Log::error('Error deleting legal document', [
+            \Log::error('Error archiving legal document', [
                 'id' => $id,
                 'error' => $e->getMessage()
             ]);
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error deleting document: ' . $e->getMessage()
+                    'message' => 'Error archiving document: ' . $e->getMessage()
                 ], 500);
             }
-            return redirect()->back()->with('error', 'Error deleting document: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error archiving document: ' . $e->getMessage());
         }
     }
 
@@ -1826,12 +1902,11 @@ class DocumentController extends Controller
     }
 
     /**
-     * Get archived documents
+     * Get archived documents with enhanced filtering
      */
-    public function archived()
+    public function archived(Request $request)
     {
-        // Show both archived documents and expired documents (ready for disposal)
-        $documents = Document::where(function($query) {
+        $query = Document::where(function($query) {
                 $query->where('status', 'archived')
                       ->orWhere('status', 'expired')
                       ->orWhere(function($q) {
@@ -1839,9 +1914,44 @@ class DocumentController extends Controller
                             ->where('retention_until', '<=', now()->addDays(30));
                       });
             })
-            ->with(['uploader'])
-            ->latest()
-            ->paginate(20);
+            ->with(['uploader']);
+
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('author', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->input('category'));
+        }
+
+        if ($request->filled('author')) {
+            $query->where('author', 'like', '%' . $request->input('author') . '%');
+        }
+
+        if ($request->filled('department')) {
+            $query->where('department', $request->input('department'));
+        }
+
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('created_at', [$request->input('date_from'), $request->input('date_to')]);
+        }
+
+        if ($request->filled('confidentiality')) {
+            $query->where('confidentiality_level', $request->input('confidentiality'));
+        }
+
+        // Apply sorting
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $documents = $query->paginate(20);
 
         return view('document.archived', compact('documents'));
     }
@@ -2284,19 +2394,30 @@ class DocumentController extends Controller
      */
     private function logDocumentAccess(Document $document, $user, $action)
     {
-        // Log to general AccessLog
-        AccessLog::create([
-            'user_id' => $user->id,
-            'action' => 'document_' . $action,
-            'description' => "Document {$action}: {$document->title} (ID: {$document->id})",
-            'ip_address' => request()->ip(),
-            'metadata' => [
+        try {
+            // Get user ID - be flexible about user types
+            $userId = $user->id ?? $user->Dept_no ?? '0';
+            
+            // Log to general AccessLog
+            AccessLog::create([
+                'user_id' => $userId,
+                'action' => 'document_' . $action,
+                'description' => "Document {$action}: {$document->title} (ID: {$document->id})",
                 'document_id' => $document->id,
-                'document_title' => $document->title,
-                'confidentiality' => $document->confidentiality,
-                'user_role' => $user->role ?? 'unknown'
-            ]
-        ]);
+                'ip_address' => request()->ip(),
+                'metadata' => [
+                    'document_id' => $document->id,
+                    'document_title' => $document->title,
+                    'confidentiality' => $document->confidentiality,
+                    'user_role' => $user->role ?? 'unknown',
+                    'action_type' => $action,
+                    'timestamp' => now()->toISOString()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't break the main functionality
+            \Log::error('Failed to log document access: ' . $e->getMessage());
+        }
     }
 
     /**

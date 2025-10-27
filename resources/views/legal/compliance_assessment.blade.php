@@ -12,13 +12,26 @@
   
   <style>
     :root {
-      --color-regal-navy: #1e3a8a;
-      --color-charcoal-ink: #1f2937;
+      --color-regal-navy: #F7A923;
+      --color-charcoal-ink: #2C3E50;
       --color-snow-mist: #f3f4f6;
       --color-white: #ffffff;
       --color-modern-teal: #0d9488;
-      --color-golden-ember: #d97706;
+      --color-golden-ember: #E6940F;
       --color-danger-red: #dc2626;
+      --color-button-secondary: #E6940F;
+    }
+    
+    /* Force button primary to use orange-yellow */
+    .btn.btn-primary {
+      background-color: #F7A923 !important;
+      border-color: #F7A923 !important;
+      color: #2C3E50 !important;
+    }
+    
+    .btn.btn-primary:hover {
+      background-color: #E6940F !important;
+      border-color: #E6940F !important;
     }
     
     .compliance-item {

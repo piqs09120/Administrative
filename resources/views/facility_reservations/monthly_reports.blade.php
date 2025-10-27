@@ -187,7 +187,7 @@
               <div class="card bg-base-100 border" style="border-color: var(--color-snow-mist);">
                 <div class="card-body">
                   <h3 class="font-semibold mb-4" style="color: var(--color-charcoal-ink);">Reservations Details</h3>
-                  <div class="overflow-x-auto">
+                  <x-table-card :title="'Reservations Details'">
                     <table class="table table-zebra w-full">
                       <thead>
                         <tr>
@@ -204,7 +204,7 @@
                         <!-- Table rows will be populated by JavaScript -->
                       </tbody>
                     </table>
-                  </div>
+                  </x-table-card>
                 </div>
               </div>
             </div>

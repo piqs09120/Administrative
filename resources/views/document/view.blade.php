@@ -123,7 +123,7 @@
         </div>
 
         <!-- Document Library Section -->
-        <div class="card bg-white shadow-xl">
+        <x-table-card :title="'Document Library'" :pagination="$documents->hasPages() ? $documents->links() : null">
           <div class="card-body">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-lg font-semibold text-gray-900">Document Library</h3>
@@ -156,7 +156,6 @@
             </div>
 
             <!-- Documents Table -->
-            <div class="overflow-x-auto">
               <table class="table table-zebra w-full" id="documentsTable">
                 <thead>
                   <tr class="bg-gray-50">
@@ -283,16 +282,8 @@
                   @endforelse
                 </tbody>
               </table>
-            </div>
-            
-            <!-- Pagination -->
-            @if($documents->hasPages())
-              <div class="flex justify-center p-6 border-t border-gray-200">
-                {{ $documents->links() }}
-              </div>
-            @endif
           </div>
-        </div>
+        </x-table-card>
       </main>
     </div>
   </div>

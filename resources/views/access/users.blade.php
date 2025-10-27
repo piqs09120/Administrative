@@ -42,9 +42,12 @@
             <p class="text-gray-600">Manage user accounts, roles, and access permissions</p>
           </div>
           <div class="flex gap-2">
-            <a href="{{ route('access.users.export', request()->query()) }}" class="btn btn-outline">
-              <i data-lucide="download" class="w-4 h-4 mr-2"></i>
-              Export Users
+            <a href="{{ route('access.users.export', request()->query()) }}" 
+               class="btn btn-sm transition-all duration-200 cursor-pointer hover:scale-105"
+               style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+               onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+               onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+              <i data-lucide="download" class="w-4 h-4 mr-2" style="fill: none;"></i>Export Users
             </a>
           </div>
         </div>
@@ -105,34 +108,20 @@
         </div>
         
         <!-- Users Table -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
-              <thead>
-                <tr>
-                  <th>Employee Code</th>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Email</th>
-                </tr>
-              </thead>
-              <tbody id="externalUsersBody">
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Pagination -->
-          @if(isset($users) && method_exists($users, 'links'))
-          <div class="flex justify-between items-center mt-6">
-            <div class="text-sm text-gray-600">
-              Showing {{ $users->firstItem() ?? 0 }} to {{ $users->lastItem() ?? 0 }} of {{ $users->total() ?? 0 }} users
-            </div>
-            <div>
-              {{ $users->onEachSide(1)->links() }}
-            </div>
-          </div>
-          @endif
-        </div>
+        <x-table-card :title="'Users'" :pagination="(isset($users) && method_exists($users, 'links')) ? $users->onEachSide(1)->links() : null">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Employee Code</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody id="externalUsersBody">
+            </tbody>
+          </table>
+        </x-table-card>
       </main>
     </div>
   </div>

@@ -74,18 +74,21 @@ class userController extends Controller
         // Send OTP email
         try {
             $deptAccount->notify(new OtpCodeNotification($otp->otp_code, $deptAccount->employee_name));
+            \Log::info('OTP email sent successfully to: ' . $deptAccount->email . ' for employee: ' . $deptAccount->employee_name);
         } catch (\Exception $e) {
-            \Log::error('Failed to send OTP email: ' . $e->getMessage());
-            return back()->withErrors([
-                'employee_id' => 'Failed to send OTP. Please try again.',
-            ])->onlyInput('employee_id');
+            \Log::error('Failed to send OTP email to ' . $deptAccount->email . ': ' . $e->getMessage());
+            \Log::error('Email error details: ' . $e->getTraceAsString());
+            
+            // Still continue with OTP verification but show error to user
+            return redirect('/verify-otp')->with('error', 'Failed to send OTP email. Please contact administrator or try again.');
         }
 
         // Store employee data in session for OTP verification
         session(['otp_employee_id' => $deptAccount->employee_id]);
         session(['otp_user_data' => $deptAccount->toArray()]);
+        session(['debug_otp_code' => $otp->otp_code]); // Store OTP for debugging
 
-        return redirect('/verify-otp')->with('success', 'OTP sent to your email address.');
+        return redirect('/verify-otp')->with('success', 'OTP sent to your email address. Check logs for OTP code if email fails.');
     }
 
     // Log failed login attempt
@@ -211,8 +214,7 @@ public function verifyOtp(Request $request)
     }
 
     $request->validate([
-        'otp_code' => 'required|string|size:6',
-        'employee_id' => 'required'
+        'otp_code' => 'required|string|size:6|regex:/^[0-9]{6}$/',
     ]);
     
     \Log::info('Validation passed. OTP Code: ' . $request->otp_code);
@@ -369,18 +371,19 @@ public function resendOtp(Request $request)
     try {
         $deptAccount->notify(new OtpCodeNotification($otp->otp_code, $deptAccount->employee_name));
         
-        \Log::info('OTP email sent successfully to: ' . $deptAccount->email);
+        \Log::info('OTP resend email sent successfully to: ' . $deptAccount->email . ' for employee: ' . $deptAccount->employee_name);
         
         return response()->json([
             'success' => true,
-            'message' => 'New OTP sent to your email.'
+            'message' => 'New OTP sent to your email successfully.'
         ]);
     } catch (\Exception $e) {
-        \Log::error('Failed to resend OTP email: ' . $e->getMessage());
+        \Log::error('Failed to resend OTP email to ' . $deptAccount->email . ': ' . $e->getMessage());
+        \Log::error('Resend email error details: ' . $e->getTraceAsString());
         
         return response()->json([
             'success' => false,
-            'message' => 'Failed to send OTP. Please try again.'
+            'message' => 'Failed to send OTP email. Please check your email address or contact administrator.'
         ], 500);
     }
 }

@@ -26,14 +26,14 @@
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
         @if(session('success'))
           <div class="alert alert-success mb-6">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <i data-lucide="check-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
             <span>{{ session('success') }}</span>
           </div>
         @endif
 
         @if(session('error'))
           <div class="alert alert-error mb-6">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+            <i data-lucide="alert-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
             <span>{{ session('error') }}</span>
           </div>
         @endif
@@ -54,7 +54,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
                   <div class="bg-primary text-primary-content rounded-full w-10 h-10">
-                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <i data-lucide="file-text" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   </div>
                 </div>
                 <div class="badge badge-primary badge-outline text-xs">Total</div>
@@ -72,7 +72,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
                   <div class="bg-success text-success-content rounded-full w-10 h-10">
-                    <i data-lucide="calendar-plus" class="w-5 h-5"></i>
+                    <i data-lucide="calendar-plus" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   </div>
                 </div>
                 <div class="badge badge-success badge-outline text-xs">Today</div>
@@ -90,7 +90,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
                   <div class="bg-info text-info-content rounded-full w-10 h-10">
-                    <i data-lucide="send" class="w-5 h-5"></i>
+                    <i data-lucide="send" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   </div>
                 </div>
                 <div class="badge badge-info badge-outline text-xs">Released</div>
@@ -108,7 +108,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="avatar placeholder">
                   <div class="bg-neutral text-neutral-content rounded-full w-10 h-10">
-                    <i data-lucide="archive" class="w-5 h-5"></i>
+                    <i data-lucide="archive" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   </div>
                 </div>
                 <div class="badge badge-neutral badge-outline text-xs">Archived</div>
@@ -125,7 +125,7 @@
         <div class="bg-white rounded-xl shadow-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-bold text-gray-800 flex items-center">
-              <i data-lucide="folder-open" class="w-6 h-6 text-blue-500 mr-3"></i>
+              <i data-lucide="folder-open" class="text-2xl md:text-3xl lg:text-4xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer text-blue-500 mr-3"></i>
               Document Library
             </h3>
             <div class="flex items-center space-x-2">
@@ -185,11 +185,11 @@
     <div class="modal-box w-11/12 max-w-4xl">
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-          <i data-lucide="file-text" class="w-6 h-6 text-blue-500 mr-3"></i>
+          <i data-lucide="file-text" class="text-2xl md:text-3xl lg:text-4xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer text-blue-500 mr-3"></i>
           <span id="modalDocumentTitle">Document Details</span>
         </h3>
         <button onclick="closeDocumentModal()" class="btn btn-ghost btn-sm">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -220,7 +220,7 @@
           Upload New Document
         </h3>
         <button onclick="closeUploadModal()" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -339,7 +339,7 @@
                     <p class="text-sm text-green-600" id="fileSize"></p>
                   </div>
                   <button type="button" onclick="removeFile()" class="btn btn-ghost btn-sm">
-                    <i data-lucide="x" class="w-4 h-4"></i>
+                    <i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
                   </button>
                 </div>
               </div>
@@ -365,7 +365,7 @@
     <div class="modal-box w-11/12 max-w-md">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-          <i data-lucide="archive" class="w-6 h-6 text-orange-600"></i>
+          <i data-lucide="archive" class="text-2xl md:text-3xl lg:text-4xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer text-orange-600"></i>
         </div>
         <div>
           <h3 class="text-xl font-bold text-gray-800">Archive Document</h3>
@@ -402,11 +402,11 @@
     <div class="modal-box w-11/12 max-w-6xl">
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <i data-lucide="activity" class="w-6 h-6 text-blue-500"></i>
+          <i data-lucide="activity" class="text-2xl md:text-3xl lg:text-4xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer text-blue-500"></i>
           Document Management System - Monitoring Dashboard
         </h3>
         <button id="closeMonitoringModal" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         </button>
       </div>
 
@@ -799,7 +799,7 @@
       const toast = document.createElement('div');
       toast.className = `alert alert-${type} fixed bottom-4 right-4 z-50 max-w-sm shadow-lg`;
       toast.innerHTML = `
-        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
+        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
         <span>${message}</span>
       `;
       
@@ -1092,7 +1092,7 @@
         const errorDiv = document.createElement('div');
         errorDiv.className = 'alert alert-error mt-4';
         errorDiv.innerHTML = `
-          <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          <i data-lucide="alert-circle" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
           <span>Upload failed: ${error.message}</span>
         `;
         

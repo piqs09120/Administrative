@@ -825,9 +825,15 @@
                     form.reset();
                     // Hide facility selection after reset
                     document.getElementById('facility_selection').style.display = 'none';
-                    // Redirect to New Request list tab based on type
+                    // Stay on landing page; optionally provide a quick link without redirecting
                     if (data.view_url) {
-                      setTimeout(() => { window.location.href = data.view_url; }, 600);
+                      try {
+                        const a = document.createElement('a');
+                        a.href = data.view_url;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        a.click();
+                      } catch (_) {}
                     }
                     return;
                 }

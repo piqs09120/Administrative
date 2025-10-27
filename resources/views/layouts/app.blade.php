@@ -20,7 +20,7 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/css/soliera.css', 'resources/css/sidebar-collapse.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/soliera.css', 'resources/css/sidebar-collapse.css', 'resources/css/icon-standardization.css', 'resources/js/app.js'])
 </head>
 <body class="bg-base-200 min-h-screen overflow-visible">
     <div class="flex w-full min-h-screen transition-colors duration-300 ease-in-out overflow-visible">
