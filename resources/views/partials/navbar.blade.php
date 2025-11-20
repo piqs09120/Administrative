@@ -15,9 +15,13 @@
           <!-- Notification Dropdown -->
           <div class="dropdown dropdown-end">
             <!-- Button (standard indicator layout) -->
-            <button id="notification-button" tabindex="0" class="btn btn-ghost btn-circle cursor-pointer">
+            <button
+              id="notification-button"
+              tabindex="0"
+              class="btn btn-ghost btn-circle cursor-pointer w-12 h-12 md:w-14 md:h-14 transition-transform hover:scale-105"
+            >
               <div class="indicator">
-                <i data-lucide="bell" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent"></i>
+                <i data-lucide="bell" class="text-2xl md:text-3xl lg:text-[38px] transition-all duration-300 ease-in-out hover:text-accent"></i>
                 @php
                   $unreadCount = auth()->user() ? auth()->user()->unreadNotifications()->count() : 0;
                 @endphp
@@ -27,16 +31,16 @@
               </div>
             </button>
             
-            <!-- Dropdown Content - Responsive -->
-            <ul tabindex="0" class="dropdown-content menu mt-3 z-[1] bg-[#001f54] rounded-lg shadow-xl overflow-hidden">
+            <!-- Dropdown Content - Responsive with proper width -->
+            <ul tabindex="0" class="dropdown-content menu mt-3 z-[1] bg-[#001f54] rounded-lg shadow-xl overflow-hidden w-72">
               <!-- Header -->
-              <li class="px-4 py-3 border-b  flex justify-between items-center sticky top-0 bg-[#001f54] backdrop-blur-sm z-10">
+              <li class="px-3 py-2.5 border-b border-blue-700 flex justify-between items-center sticky top-0 bg-[#001f54] backdrop-blur-sm z-10">
                 <div class="flex items-center gap-2">
-                  <i data-lucide="bell" class="text-xl md:text-2xl lg:text-3xl text-blue-300 transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-                  <span class="font-semibold text-white">Notifications</span>
+                  <i data-lucide="bell" class="text-lg text-white"></i>
+                  <span class="font-semibold text-white text-sm">Notifications</span>
                 </div>
-                <button class="text-blue-300 hover:text-white text-sm flex items-center gap-1 cursor-pointer" id="clearAllNotificationsBtn">
-                  <i data-lucide="trash-2" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
+                <button class="text-white hover:text-blue-300 text-xs flex items-center gap-1 cursor-pointer transition-colors" id="clearAllNotificationsBtn">
+                  <i data-lucide="trash-2" class="text-sm"></i>
                   <span>Clear All</span>
                 </button>
               </li>
@@ -49,8 +53,8 @@
                 
                 @if($notifications->count() > 0)
                   @foreach($notifications as $notification)
-                    <li class="px-4 py-3 hover:scale-105 transition-all notification-item" data-notification-id="{{ $notification->id }}">
-                      <a class="bg-blue-700/50 flex items-start gap-3" onclick="markAsRead('{{ $notification->id }}')">
+                    <li class="px-3 py-2.5 hover:bg-blue-800/50 transition-all notification-item border-b border-blue-800/30" data-notification-id="{{ $notification->id }}">
+                      <a class="flex items-start gap-2.5 cursor-pointer" onclick="markAsRead('{{ $notification->id }}')">
                         @php
                           $data = is_string($notification->data) ? json_decode($notification->data, true) : $notification->data;
                           $type = $notification->type;
@@ -157,41 +161,41 @@
                             $bgCard = 'bg-green-700/50';
                           }
                         @endphp
-                        <div class="p-2 rounded-full {{ $bgColor }}">
-                          <i data-lucide="{{ $icon }}" class="text-lg md:text-xl lg:text-2xl text-white transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-medium text-white flex items-center gap-2">
+                        <div class="p-2 rounded-full {{ $bgColor }} flex-shrink-0">
+                          <i data-lucide="{{ $icon }}" class="text-base text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="font-medium text-white text-xs flex items-center gap-1.5 mb-0.5">
                             {{ $title }}
                             {!! $badge !!}
-                      </p>
-                          <p class="text-sm text-white mt-1">{{ $message }}</p>
-                      <p class="text-xs text-white mt-2 flex items-center gap-1">
-                        <i data-lucide="clock" class="text-sm md:text-base lg:text-lg transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
+                          </p>
+                          <p class="text-xs text-blue-200 mt-0.5 line-clamp-2">{{ $message }}</p>
+                          <p class="text-[10px] text-blue-300 mt-1 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-2.5 h-2.5"></i>
                             {{ $notification->created_at->diffForHumans() }}
-                      </p>
-                    </div>
-                  </a>
-                </li>
+                          </p>
+                        </div>
+                      </a>
+                    </li>
                   @endforeach
                 @else
                   <!-- Empty State -->
                   <li class="px-4 py-8 text-center">
                     <div class="flex flex-col items-center gap-2">
-                      <div class="p-4 rounded-full bg-blue-600/20">
-                        <i data-lucide="bell-off" class="text-4xl text-blue-300"></i>
+                      <div class="p-3 rounded-full bg-blue-600/20">
+                        <i data-lucide="bell-off" class="text-3xl text-blue-300"></i>
+                      </div>
+                      <p class="text-white font-semibold text-sm">No notifications</p>
+                      <p class="text-xs text-blue-300">You're all caught up!</p>
                     </div>
-                      <p class="text-white font-medium">No notifications</p>
-                      <p class="text-sm text-blue-300">You're all caught up!</p>
-                    </div>
-                </li>
+                  </li>
                 @endif
               </div>
               
               <!-- Footer -->
-              <li class="px-4 py-2 border-t  sticky bottom-0 bg-[#001f54] backdrop-blur-sm">
-                <a href="#" class="text-center text-blue-300 hover:text-white text-sm flex items-center justify-center gap-1 cursor-pointer">
-                  <i data-lucide="list" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent"></i>
+              <li class="px-3 py-2 border-t border-blue-700 sticky bottom-0 bg-[#001f54] backdrop-blur-sm">
+                <a href="#" class="text-center text-white hover:text-blue-300 text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                  <i data-lucide="list" class="text-sm"></i>
                   <span>View All Notifications</span>
                 </a>
               </li>

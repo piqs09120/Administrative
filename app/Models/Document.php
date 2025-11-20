@@ -16,9 +16,9 @@ class Document extends Model
         'workflow_stage', 'workflow_log', 'lifecycle_log', 'legal_case_data', 'linked_reservation_id',
         'linked_case_id',
         // DMS-only metadata
-        'document_uid', 'confidentiality', 'retention_until', 'retention_policy',
+        'document_uid', 'confidentiality', 'confidentiality_level', 'retention_until', 'retention_policy',
         // Legal document retention policy fields
-        'archived_at', 'disposal_date', 'retention_years', 'can_dispose', 'disposal_reason',
+        'archived_at', 'archived_by', 'disposal_date', 'retention_years', 'can_dispose', 'disposal_reason',
         // Collaboration and history fields
         'editing_history', 'collaborators', 'last_edited_by', 'last_edited_at', 'version',
         'access_log', 'download_count', 'view_count'
@@ -78,6 +78,38 @@ class Document extends Model
 
     public function facilityReservations() {
         return $this->hasMany(FacilityReservation::class);
+    }
+
+    // Collaboration & History relationships
+    public function collaborators()
+    {
+        return $this->belongsToMany(User::class, 'document_collaborators')
+            ->withPivot(['role','added_at'])
+            ->withTimestamps();
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(DocumentActivityLog::class);
+    }
+
+    public function versions()
+    {
+        return $this->hasMany(DocumentVersion::class)->orderBy('version','desc');
+    }
+
+    /**
+     * Quick logger used by controllers/services
+     */
+    public function log(string $action, ?string $desc = null, array $meta = []): void
+    {
+        $this->activityLogs()->create([
+            'user_id'   => auth()->id(),
+            'action'    => $action,
+            'description' => $desc,
+            'ip_address'=> request()->ip(),
+            'metadata'  => $meta,
+        ]);
     }
 
     // Workflow helper methods

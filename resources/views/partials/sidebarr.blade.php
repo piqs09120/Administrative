@@ -291,12 +291,6 @@
                 Access Control
               </span>
             </a>
-            <a href="{{ route('access.logs') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.logs') ? 'bg-blue-700 text-white' : '' }}">
-              <span class="flex items-center gap-2">
-                <i data-lucide="file-text" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-                Account Logs
-              </span>
-            </a>
             <a href="{{ route('access.audit_logs') }}" class="block px-3 py-2 text-sm rounded-lg transition-all hover:bg-blue-600/30 text-blue-100 hover:text-white {{ request()->routeIs('access.audit_logs') ? 'bg-blue-700 text-white' : '' }}">
               <span class="flex items-center gap-2">
                 <i data-lucide="clipboard-list" class="text-lg md:text-xl lg:text-2xl text-[#F7B32B] transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>

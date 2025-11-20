@@ -152,6 +152,42 @@
               </div>
             </div>
 
+            <!-- Case Actions -->
+            <div class="card bg-white shadow-md">
+              <div class="card-body">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <div class="badge {{ $case->status === 'pending' ? 'badge-warning' : ($case->status === 'completed' ? 'badge-success' : 'badge-error') }} px-4 py-2 text-sm font-semibold">
+                      Status: {{ ucfirst($case->status) }}
+                    </div>
+                    @if($case->case_type === 'facility_damage')
+                      <div class="badge badge-outline px-4 py-2 flex items-center gap-2 text-sm">
+                        <i data-lucide="building" class="w-4 h-4"></i>
+                        Facility Damage Case
+                      </div>
+                    @endif
+                  </div>
+
+                  @if($case->status === 'pending')
+                    <div class="flex flex-wrap gap-2">
+                      <button onclick="openApproveModal()" class="btn btn-success btn-sm lg:btn-md flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Approve
+                      </button>
+                      <button onclick="openDeclineModal()" class="btn btn-error btn-sm lg:btn-md flex items-center gap-2">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        Decline
+                      </button>
+                      <button onclick="openEscalateModal()" class="btn btn-warning btn-sm lg:btn-md flex items-center gap-2">
+                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
+                        Escalate
+                      </button>
+                    </div>
+                  @endif
+                </div>
+              </div>
+            </div>
+
             <!-- Evidence & Documents -->
             <div class="card bg-white shadow-xl">
               <div class="card-body">

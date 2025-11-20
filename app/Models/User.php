@@ -44,4 +44,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get all policy consents for this user
+     */
+    public function policyConsents()
+    {
+        return $this->hasMany(UserConsent::class);
+    }
 } 

@@ -151,49 +151,6 @@ class AccessController extends Controller
         return view('access.roles', compact('roles'));
     }
     
-    public function logs()
-    {
-        try {
-            // Get only login and logout logs with DeptAccount user relationship
-            $logs = AccessLog::with('user')
-                ->whereIn('action', ['Login', 'Logout'])
-                ->latest()
-                ->get();
-            
-            // If no logs exist, create some sample login/logout logs for demonstration
-            if ($logs->count() === 0) {
-                $this->createSampleLoginLogoutLogs();
-                $logs = AccessLog::with('user')
-                    ->whereIn('action', ['Login', 'Logout'])
-                    ->latest()
-                    ->get();
-            }
-            
-            // Debug: Log the results
-            \Log::info('Access Logs Debug', [
-                'total_logs' => $logs->count(),
-                'logs_retrieved' => $logs->count(),
-                'first_log' => $logs->first(),
-                'first_log_user' => $logs->first() ? $logs->first()->user : null,
-                'database_connection' => config('database.default'),
-                'database_name' => config('database.connections.mysql.database')
-            ]);
-            
-            return view('access.logs', compact('logs'));
-        } catch (\Exception $e) {
-            // Debug: Log any errors
-            \Log::error('Access Logs Error: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            // Return view with empty logs and error message
-            $logs = collect([]);
-            session()->flash('error', 'Error loading access logs: ' . $e->getMessage());
-            return view('access.logs', compact('logs'));
-        }
-    }
 
     /**
      * Create sample access logs for demonstration
@@ -480,52 +437,20 @@ class AccessController extends Controller
         }
     }
 
-    public function departmentLogs()
-    {
-        try {
-            // Get department-specific logs with user information
-            $logs = AccessLog::with('user')
-                ->whereHas('user', function($query) {
-                    $query->whereNotNull('dept_name');
-                })
-                ->latest()
-                ->get();
-            
-            // If no logs exist, create some sample department logs for demonstration
-            if ($logs->count() === 0) {
-                $this->createSampleDepartmentLogs();
-                $logs = AccessLog::with('user')
-                    ->whereHas('user', function($query) {
-                        $query->whereNotNull('dept_name');
-                    })
-                    ->latest()
-                    ->get();
-            }
-            
-            return view('access.account_logs', compact('logs'));
-            
-        } catch (\Exception $e) {
-            \Log::error('Error loading department logs: ' . $e->getMessage());
-            $logs = collect([]);
-            session()->flash('error', 'Error loading department logs: ' . $e->getMessage());
-            return view('access.account_logs', compact('logs'));
-        }
-    }
 
     public function auditLogs()
     {
         try {
-            // Get all system audit logs EXCEPT login and logout actions
+            // Get ALL audit logs INCLUDING login and logout actions
             $logs = AccessLog::with('user')
-                ->whereNotIn('action', ['Login', 'Logout'])
                 ->latest()
                 ->get();
             
             // If no logs exist, create some sample audit logs for demonstration
             if ($logs->count() === 0) {
                 $this->createSampleAuditLogs();
+                $this->createSampleLoginLogoutLogs();
                 $logs = AccessLog::with('user')
-                    ->whereNotIn('action', ['Login', 'Logout'])
                     ->latest()
                     ->get();
             }
@@ -707,31 +632,11 @@ class AccessController extends Controller
         }
     }
 
-    public function exportAccountLogs()
-    {
-        try {
-            // Get the same logs as the departmentLogs method
-            $logs = AccessLog::with('user')
-                ->whereHas('user', function($query) {
-                    $query->whereNotNull('dept_name');
-                })
-                ->latest()
-                ->get();
-
-            $filename = 'account_logs_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
-            
-            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AccountLogExport($logs), $filename);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error exporting account logs: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error exporting account logs: ' . $e->getMessage());
-        }
-    }
 
     public function exportAuditLogs()
     {
         try {
-            // Get all audit logs with user information
+            // Get all audit logs with user information (including login/logout)
             $logs = AccessLog::with('user')
                 ->latest()
                 ->get();

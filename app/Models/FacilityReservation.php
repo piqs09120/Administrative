@@ -12,6 +12,7 @@ class FacilityReservation extends Model
 
     protected $fillable = [
         'facility_id', 
+        'facility_request_id',
         'reserved_by', 
         'start_time', 
         'end_time', 
@@ -34,7 +35,17 @@ class FacilityReservation extends Model
         'payment_method',
         'payment_amount',
         'payment_transaction_id',
-        'payment_processed_at'
+        'payment_processed_at',
+        'damage_flag',
+        'damage_cost',
+        'inspection_notes',
+        'damage_photos',
+        'checked_out_at',
+        'returned_at',
+        'inspected_by',
+        'inspected_at',
+        'legal_case_id',
+        'damage_case_closed_at'
     ];
 
     protected $casts = [
@@ -47,6 +58,13 @@ class FacilityReservation extends Model
         'payment_amount' => 'decimal:2',
         // New workflow casts
         'workflow_log' => 'array',
+        'damage_flag' => 'boolean',
+        'damage_cost' => 'decimal:2',
+        'damage_photos' => 'array',
+        'checked_out_at' => 'datetime',
+        'returned_at' => 'datetime',
+        'inspected_at' => 'datetime',
+        'damage_case_closed_at' => 'datetime',
     ];
 
     public function facility()
@@ -83,6 +101,11 @@ class FacilityReservation extends Model
     public function document()
     {
         return $this->belongsTo(Document::class, 'document_id');
+    }
+
+    public function legalCase()
+    {
+        return $this->belongsTo(\App\Models\LegalCase::class, 'legal_case_id');
     }
 
     public static function boot()
@@ -211,5 +234,16 @@ class FacilityReservation extends Model
         }
 
         return true; // All required tasks are present and completed
+    }
+
+    public function isDamaged(): bool
+    {
+        return (bool) $this->damage_flag || (float) ($this->damage_cost ?? 0) > 0;
+    }
+
+    public function needsLegalEscalation(): bool
+    {
+        $threshold = (float) config('facility.damage.auto_escalate_threshold', 10000);
+        return $this->isDamaged() && ((float) ($this->damage_cost ?? 0) >= $threshold);
     }
 }

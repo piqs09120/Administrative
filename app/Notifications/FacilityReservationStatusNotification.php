@@ -13,10 +13,14 @@ class FacilityReservationStatusNotification extends Notification implements Shou
     use Queueable;
 
     public $reservation;
+    public $eventType;      // add
+    public $legalCaseId;    // add (optional link)
 
-    public function __construct(FacilityReservation $reservation)
+    public function __construct(FacilityReservation $reservation, string $eventType = null, $legalCaseId = null)
     {
         $this->reservation = $reservation;
+        $this->eventType = $eventType;
+        $this->legalCaseId = $legalCaseId;
     }
 
     public function via($notifiable)
@@ -29,6 +33,20 @@ class FacilityReservationStatusNotification extends Notification implements Shou
         $mail = (new MailMessage)
             ->subject($this->getEmailSubject())
             ->greeting('Hello ' . $notifiable->name . ',');
+
+        if ($this->eventType === 'LEGAL_ESCALATED') {
+            $mail->line('⚠️ A facility damage incident has been escalated to Legal.')
+                 ->line('Facility: ' . $this->reservation->facility->name)
+                 ->line('Reservation #: ' . $this->reservation->id)
+                 ->line('Estimated Cost: ₱' . number_format((float)($this->reservation->damage_cost ?? 0), 2))
+                 ->line('Inspection Notes: ' . ($this->reservation->inspection_notes ?: 'N/A'));
+            if ($this->legalCaseId) {
+                $mail->action('Open Legal Case', url('/legal/cases/' . $this->legalCaseId));
+            } else {
+                $mail->action('View Reservation Details', url('/facility_reservations/' . $this->reservation->id));
+            }
+            return $mail;
+        }
 
         // Add status-specific content
         switch ($this->reservation->status) {
@@ -91,6 +109,10 @@ class FacilityReservationStatusNotification extends Notification implements Shou
 
     private function getEmailSubject()
     {
+        if ($this->eventType === 'LEGAL_ESCALATED') {
+            return "⚠️ Damage Escalated to Legal – {$this->reservation->facility->name}";
+        }
+
         $facilityName = $this->reservation->facility->name;
         
         switch ($this->reservation->status) {

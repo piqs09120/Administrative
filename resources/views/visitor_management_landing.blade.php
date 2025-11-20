@@ -100,126 +100,7 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
-        .file-upload-container {
-            position: relative;
-        }
-        
-        .file-upload-input {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .file-upload-label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            border: 2px dashed #d1d5db;
-            border-radius: 0.5rem;
-            background-color: #f9fafb;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-height: 120px;
-        }
-        
-        .file-upload-label:hover {
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-        
-        .upload-icon {
-            font-size: 2rem;
-            color: #6b7280;
-            margin-bottom: 0.5rem;
-        }
-        
-        .upload-text {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.25rem;
-        }
-        
-        .upload-hint {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .file-preview {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background-color: #f3f4f6;
-            border-radius: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        
-        .file-info {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-        
-        .file-info span:first-child {
-            font-weight: 600;
-            color: #374151;
-        }
-        
-        .file-info span:last-child {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .remove-file-btn {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .remove-file-btn:hover {
-            background-color: #dc2626;
-        }
-        
-        .validation-indicator {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        
-        .validation-indicator.valid {
-            background-color: #10b981;
-            color: white;
-        }
-        
-        .validation-indicator.invalid {
-            background-color: #ef4444;
-            color: white;
-        }
-        
-        .validation-indicator.pending {
-            background-color: #f59e0b;
-            color: white;
-        }
+
     </style>
 </head>
 
@@ -240,7 +121,6 @@
                     <a href="#contact" class="text-white hover:text-yellow-400 transition-colors">Contact</a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('login') }}" class="text-white hover:text-yellow-400 transition-colors">Login</a>
                     <a href="{{ route('visitor.index') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Get Started
                     </a>
@@ -453,7 +333,8 @@
                                     <label for="id_type" class="block text-sm font-semibold text-gray-700">
                                         ID Type <span class="text-red-500">*</span>
                                     </label>
-                                    <div class="relative">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative" style="width: 220px;">
                                         <i class="fas fa-id-card absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                         <select id="id_type" name="id_type" required
                                                 class="form-input w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50 appearance-none">
@@ -484,6 +365,23 @@
                                             </optgroup>
                                         </select>
                                         <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                        </div>
+                                        <label for="id_image_upload" class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg">
+                                            <i class="fas fa-upload"></i>
+                                            <span class="font-semibold">Upload ID</span>
+                                            <input type="file" id="id_image_upload" name="id_image" accept="image/*" class="hidden">
+                                        </label>
+                                    </div>
+                                    
+                                    <!-- File Preview -->
+                                    <div id="id_file_preview" class="hidden mt-3">
+                                        <div class="inline-flex items-center gap-2 bg-white border-2 border-gray-300 rounded-lg px-4 py-2 shadow-sm">
+                                            <i class="fas fa-file-image text-blue-600"></i>
+                                            <span id="id_file_name" class="text-sm text-gray-700 font-medium"></span>
+                                            <button type="button" id="remove_id_file" class="ml-2 text-red-500 hover:text-red-700 transition-colors">
+                                                <i class="fas fa-times-circle text-lg"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -497,42 +395,6 @@
                                         <input type="text" id="id_number" name="id_number" required
                                                class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50"
                                                placeholder="Enter ID or passport number">
-                                    </div>
-                                </div>
-
-                                <!-- ID Document Upload -->
-                                <div class="space-y-2">
-                                    <label for="id_document" class="block text-sm font-semibold text-gray-700">
-                                        ID Document Upload <span class="text-red-500">*</span>
-                                    </label>
-                                    <div class="file-upload-container">
-                                        <input type="file" name="id_document" id="id_document" 
-                                               class="file-upload-input" accept="image/*,.pdf" required>
-                                        <label for="id_document" class="file-upload-label">
-                                            <i class="fas fa-upload upload-icon"></i>
-                                            <span class="upload-text" id="upload_text">Upload ID Document</span>
-                                            <span class="upload-hint" id="upload_hint">Supported: JPG, PNG, PDF (Max 5MB)</span>
-                                        </label>
-                                        <div class="file-preview" id="id_document_preview" style="display: none;">
-                                            <img id="preview_image" src="" alt="ID Document Preview" style="max-width: 200px; max-height: 150px;">
-                                            <div class="file-info">
-                                                <span id="file_name"></span>
-                                                <span id="file_size"></span>
-                                            </div>
-                                            <button type="button" onclick="removeFilePreview()" class="remove-file-btn">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <!-- ID Type Specific Instructions -->
-                                    <div id="id_instructions" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
-                                        <div class="flex items-start">
-                                            <i class="fas fa-info-circle text-blue-600 mr-2 mt-1"></i>
-                                            <div>
-                                                <p class="text-sm text-blue-800 font-medium" id="id_instruction_title">Please upload the correct ID document</p>
-                                                <p class="text-xs text-blue-700 mt-1" id="id_instruction_text">Make sure the document is clear and readable</p>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -705,10 +567,26 @@
                             </div>
                         </div>
                         
+                        <!-- Consent Line -->
+                        <div id="consentContainer" class="mt-6 text-sm text-gray-700 space-y-2">
+                            <p id="preConsentMessage">
+                                I have read and agree to Soliera’s
+                                <a href="#" class="privacy-link text-blue-600 underline hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 rounded">Data Privacy Policy</a>.
+                            </p>
+                            <label id="inlineConsentLabel" for="agree" class="hidden flex items-start gap-3">
+                                <input type="checkbox" id="agree" name="agree" required disabled class="mt-1 checkbox checkbox-primary checkbox-sm focus:ring focus:ring-offset-1 focus:ring-[#F7A923]">
+                                <span>
+                                    I have read and agree to Soliera’s
+                                    <a href="#" class="privacy-link text-blue-600 underline hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 rounded">Data Privacy Policy</a>.
+                                </span>
+                            </label>
+                        </div>
+
                         <!-- Submit Button -->
                         <div class="text-center pt-6">
-                            <button type="submit" 
-                                    class="bg-gradient-to-r from-[#F7A923] to-[#E6940F] hover:from-[#E6940F] hover:to-[#D2840E] text-[#2C3E50] px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto">
+                            <button type="submit" id="registerBtn"
+                                    class="bg-gradient-to-r from-[#F7A923] to-[#E6940F] hover:from-[#E6940F] hover:to-[#D2840E] text-[#2C3E50] px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto"
+                                    disabled>
                                 <i class="fas fa-user-plus mr-3"></i>
                                 Register Visitor
                             </button>
@@ -821,6 +699,199 @@
         </div>
     </footer>
 
+    <!-- Privacy Modal -->
+    <dialog id="privacyModal" class="modal">
+        <div class="modal-box w-full max-w-4xl md:max-w-3xl sm:max-w-xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white flex flex-col max-h-[90vh] md:max-h-[88vh] sm:max-h-[90vh]">
+            <div class="px-8 pt-8 pb-6 bg-[#0b2a61] text-white">
+                <h3 class="text-2xl font-semibold leading-tight">Data Privacy Policy</h3>
+                <p class="text-sm text-blue-100/80 mt-1">How Soliera protects and processes the personal information you share.</p>
+            </div>
+            <div class="px-8 pb-5 flex-1 min-h-0 flex flex-col">
+                <div id="privacyScrollArea" class="mt-5 flex-1 overflow-y-auto pr-3 text-sm leading-7 text-gray-600 space-y-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner px-5 py-4">
+                  <section class="space-y-3">
+                    <p><strong>Soliera Hospitality Group (“Soliera”, “we”, “our”)</strong> is committed to protecting
+                      the privacy of our guests, visitors, suppliers, and business partners. This Data Privacy Policy
+                      outlines how we collect, use, store, disclose, and protect personal data in accordance with the
+                      Data Privacy Act of 2012 (Republic Act No. 10173), its Implementing Rules and Regulations, and
+                      relevant issuances of the National Privacy Commission (NPC).</p>
+                    <p>This policy applies to personal data submitted through our visitor-management web application,
+                      at the front desk, at hotel access points, and through any Soliera-managed digital or
+                      on-premises systems.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">1. Personal Data We Collect</h4>
+                    <p>Subject to the principle of proportionality, we may collect and process the following
+                      categories of personal data:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li><strong>Identifying information</strong>: full name, preferred name, date of birth, sex,
+                        nationality, civil status, company/organization, job title.</li>
+                      <li><strong>Contact details</strong>: address, email address, mobile/landline number, emergency
+                        contact person.</li>
+                      <li><strong>Government-issued or supporting documents</strong>: ID type and number, ID image or
+                        copy, travel/passport information, visas or immigration documents when required by law.</li>
+                      <li><strong>Stay and visit particulars</strong>: room/share details, booking references,
+                        arrival/departure dates, facility/meeting schedules, host department, visitor type,
+                        vehicle/plate number, purpose of visit, declared preferences, special assistance requests.</li>
+                      <li><strong>Security and monitoring data</strong>: QR or RFID passes, access logs, CCTV images,
+                        incident reports, audit trails, communication records, system usage metadata (e.g. IP address,
+                        browser, device ID).</li>
+                    </ul>
+                    <p>We do not knowingly collect personal data of minors without the consent of a parent or legal
+                      guardian.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">2. Purpose and Legal Basis for Processing</h4>
+                    <p>We process personal data only for legitimate, specified, and lawful purposes including:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li>Facilitating reservations, check-ins/outs, visitor passes, and meeting schedules.</li>
+                      <li>Providing hospitality, concierge, transportation, facility access, and guest-relations
+                        services.</li>
+                      <li>Complying with statutory and regulatory requirements (e.g. Bureau of Immigration, local
+                        government ordinances, revenue audits).</li>
+                      <li>Ensuring safety, security, emergency response, and incident investigation within hotel
+                        premises.</li>
+                      <li>Maintaining audit trails, financial records, and business continuity documentation.</li>
+                      <li>Sending service-related advisories, billing notices, feedback requests, and partner offers
+                        that may interest you (subject to marketing consent, when required).</li>
+                      <li>Handling complaints, requests, disputes, or legal claims.</li>
+                    </ul>
+                    <p>Processing is anchored on one or more lawful bases such as your consent, fulfillment of a
+                      contract, compliance with legal obligations, protection of vital interests, pursuit of our
+                      legitimate business purposes, or defense of legal claims.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">3. Sharing and Disclosure</h4>
+                    <p>We do not sell personal data. We may disclose information to:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li>Authorized Soliera personnel with a need to know.</li>
+                      <li>Affiliates, business partners, and service providers (e.g. payment gateways, IT support,
+                        transport providers, event planners) under strict confidentiality agreements.</li>
+                      <li>Government agencies (e.g. Bureau of Immigration, Department of Tourism, DOLE, BIR, LGUs,
+                        law-enforcement) when required by law, subpoena, or lawful order.</li>
+                      <li>Emergency responders, insurance providers, legal counsel, auditors, or courts when such
+                        disclosure is necessary to protect life, health, property, or legitimate rights.</li>
+                    </ul>
+                    <p>Whenever personal data is shared, we ensure that recipients implement adequate organizational,
+                      physical, and technical safeguards consistent with NPC standards.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">4. Data Retention</h4>
+                    <p>Personal data is kept only for as long as necessary to fulfill the purposes outlined above, or
+                      as required by applicable laws and regulations. For example:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li>Visitor logs: minimum of one (1) year or longer when required by the LGU or law-enforcement
+                        directives.</li>
+                      <li>Financial/transactional records: ten (10) years per the National Internal Revenue Code.</li>
+                      <li>CCTV footage: up to thirty (30) days unless required for official investigation.</li>
+                      <li>Customer profiles and consent records: retained while you have an active relationship with
+                        Soliera and for a reasonable period thereafter to handle queries or claims.</li>
+                    </ul>
+                    <p>Once retention periods lapse, records are securely disposed of through anonymization, digital
+                      wiping, shredding, or other NPC-compliant destruction methods.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">5. Data Security Measures</h4>
+                    <p>We maintain appropriate safeguards to protect personal data from loss, misuse, unauthorized
+                      access, disclosure, alteration, or destruction, including but not limited to:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li>Role-based access control, multifactor authentication, and encryption in transit and at
+                        rest.</li>
+                      <li>Secure server facilities, firewalls, intrusion detection systems, antivirus, and periodic
+                        vulnerability scanning.</li>
+                      <li>Continuous CCTV monitoring, visitor pass systems, and incident response protocols.</li>
+                      <li>Privacy-by-design controls in our IT systems, coupled with privacy impact assessments.</li>
+                      <li>Regular training and confidentiality undertakings for employees and contractors.</li>
+                    </ul>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">6. Your Rights under the Data Privacy Act</h4>
+                    <p>Subject to limitations under RA 10173, you have the right to:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li>Be informed of the personal data we collect and the purposes for which we process it.</li>
+                      <li>Request reasonable access to and copies of your personal data.</li>
+                      <li>Dispute inaccuracies and request corrections or updates.</li>
+                      <li>Withdraw consent, object to processing, or request deletion in certain circumstances.</li>
+                      <li>Obtain data portability, when technically feasible.</li>
+                      <li>Be indemnified for any damages sustained due to inaccurate, incomplete, outdated, false,
+                        unlawfully obtained, or unauthorized use of personal data.</li>
+                      <li>Lodge a complaint with the National Privacy Commission.</li>
+                    </ul>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">7. How to Exercise Your Rights</h4>
+                    <p>For privacy-related requests, please contact our Data Protection Officer (DPO) through the
+                      channels below. We may require you to verify your identity or authority to act on behalf of a
+                      data subject.</p>
+                    <ul class="list-none space-y-1">
+                      <li><strong>Data Protection Officer:</strong> [Name of DPO]</li>
+                      <li><strong>Email:</strong> <a href="mailto:solierahotelandrestaurant@gmail.com" class="text-blue-600 underline">solierahotelandrestaurant@gmail.com</a></li>
+                      <li><strong>Telephone:</strong> (+63) 2 8123 4567</li>
+                      <li><strong>Office Address:</strong> Soliera Hospitality Group, 28F Soliera Tower, Ayala Avenue,
+                        Makati City, Philippines</li>
+                    </ul>
+                    <p>We will respond within reasonable timelines set by the NPC. Requests that are manifestly
+                      unfounded or excessive may be subject to appropriate fees or lawful refusal.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">8. Consent and Acknowledgment</h4>
+                    <p>By submitting your information, visiting our premises, or availing of our services, you signify
+                      that you have read, understood, and agree to this Data Privacy Policy. You also represent that
+                      any third-party personal data you provide (e.g. companion names, emergency contacts) has been
+                      obtained with proper authority and consent.</p>
+                    <p>You may withdraw consent at any time; however, this may affect our ability to provide certain
+                      services or access to facilities.</p>
+                  </section>
+
+                  <section class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">9. Changes to This Policy</h4>
+                    <p>We may update this policy to align with changes in law, National Privacy Commission guidance, or
+                      business practices. Any significant updates will be announced through our website or front-office
+                      channels and will take effect upon posting.</p>
+                    
+                  </section>
+                </div>
+            </div>
+            <div class="px-8 py-5 border-t border-gray-200 bg-gray-50">
+                <div class="space-y-3">
+                    <div class="rounded-lg border border-amber-100 bg-amber-50/70 px-4 py-3 text-sm text-gray-700 leading-relaxed">
+                        <p>
+                            By selecting <strong>Agree &amp; Continue</strong>, you confirm that the information you provide is true
+                            and you consent to the collection, use, and storage of your personal data by Soliera Hotel for the purposes
+                            described above and in our full Privacy Policy and Guest Terms.
+                        </p>
+                    </div>
+                    <p class="text-xs text-gray-500">
+                        You may withdraw consent or request access, correction, or deletion of your data by contacting our Front Desk or emailing our Data Protection Officer at
+                        <a href="mailto:solierahotelandrestaurant@gmail.com" class="text-blue-600 underline">solierahotelandrestaurant@gmail.com</a>.
+                    </p>
+                    <label class="flex items-start gap-3 text-sm text-gray-700 select-none">
+                        <input type="checkbox" id="privacyModalCheckbox" class="mt-1 checkbox checkbox-primary checkbox-sm" disabled>
+                        <span>I have read and agree to the Data Privacy &amp; Guest Terms as stated above.</span>
+                    </label>
+                    <div class="flex items-center justify-end gap-2 sm:gap-3 pt-1">
+                        <form method="dialog">
+                            <button class="btn btn-ghost">Close</button>
+                        </form>
+                        <button type="button" id="privacyModalAgree" class="btn bg-gradient-to-r from-[#F7A923] to-[#E6940F] text-[#2C3E50] border-none shadow-md hover:from-[#E6940F] hover:to-[#D2840E] disabled:bg-gray-200 disabled:text-gray-500" disabled>
+                            Agree &amp; Continue
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="Close data privacy policy modal">close</button>
+        </form>
+    </dialog>
+
     <script>
         // Initialize AOS
         AOS.init({
@@ -852,6 +923,30 @@
             });
         });
         
+        // ID Upload Handler
+        const idImageUpload = document.getElementById('id_image_upload');
+        const idFilePreview = document.getElementById('id_file_preview');
+        const idFileName = document.getElementById('id_file_name');
+        const removeIdFile = document.getElementById('remove_id_file');
+
+        if (idImageUpload) {
+            idImageUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    idFileName.textContent = file.name;
+                    idFilePreview.classList.remove('hidden');
+                }
+            });
+        }
+
+        if (removeIdFile) {
+            removeIdFile.addEventListener('click', function() {
+                idImageUpload.value = '';
+                idFilePreview.classList.add('hidden');
+                idFileName.textContent = '';
+            });
+        }
+        
         // Visit Type Toggle
         document.querySelectorAll('input[name="visit_type"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -875,6 +970,157 @@
             });
         });
 
+        // Consent gating
+        const inlineConsentLabel = document.getElementById('inlineConsentLabel');
+        const preConsentMessage = document.getElementById('preConsentMessage');
+        const agreeCheckbox = document.getElementById('agree');
+        const registerBtn = document.getElementById('registerBtn');
+        const privacyModal = document.getElementById('privacyModal');
+        const privacyLinks = document.querySelectorAll('.privacy-link');
+        const privacyScrollArea = document.getElementById('privacyScrollArea');
+        const privacyModalCheckbox = document.getElementById('privacyModalCheckbox');
+        const privacyModalAgree = document.getElementById('privacyModalAgree');
+        let privacyAccepted = false;
+
+        function updateRegisterButtonState() {
+            if (registerBtn) {
+                registerBtn.disabled = !(privacyAccepted && agreeCheckbox && agreeCheckbox.checked);
+            }
+        }
+
+        updateRegisterButtonState();
+
+        if (agreeCheckbox) {
+            agreeCheckbox.addEventListener('change', updateRegisterButtonState);
+        }
+
+        function resetPrivacyModalState() {
+            if (privacyScrollArea) {
+                privacyScrollArea.scrollTop = 0;
+            }
+            if (privacyModalCheckbox) {
+                privacyModalCheckbox.checked = false;
+                privacyModalCheckbox.disabled = true;
+            }
+            if (privacyModalAgree) {
+                privacyModalAgree.disabled = true;
+            }
+        }
+
+        function revealInlineConsent() {
+            if (!privacyAccepted) {
+                privacyAccepted = true;
+                if (preConsentMessage) {
+                    preConsentMessage.classList.add('hidden');
+                }
+                if (inlineConsentLabel) {
+                    inlineConsentLabel.classList.remove('hidden');
+                }
+                if (agreeCheckbox) {
+                    agreeCheckbox.disabled = false;
+                    agreeCheckbox.checked = true;
+                }
+            }
+            updateRegisterButtonState();
+        }
+
+        const docEl = document.documentElement;
+        function lockBodyScroll() {
+            if (document.body.dataset.prevOverflow === undefined) {
+                document.body.dataset.prevOverflow = document.body.style.overflow || '';
+            }
+            if (docEl.dataset.prevOverflow === undefined) {
+                docEl.dataset.prevOverflow = docEl.style.overflow || '';
+            }
+            document.body.style.overflow = 'hidden';
+            docEl.style.overflow = 'hidden';
+        }
+
+        function unlockBodyScroll() {
+            if (document.body.dataset.prevOverflow !== undefined) {
+                document.body.style.overflow = document.body.dataset.prevOverflow;
+                delete document.body.dataset.prevOverflow;
+            } else {
+                document.body.style.removeProperty('overflow');
+            }
+
+            if (docEl.dataset.prevOverflow !== undefined) {
+                docEl.style.overflow = docEl.dataset.prevOverflow;
+                delete docEl.dataset.prevOverflow;
+            } else {
+                docEl.style.removeProperty('overflow');
+            }
+        }
+
+        function openModal(dialog) {
+            if (dialog && typeof dialog.showModal === 'function') {
+                dialog.showModal();
+                lockBodyScroll();
+            }
+        }
+
+        function handleLinkActivation(linkElement, dialog) {
+            if (!linkElement) return;
+            linkElement.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (dialog === privacyModal) {
+                    resetPrivacyModalState();
+                }
+                openModal(dialog);
+            });
+            linkElement.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    if (dialog === privacyModal) {
+                        resetPrivacyModalState();
+                    }
+                    openModal(dialog);
+                }
+            });
+        }
+
+        privacyLinks.forEach(link => handleLinkActivation(link, privacyModal));
+
+        if (privacyModal) {
+            privacyModal.addEventListener('close', unlockBodyScroll);
+            privacyModal.addEventListener('cancel', () => {
+                unlockBodyScroll();
+            });
+        }
+
+        function checkPrivacyScrollPosition() {
+            if (!privacyScrollArea || !privacyModalCheckbox) return;
+            const { scrollTop, scrollHeight, clientHeight } = privacyScrollArea;
+            const atBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 8;
+            if (atBottom) {
+                privacyModalCheckbox.disabled = false;
+            } else if (!privacyModalCheckbox.checked) {
+                privacyModalCheckbox.disabled = true;
+            }
+        }
+
+        if (privacyScrollArea) {
+            privacyScrollArea.addEventListener('scroll', checkPrivacyScrollPosition, { passive: true });
+        }
+
+        if (privacyModalCheckbox) {
+            privacyModalCheckbox.addEventListener('change', () => {
+                if (privacyModalAgree) {
+                    privacyModalAgree.disabled = !privacyModalCheckbox.checked;
+                }
+            });
+        }
+
+        if (privacyModalAgree) {
+            privacyModalAgree.addEventListener('click', (event) => {
+                event.preventDefault();
+                revealInlineConsent();
+                if (privacyModal && typeof privacyModal.close === 'function') {
+                    privacyModal.close();
+                }
+            });
+        }
+
         // Visitor Registration Form Handling
         document.getElementById('visitorRegistrationForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -882,7 +1128,11 @@
             const form = this;
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
-            
+            if (!privacyAccepted || !agreeCheckbox || !agreeCheckbox.checked) {
+                showNotification('Please review and accept the Data Privacy Policy before registering.', 'error');
+                return;
+            }
+
             // Show loading state
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>Registering...';
             submitBtn.disabled = true;
@@ -927,8 +1177,9 @@
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token'),
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
+                    // Note: Do NOT set Content-Type when sending FormData with files
+                    // Browser will automatically set it to multipart/form-data with boundary
                 },
-                // Send cookies for the session so CSRF validation passes
                 credentials: 'same-origin'
             })
             .then(async response => {
@@ -946,6 +1197,18 @@
                         showNotification('Visitor registered! Entry added to New Visitors queue.', 'success');
                     }
                     form.reset();
+                    if (agreeCheckbox) {
+                        agreeCheckbox.disabled = false;
+                        agreeCheckbox.checked = true;
+                    }
+                    // Clear file preview
+                    if (idFilePreview) {
+                        idFilePreview.classList.add('hidden');
+                    }
+                    if (idFileName) {
+                        idFileName.textContent = '';
+                    }
+                    updateRegisterButtonState();
                     return;
                 }
                 const message = (data && (data.message || (data.errors ? Object.values(data.errors).flat().join(' ') : ''))) || 'Error registering visitor. Please try again.';
@@ -993,267 +1256,6 @@
             }, 5000);
         }
 
-        // ID Document Upload Functions
-        function removeFilePreview() {
-            const fileInput = document.getElementById('id_document');
-            const preview = document.getElementById('id_document_preview');
-            
-            fileInput.value = '';
-            preview.style.display = 'none';
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // ID Type Instructions Mapping
-        const idTypeInstructions = {
-            'philnational_id': {
-                title: 'Philippine National ID (PhilSys)',
-                text: 'Upload a clear photo of your Philippine National ID card. Make sure all text is readable.'
-            },
-            'passport': {
-                title: 'Philippine Passport',
-                text: 'Upload a clear photo of your passport information page. Ensure passport number and personal details are visible.'
-            },
-            'drivers_license': {
-                title: 'Driver\'s License',
-                text: 'Upload a clear photo of your driver\'s license. Both front and back sides are acceptable.'
-            },
-            'umid': {
-                title: 'Unified Multipurpose ID (UMID)',
-                text: 'Upload a clear photo of your UMID card. Make sure the ID number and personal information are visible.'
-            },
-            'postal_id': {
-                title: 'Postal ID',
-                text: 'Upload a clear photo of your Postal ID. Ensure the ID number and address are readable.'
-            },
-            'voters_id': {
-                title: 'Voter\'s ID',
-                text: 'Upload a clear photo of your Voter\'s ID. Make sure the voter\'s number is visible.'
-            },
-            'sss_id': {
-                title: 'SSS ID',
-                text: 'Upload a clear photo of your SSS ID card. Ensure the SSS number is readable.'
-            },
-            'gsis_id': {
-                title: 'GSIS ID',
-                text: 'Upload a clear photo of your GSIS ID card. Make sure the GSIS number is visible.'
-            },
-            'tin_id': {
-                title: 'TIN ID',
-                text: 'Upload a clear photo of your TIN ID card. Ensure the TIN number is readable.'
-            },
-            'prc_id': {
-                title: 'Professional Regulation Commission (PRC)',
-                text: 'Upload a clear photo of your PRC ID. Make sure the PRC number and profession are visible.'
-            },
-            'barangay_id': {
-                title: 'Barangay ID',
-                text: 'Upload a clear photo of your Barangay ID. Ensure the barangay name and ID number are readable.'
-            },
-            'senior_citizen_id': {
-                title: 'Senior Citizen ID',
-                text: 'Upload a clear photo of your Senior Citizen ID. Make sure the ID number is visible.'
-            },
-            'pwd_id': {
-                title: 'PWD ID',
-                text: 'Upload a clear photo of your PWD ID. Ensure the ID number and disability type are readable.'
-            },
-            'company_id': {
-                title: 'Company ID',
-                text: 'Upload a clear photo of your Company ID. Make sure the company name and employee details are visible.'
-            },
-            'school_id': {
-                title: 'School ID',
-                text: 'Upload a clear photo of your School ID. Ensure the school name and student information are readable.'
-            },
-            'other_id': {
-                title: 'Other Valid ID',
-                text: 'Upload a clear photo of your valid ID document. Make sure all important information is visible.'
-            }
-        };
-
-        // ID Type Change Handler
-        function handleIdTypeChange() {
-            const idTypeSelect = document.getElementById('id_type');
-            const instructionsDiv = document.getElementById('id_instructions');
-            const instructionTitle = document.getElementById('id_instruction_title');
-            const instructionText = document.getElementById('id_instruction_text');
-            const uploadText = document.getElementById('upload_text');
-            const fileInput = document.getElementById('id_document');
-            
-            if (idTypeSelect.value && idTypeInstructions[idTypeSelect.value]) {
-                const instruction = idTypeInstructions[idTypeSelect.value];
-                
-                // Show instructions
-                instructionTitle.textContent = instruction.title;
-                instructionText.textContent = instruction.text;
-                instructionsDiv.classList.remove('hidden');
-                
-                // Update upload text
-                uploadText.textContent = `Upload ${instruction.title}`;
-                
-                // Clear any existing file
-                fileInput.value = '';
-                removeFilePreview();
-                
-                // Set file input accept attribute based on ID type
-                fileInput.setAttribute('accept', 'image/*,.pdf');
-                
-            } else {
-                // Hide instructions if no ID type selected
-                instructionsDiv.classList.add('hidden');
-                uploadText.textContent = 'Upload ID Document';
-            }
-        }
-
-        // Enhanced File Upload Handler with AI Validation
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            const idTypeSelect = document.getElementById('id_type');
-            const idNumberInput = document.getElementById('id_number');
-            
-            if (!file) return;
-
-            // Check if ID type is selected
-            if (!idTypeSelect.value) {
-                alert('Please select an ID type first before uploading a document.');
-                event.target.value = '';
-                return;
-            }
-
-            // Validate file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
-                event.target.value = '';
-                return;
-            }
-
-            // Validate file type
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('Please upload a valid image (JPG, PNG) or PDF file');
-                event.target.value = '';
-                return;
-            }
-
-            // Get selected ID type instruction
-            const selectedIdType = idTypeSelect.value;
-            const instruction = idTypeInstructions[selectedIdType];
-            
-            // Show AI validation loading message
-            showNotification('Analyzing document with AI... Please wait.', 'info');
-            
-            // Show preview immediately
-            const preview = document.getElementById('id_document_preview');
-            const previewImage = document.getElementById('preview_image');
-            const fileName = document.getElementById('file_name');
-            const fileSize = document.getElementById('file_size');
-
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    previewImage.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                previewImage.style.display = 'none';
-            }
-
-            fileName.textContent = file.name;
-            fileSize.textContent = formatFileSize(file.size);
-            preview.style.display = 'flex';
-            
-            // Perform AI validation via AJAX
-            validateIdDocumentWithAI(file, selectedIdType, idNumberInput.value);
-        }
-
-        // AI Validation Function
-        function validateIdDocumentWithAI(file, idType, idNumber) {
-            const formData = new FormData();
-            formData.append('id_document', file);
-            formData.append('id_type', idType);
-            formData.append('id_number', idNumber);
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
-            fetch('/api/validate-id-document', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (data.validation.is_valid) {
-                        showNotification(`✅ Document validated! This appears to be a valid ${data.validation.id_type_name} (Score: ${data.validation.score.toFixed(2)}, Confidence: ${data.validation.confidence.toFixed(1)}%)`, 'success');
-                        
-                        // Add validation indicator to the preview
-                        const preview = document.getElementById('id_document_preview');
-                        const validationIndicator = document.createElement('div');
-                        validationIndicator.className = 'validation-indicator valid';
-                        validationIndicator.innerHTML = '<i class="fas fa-check-circle"></i> Validated';
-                        preview.appendChild(validationIndicator);
-                        
-                    } else {
-                        let statusMessage = '';
-                        if (data.validation.status === 'review') {
-                            statusMessage = '⚠️ Document requires manual review. ';
-                        } else {
-                            statusMessage = '❌ Document validation failed! ';
-                        }
-                        
-                        showNotification(`${statusMessage}This does not appear to be a valid ${data.validation.id_type_name}. (Score: ${data.validation.score.toFixed(2)}, Confidence: ${data.validation.confidence.toFixed(1)}%)`, 'error');
-                        
-                        // Clear the file input
-                        document.getElementById('id_document').value = '';
-                        removeFilePreview();
-                        
-                        // Show detailed validation message
-                        if (data.validation.reasons && data.validation.reasons.length > 0) {
-                            let errorMessage = 'Validation failed:\n';
-                            errorMessage += data.validation.reasons.join('\n');
-                            
-                            if (data.validation.predicted_id_type && data.validation.predicted_id_type !== idType) {
-                                errorMessage += `\n\nDetected ID type: ${data.validation.predicted_id_type}`;
-                                errorMessage += `\nSelected ID type: ${idType}`;
-                                errorMessage += '\n\nPlease select the correct ID type or upload the correct document.';
-                            }
-                            
-                            alert(errorMessage);
-                        }
-                    }
-                } else {
-                    showNotification('⚠️ Validation service temporarily unavailable. Document uploaded but not validated.', 'warning');
-                }
-            })
-            .catch(error => {
-                console.error('Validation error:', error);
-                showNotification('⚠️ Validation service temporarily unavailable. Document uploaded but not validated.', 'warning');
-            });
-        }
-
-        // Initialize file upload event listener
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('id_document');
-            const idTypeSelect = document.getElementById('id_type');
-            
-            if (fileInput) {
-                fileInput.addEventListener('change', handleFileUpload);
-            }
-            
-            if (idTypeSelect) {
-                idTypeSelect.addEventListener('change', handleIdTypeChange);
-            }
-        });
     </script>
 </body>
 </html>

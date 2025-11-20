@@ -28,6 +28,7 @@ use App\Services\ReservationWorkflowService;
 use App\Exports\MonthlyFacilityReportExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Jobs\EscalateFacilityDamageToLegal;
 
 class FacilityReservationController extends Controller
 {
@@ -76,55 +77,115 @@ class FacilityReservationController extends Controller
     public function monitoringSummary(Request $request)
     {
         $now = now();
-        $oneWeekAgo = $now->copy()->subDays(6)->startOfDay();
+        
+        // Get ALL facility requests of type 'reservation' - this is what the system actually uses
+        $allRequests = \App\Models\FacilityRequest::with(['facility', 'assignedTo'])
+            ->where('request_type', 'reservation')
+            ->orderByRaw("CASE WHEN status = 'approved' AND requested_datetime <= ? AND (requested_end_datetime IS NULL OR requested_end_datetime >= ?) THEN 0 WHEN status = 'approved' AND (requested_end_datetime IS NULL OR requested_end_datetime >= ?) THEN 1 WHEN status = 'pending' THEN 2 ELSE 3 END", [$now, $now, $now])
+            ->orderBy('created_at', 'desc')
+            ->limit(100)
+            ->get();
 
-        $query = \App\Models\FacilityRequest::query();
+        // Map to card data format
+        $facilities = $allRequests->map(function($request) use ($now) {
+            // Determine status based on time and database status
+            // Priority: Time-based status > Database status
+            
+            // Check time conditions
+            $hasStarted = $request->requested_datetime && $request->requested_datetime <= $now;
+            $hasEnded = $request->requested_end_datetime && $request->requested_end_datetime < $now;
+            $isUpcoming = $request->requested_datetime && $request->requested_datetime > $now;
+            $isCurrentlyActive = $hasStarted && !$hasEnded;
+            
+            // Determine status - prioritize time-based status over database status
+            // If approved (regardless of database status), check time window
+            if ($request->status === 'approved') {
+                if ($isCurrentlyActive || $isUpcoming) {
+                    // Approved and either currently active or upcoming -> Active
+                    $status = 'active';
+                    $statusLabel = 'Active';
+                } elseif ($hasEnded) {
+                    // Approved but time has passed -> Completed
+                    $status = 'completed';
+                    $statusLabel = 'Completed';
+                } else {
+                    // Approved but no time info -> Active (default for approved)
+                    $status = 'active';
+                    $statusLabel = 'Active';
+                }
+            } elseif ($request->status === 'pending') {
+                $status = 'pending';
+                $statusLabel = 'Pending';
+            } elseif ($request->status === 'completed') {
+                // Only show as completed if time has actually ended
+                // If time hasn't ended yet, show as active (might be incorrectly marked as completed)
+                if ($hasEnded || (!$request->requested_end_datetime && $hasStarted && $now->diffInHours($request->requested_datetime) > 24)) {
+                    $status = 'completed';
+                    $statusLabel = 'Completed';
+                } else {
+                    // Completed in DB but time hasn't passed -> show as Active
+                    $status = 'active';
+                    $statusLabel = 'Active';
+                }
+            } else {
+                // Fallback to database status
+                $status = strtolower($request->status);
+                $statusLabel = ucfirst($request->status);
+            }
+            
+            $requestNotes = is_array($request->notes) ? $request->notes : (json_decode($request->notes, true) ?: []);
+            $legalCaseStatus = data_get($requestNotes, 'legal.case_status');
+            if ($legalCaseStatus) {
+                if ($legalCaseStatus === 'completed') {
+                    $status = 'completed';
+                    $statusLabel = 'Completed';
+                } elseif ($legalCaseStatus !== 'completed') {
+                    $status = 'pending';
+                    $statusLabel = 'Pending Legal';
+                }
+            }
+            
+            return [
+                'id' => $request->id,
+                'facility_id' => $request->facility_id,
+                'facility_name' => $request->facility->name ?? 'Unknown Facility',
+                'facility_location' => $request->facility->location ?? $request->location ?? 'N/A',
+                'reserver_name' => $request->contact_name ?? 'Unknown',
+                'reserver_email' => $request->contact_email ?? 'N/A',
+                'reserver_department' => $request->department ?? 'N/A',
+                'purpose' => $request->description ?? 'N/A',
+                'start_time' => $request->requested_datetime ? $request->requested_datetime->format('M d, Y h:i A') : 'N/A',
+                'end_time' => $request->requested_end_datetime ? $request->requested_end_datetime->format('M d, Y h:i A') : 'N/A',
+                'start_time_raw' => $request->requested_datetime ? $request->requested_datetime->toIso8601String() : null,
+                'end_time_raw' => $request->requested_end_datetime ? $request->requested_end_datetime->toIso8601String() : null,
+                'status' => $status,
+                'status_label' => $statusLabel,
+                'legal_case_status' => $legalCaseStatus,
+                'legal_case_number' => data_get($requestNotes, 'legal.case_number'),
+                'created_at' => $request->created_at->diffForHumans(),
+            ];
+        });
 
-        $total = (clone $query)->count();
-        $inProgress = (clone $query)->where('status', 'pending')->count();
-        $completed = (clone $query)->where('status', 'completed')->count(); // Only count actually completed
-        $urgent = (clone $query)->where('priority', 'urgent')->count();
-
-        // Weekly counts (Mon..Sun based on last 7 days)
-        $weekly = (clone $query)
-            ->whereBetween('created_at', [$oneWeekAgo, $now])
-            ->get()
-            ->groupBy(function ($r) { return $r->created_at->format('D'); })
-            ->map->count();
-
-        // Ensure all days present
-        $days = collect(range(0,6))->map(function($i) use ($oneWeekAgo){ return $oneWeekAgo->copy()->addDays($i)->format('D'); });
-        $weeklySeries = $days->map(function($d) use ($weekly){ return [ 'day' => $d, 'count' => (int)($weekly[$d] ?? 0) ]; });
-
-        $recent = (clone $query)
-            ->with('facility:id,name')
-            ->latest()
-            ->limit(6)
-            ->get()
-            ->map(function($r){
-                return [
-                    'id' => $r->id,
-                    'code' => 'REQ-' . str_pad($r->id, 3, '0', STR_PAD_LEFT),
-                    'type' => $r->request_type,
-                    'priority' => $r->priority,
-                    'status' => $r->status,
-                    'title' => ucfirst($r->request_type) . ' - ' . (\Illuminate\Support\Str::limit($r->description, 40) ?: 'Request'),
-                    'department' => $r->department,
-                    'facility' => $r->facility->name ?? null,
-                    'created_ago' => $r->created_at->diffForHumans(),
-                ];
-            });
+        // Get stats
+        $totalActive = \App\Models\FacilityRequest::where('request_type', 'reservation')
+            ->where('status', 'approved')
+            ->where('requested_datetime', '<=', $now)
+            ->where(function($q) use ($now) {
+                $q->whereNull('requested_end_datetime')
+                  ->orWhere('requested_end_datetime', '>=', $now);
+            })
+            ->count();
+        $totalFacilities = \App\Models\Facility::count();
+        $availableFacilities = \App\Models\Facility::where('status', 'available')->count();
 
         return response()->json([
             'success' => true,
+            'data' => $facilities->values(),
             'summary' => [
-                'total' => $total,
-                'in_progress' => $inProgress,
-                'completed' => $completed,
-                'urgent' => $urgent,
-                'weekly' => $weeklySeries,
+                'total_active' => $totalActive,
+                'total_facilities' => $totalFacilities,
+                'available_facilities' => $availableFacilities,
             ],
-            'recent' => $recent,
         ]);
     }
 
@@ -246,7 +307,7 @@ class FacilityReservationController extends Controller
         ]);
     }
 
-    public function completeRequest($id)
+    public function completeRequest($id, Request $requestData)
     {
         $request = \App\Models\FacilityRequest::findOrFail($id);
         
@@ -257,11 +318,207 @@ class FacilityReservationController extends Controller
             ], 400);
         }
         
-        $request->update(['status' => 'completed']);
+        // Get inspection data from request (Laravel's input() handles both JSON and form data)
+        $damageFlag = $requestData->input('damage_flag', 0);
+        $damageCost = $requestData->input('damage_cost');
+        $damageSeverity = $requestData->input('damage_severity');
+        $damageDescription = $requestData->input('damage_description');
+        $inspectionNotes = $requestData->input('inspection_notes');
+        
+        // Convert damage_flag to boolean (handle string "1"/"0" or boolean true/false)
+        // Handle different input formats: "1", "0", 1, 0, true, false, "true", "false"
+        if (is_string($damageFlag)) {
+            $damageFlag = in_array(strtolower($damageFlag), ['1', 'true', 'yes', 'on'], true);
+        } else {
+            $damageFlag = (bool) $damageFlag;
+        }
+        
+        Log::info('Complete request - inspection data received', [
+            'request_id' => $request->id,
+            'damage_flag_raw' => $requestData->input('damage_flag'),
+            'damage_flag_processed' => $damageFlag,
+            'damage_cost' => $damageCost,
+            'has_damage' => $damageFlag,
+        ]);
+        
+        // Store inspection data in notes (as JSON)
+        $notes = is_array($request->notes) ? $request->notes : (json_decode($request->notes, true) ?: []);
+        $notes['inspection'] = [
+            'damage_flag' => $damageFlag, // Already converted to boolean above
+            'damage_cost' => $damageCost ? (float) $damageCost : null,
+            'damage_severity' => $damageSeverity,
+            'damage_description' => $damageDescription,
+            'inspection_notes' => $inspectionNotes,
+            'inspected_by' => auth()->id(),
+            'inspected_at' => now()->toDateTimeString(),
+        ];
+        
+        $request->update([
+            'status' => 'completed',
+            'notes' => $notes,
+        ]);
 
         // Free up the facility if it was a reservation
         if ($request->request_type === 'reservation' && $request->facility_id) {
             $facility = Facility::find($request->facility_id);
+            
+            // If damage found, create legal case BEFORE freeing facility
+            $legalCaseId = null;
+            if ($damageFlag) {
+                Log::info("Damage flag is true, proceeding to create legal case", [
+                    'request_id' => $request->id,
+                    'facility_id' => $request->facility_id,
+                    'damage_cost' => $damageCost,
+                    'damage_flag_value' => $damageFlag,
+                ]);
+                try {
+                    // Create FacilityReservation record if it doesn't exist for legal escalation
+                    // Try to find existing reservation by facility and time range
+                    $reservation = FacilityReservation::with(['facility', 'reserver'])
+                        ->where('facility_id', $request->facility_id)
+                        ->whereBetween('start_time', [
+                            $request->requested_datetime->copy()->subHours(1),
+                            $request->requested_datetime->copy()->addHours(1)
+                        ])
+                        ->first();
+                    
+                    if (!$reservation) {
+                        // Get the user who made the request (from FacilityRequest)
+                        $reservedByUserId = $request->assigned_to;
+                        if (!$reservedByUserId) {
+                            // Try to find user by contact_email
+                            $reservedByUser = \App\Models\User::where('email', $request->contact_email)->first();
+                            $reservedByUserId = $reservedByUser ? $reservedByUser->id : auth()->id();
+                        }
+                        
+                        // Create a reservation record for legal tracking
+                        $reservation = FacilityReservation::create([
+                            'facility_id' => $request->facility_id,
+                            'facility_request_id' => $request->id,
+                            'reserved_by' => $reservedByUserId,
+                            'start_time' => $request->requested_datetime,
+                            'end_time' => $request->requested_end_datetime ?? $request->requested_datetime->copy()->addHours(1),
+                            'purpose' => $request->description,
+                            'status' => 'approved',
+                            'damage_flag' => true, // Explicitly set to true
+                            'damage_cost' => $damageCost ? (float) $damageCost : 0,
+                            'inspection_notes' => ($inspectionNotes ?? '') . ($damageDescription ? "\n\nDamage Description: " . $damageDescription : '') . ($damageSeverity ? "\n\nDamage Severity: " . ucfirst($damageSeverity) : ''),
+                            'inspected_by' => auth()->id(),
+                            'inspected_at' => now(),
+                            'returned_at' => now(),
+                            'requester_name' => $request->contact_name ?? 'Unknown',
+                            'requester_contact' => $request->contact_email ?? 'N/A',
+                        ]);
+                        
+                        // Load relationships after creation
+                        $reservation->load(['facility', 'reserver']);
+                        
+                        // Refresh to ensure damage_flag is loaded
+                        $reservation->refresh();
+                    } else {
+                        // Update existing reservation with damage info
+                        $reservation->update([
+                            'facility_request_id' => $reservation->facility_request_id ?? $request->id,
+                            'damage_flag' => true, // Explicitly set to true
+                            'damage_cost' => $damageCost ? (float) $damageCost : ($reservation->damage_cost ?? 0),
+                            'inspection_notes' => ($inspectionNotes ?? '') . ($damageDescription ? "\n\nDamage Description: " . $damageDescription : '') . ($damageSeverity ? "\n\nDamage Severity: " . ucfirst($damageSeverity) : ''),
+                            'inspected_by' => auth()->id(),
+                            'inspected_at' => now(),
+                            'returned_at' => now(),
+                        ]);
+                        
+                        // Ensure relationships are loaded
+                        if (!$reservation->relationLoaded('facility')) {
+                            $reservation->load(['facility', 'reserver']);
+                        }
+                        
+                        // Refresh to ensure damage_flag is updated
+                        $reservation->refresh();
+                    }
+                    
+                    // Verify damage_flag is set correctly
+                    Log::info("Reservation damage flag status", [
+                        'reservation_id' => $reservation->id,
+                        'damage_flag' => $reservation->damage_flag,
+                        'damage_flag_type' => gettype($reservation->damage_flag),
+                    ]);
+                    
+                    // Always escalate to legal if damage is found (regardless of cost)
+                    // Use the variable directly instead of checking the model property
+                    if ($damageFlag || $reservation->damage_flag) {
+                        Log::info("Reservation has damage flag, creating legal case", [
+                            'reservation_id' => $reservation->id,
+                            'damage_flag' => $reservation->damage_flag,
+                            'damage_cost' => $reservation->damage_cost,
+                        ]);
+                        
+                        // Create legal case synchronously so it's available immediately for redirect
+                        try {
+                            $legalCaseService = app(\App\Services\LegalCaseService::class);
+                            $case = $legalCaseService->createFromReservationDamage($reservation);
+                            $legalCaseId = $case->id;
+                            
+                            // Verify case was created
+                            $verifyCase = \App\Models\LegalCase::find($case->id);
+                            if (!$verifyCase) {
+                                throw new \Exception("Legal case was not found after creation");
+                            }
+                            
+                            Log::info("Legal case created and verified", [
+                                'legal_case_id' => $case->id,
+                                'case_number' => $case->case_number,
+                                'case_type' => $case->case_type,
+                                'case_title' => $case->case_title,
+                            ]);
+                            
+                            // Update reservation remarks and legal_case_id
+                            $reservation->remarks = trim(($reservation->remarks ? $reservation->remarks . ' ' : '') . 'Escalated to Legal.');
+                            $reservation->legal_case_id = $case->id;
+                            $reservation->save();
+                            
+                            // Update facility request notes with legal case info
+                            $requestNotes = is_array($request->notes) ? $request->notes : (json_decode($request->notes, true) ?: []);
+                            $requestNotes['legal'] = [
+                                'case_id' => $case->id,
+                                'case_number' => $case->case_number,
+                                'case_status' => 'pending',
+                                'case_priority' => $case->priority,
+                                'created_at' => now()->toDateTimeString(),
+                                'updated_at' => now()->toDateTimeString(),
+                            ];
+                            $request->update(['notes' => $requestNotes]);
+                            
+                            Log::info("Facility damage escalated to Legal for reservation {$reservation->id}, case #{$case->case_number}", [
+                                'legal_case_id' => $case->id,
+                                'case_type' => $case->case_type,
+                                'damage_cost' => $reservation->damage_cost,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error("Failed to create legal case synchronously: " . $e->getMessage(), [
+                                'reservation_id' => $reservation->id,
+                                'error' => $e->getMessage(),
+                                'file' => $e->getFile(),
+                                'line' => $e->getLine(),
+                                'trace' => $e->getTraceAsString(),
+                            ]);
+                            // Fallback to async dispatch if sync creation fails
+                            EscalateFacilityDamageToLegal::dispatch($reservation->id);
+                        }
+                    } else {
+                        Log::warning("Reservation does not have damage flag set", [
+                            'reservation_id' => $reservation->id,
+                            'damage_flag' => $reservation->damage_flag,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Failed to escalate facility damage to legal: " . $e->getMessage(), [
+                        'request_id' => $request->id,
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                }
+            }
+            
+            // Free up the facility (regardless of damage status)
             if ($facility) {
                 $facility->update(['status' => 'available']);
                 Log::info("Facility {$facility->name} (ID: {$facility->id}) status updated to available after request completion");
@@ -278,7 +535,11 @@ class FacilityReservationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Request has been marked as completed successfully!'
+            'has_damage' => (bool) $damageFlag,
+            'legal_case_id' => $legalCaseId ?? null,
+            'message' => $damageFlag
+                ? 'Inspection submitted. Damage case has been created and escalated to Legal Management.'
+                : 'Facility checked out successfully! The facility is now available.'
         ]);
     }
 
@@ -1246,5 +1507,71 @@ class FacilityReservationController extends Controller
         
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('facilities.reports.monitoring_pdf', $reportData);
         return $pdf->download($filename . '.pdf');
+    }
+
+    // 1) Show inspection form
+    public function returnReview($id)
+    {
+        $reservation = FacilityReservation::with(['facility','reserver'])->findOrFail($id);
+        // (Optional) authorize here if you added policies
+        // $this->authorize('update', $reservation);
+        return view('facility_reservations.return_review', compact('reservation'));
+    }
+
+    // 2) Handle inspection submission
+    public function submitReturnInspection(Request $request, $id)
+    {
+        $reservation = FacilityReservation::findOrFail($id);
+        // $this->authorize('update', $reservation); // optional policy
+        $data = $request->validate([
+            'inspection_notes' => 'nullable|string',
+            'damage_flag'      => 'nullable|boolean',
+            'damage_cost'      => 'nullable|numeric|min:0',
+            'damage_photos.*'  => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+        ]);
+        
+        // Ensure damage_flag is boolean (checkbox returns "1" or "0" as string)
+        $data['damage_flag'] = isset($data['damage_flag']) && $data['damage_flag'] !== '0' && $data['damage_flag'] !== false;
+
+        $photoPaths = [];
+        if ($request->hasFile('damage_photos')) {
+            foreach ($request->file('damage_photos') as $photo) {
+                // reuse your secure repository
+                $stored = $this->secureRepository->storeDocument($photo, $reservation->id, [
+                    'type' => 'damage_photo',
+                ]);
+                if ($stored['success']) {
+                    $photoPaths[] = $stored['path'];
+                }
+            }
+        }
+
+        $reservation->update([
+            'inspection_notes' => $data['inspection_notes'] ?? null,
+            'damage_flag'      => (bool) ($data['damage_flag'] ?? false),
+            'damage_cost'      => $data['damage_cost'] ?? null,
+            'damage_photos'    => !empty($photoPaths) ? $photoPaths : $reservation->damage_photos,
+            'inspected_by'     => auth()->id(),
+            'inspected_at'     => now(),
+            'checked_out_at'   => $reservation->checked_out_at ?? now(),
+            'returned_at'      => now(),
+        ]);
+
+        $reservation->logWorkflowStep('return_inspected', 'Return inspection recorded', [
+            'damage_flag' => $reservation->damage_flag,
+            'damage_cost' => $reservation->damage_cost,
+            'photo_count' => count($photoPaths),
+        ]);
+
+        // Auto-escalate
+        if ($reservation->needsLegalEscalation()) {
+            EscalateFacilityDamageToLegal::dispatch($reservation->id);
+        }
+
+        return redirect()
+            ->route('facility_reservations.show', $reservation->id)
+            ->with('success', $reservation->needsLegalEscalation()
+                ? 'Inspection submitted and escalated to Legal.'
+                : 'Inspection submitted.');
     }
 }

@@ -12,7 +12,9 @@ use App\Models\LegalAuditLog;
 use App\Services\LegalManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\FacilityReservation;
+use App\Models\FacilityRequest;
 use App\Notifications\DocumentRequestStatusNotification;
 use App\Models\AccessLog;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -955,6 +957,10 @@ class LegalController extends Controller
                 'outcome' => 'approved'
             ]);
 
+            if ($case->case_type === 'facility_damage') {
+                $this->resolveFacilityDamageCase($case, 'completed');
+            }
+
             // Log the action
             AccessLog::create([
                 'user_id' => Auth::user()->Dept_no,
@@ -998,6 +1004,10 @@ class LegalController extends Controller
                 'outcome' => 'declined'
             ]);
 
+            if ($case->case_type === 'facility_damage') {
+                $this->resolveFacilityDamageCase($case, 'declined');
+            }
+
             // Log the action
             AccessLog::create([
                 'user_id' => Auth::user()->Dept_no,
@@ -1017,6 +1027,43 @@ class LegalController extends Controller
                 'success' => false,
                 'message' => 'Error declining case: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Sync facility reservation/request state when facility damage case is resolved
+     */
+    protected function resolveFacilityDamageCase(\App\Models\LegalCase $case, string $status): void
+    {
+        $metadata = $case->metadata ?? [];
+
+        $reservation = FacilityReservation::where('legal_case_id', $case->id)->first();
+        if (!$reservation && isset($metadata['facility_reservation_id'])) {
+            $reservation = FacilityReservation::find($metadata['facility_reservation_id']);
+        }
+
+        if ($reservation) {
+            $reservation->damage_case_closed_at = now();
+            $reservation->status = 'completed';
+            $reservation->save();
+
+            $facilityRequest = null;
+            if ($reservation->facility_request_id) {
+                $facilityRequest = FacilityRequest::find($reservation->facility_request_id);
+            } elseif (isset($metadata['facility_request_id'])) {
+                $facilityRequest = FacilityRequest::find($metadata['facility_request_id']);
+            }
+
+            if ($facilityRequest) {
+                $notes = is_array($facilityRequest->notes) ? $facilityRequest->notes : (json_decode($facilityRequest->notes, true) ?: []);
+                $notes['legal'] = array_merge($notes['legal'] ?? [], [
+                    'case_id' => $case->id,
+                    'case_number' => $case->case_number,
+                    'case_status' => $status,
+                    'updated_at' => now()->toDateTimeString(),
+                ]);
+                $facilityRequest->update(['notes' => $notes]);
+            }
         }
     }
 
@@ -2819,6 +2866,85 @@ class LegalController extends Controller
         $aiResults = LegalAiResult::where('report_id', $report->report_id)->get();
         
         return view('legal.show_violation_report', compact('report', 'aiResults'));
+    }
+
+    /**
+     * Facility Damage Cases - List all facility damage cases escalated to Legal
+     */
+    public function facilityDamageCases(Request $request)
+    {
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $priority = $request->input('priority');
+        
+        // Get all legal cases that are facility damage type
+        // Debug: Log total cases before filtering
+        $totalCases = \App\Models\LegalCase::count();
+        $facilityDamageCases = \App\Models\LegalCase::where('case_type', 'facility_damage')->count();
+        
+        Log::info('Facility Damage Cases Query', [
+            'total_cases' => $totalCases,
+            'facility_damage_cases' => $facilityDamageCases,
+        ]);
+        
+        $query = \App\Models\LegalCase::where('case_type', 'facility_damage')
+            ->with(['assignedTo', 'createdBy'])
+            ->latest();
+        
+        // Apply search filter
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('case_title', 'LIKE', '%' . $search . '%')
+                  ->orWhere('case_description', 'LIKE', '%' . $search . '%')
+                  ->orWhere('case_number', 'LIKE', '%' . $search . '%');
+            });
+        }
+        
+        // Apply status filter
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+        
+        // Apply priority filter
+        if (!empty($priority)) {
+            $query->where('priority', $priority);
+        }
+        
+        $cases = $query->paginate(20)->withQueryString();
+        
+        // Get statistics
+        $stats = [
+            'total' => \App\Models\LegalCase::where('case_type', 'facility_damage')->count(),
+            'pending' => \App\Models\LegalCase::where('case_type', 'facility_damage')->where('status', 'pending')->count(),
+            'ongoing' => \App\Models\LegalCase::where('case_type', 'facility_damage')->where('status', 'ongoing')->count(),
+            'completed' => \App\Models\LegalCase::where('case_type', 'facility_damage')->where('status', 'completed')->count(),
+            'total_damage_cost' => \App\Models\LegalCase::where('case_type', 'facility_damage')
+                ->get()
+                ->sum(function($case) {
+                    $metadata = $case->metadata ?? [];
+                    return (float) ($metadata['damage_cost'] ?? 0);
+                }),
+        ];
+        
+        return view('legal.facility_damage_cases', compact('cases', 'stats'));
+    }
+
+    /**
+     * Show Facility Damage Case Details
+     */
+    public function showFacilityDamageCase($id)
+    {
+        $case = \App\Models\LegalCase::with(['assignedTo', 'createdBy', 'documents'])
+            ->findOrFail($id);
+        
+        // Get the related facility reservation
+        $reservation = null;
+        if ($case->metadata && isset($case->metadata['facility_reservation_id'])) {
+            $reservation = FacilityReservation::with(['facility', 'reserver'])
+                ->find($case->metadata['facility_reservation_id']);
+        }
+        
+        return view('legal.show_facility_damage_case', compact('case', 'reservation'));
     }
 
     /**

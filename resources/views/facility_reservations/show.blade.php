@@ -236,6 +236,25 @@
                     </div>
                   </div>
                 @endif
+
+                <!-- Return Inspection Section -->
+                @if(now()->greaterThanOrEqualTo($reservation->end_time))
+                  <div class="border-t pt-6 mt-6" style="border-color: var(--color-snow-mist);">
+                    <h3 class="text-lg font-semibold mb-4" style="color: var(--color-charcoal-ink);">Return & Inspection</h3>
+                    @if(in_array(strtolower(auth()->user()->role ?? ''), ['employee','administrator','super admin']))
+                      <a href="{{ route('facility_reservations.return_review', $reservation->id) }}" class="btn btn-outline btn-sm">
+                        <i data-lucide="clipboard-check" class="w-4 h-4 mr-2"></i>
+                        Return / Inspection
+                      </a>
+                    @endif
+                    @if($reservation->legal_case_id)
+                      <span class="badge badge-warning ml-2">Escalated to Legal</span>
+                      @if(in_array(strtolower(auth()->user()->role ?? ''), ['legal officer','administrator','super admin']))
+                        <a href="{{ route('legal.cases.show', $reservation->legal_case_id) }}" class="link ml-2">Open Legal Case</a>
+                      @endif
+                    @endif
+                  </div>
+                @endif
               </div>
             </div>
           </div>

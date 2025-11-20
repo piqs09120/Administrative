@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use App\Services\DashboardActivityService;
 
 
 class DashboardController extends Controller
@@ -59,6 +60,32 @@ class DashboardController extends Controller
             'totalUsers',
             'activeFacilities'
         ));
+    }
+
+    /**
+     * Recent activity feed for dashboard widgets.
+     */
+    public function recentActivity(Request $request, DashboardActivityService $activityService)
+    {
+        try {
+            $limit = (int) $request->get('limit', 10);
+            $activities = $activityService->recent($limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => $activities,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Dashboard recentActivity error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to load activity feed',
+            ], 500);
+        }
     }
 
     /** Simple active users count for dashboard metrics */

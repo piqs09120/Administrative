@@ -215,22 +215,6 @@
       transform: scale(1.1);
     }
     
-    /* Reserve Button - Orange-Yellow (matches Landing Page) */
-    .facility-btn-reserve {
-      background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
-      color: #1f2937;
-      box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);
-    }
-    
-    .facility-btn-reserve:hover {
-      background: linear-gradient(135deg, #E6940F 0%, #D2840E 100%);
-      box-shadow: 0 4px 12px rgba(247, 169, 35, 0.35);
-      transform: translateY(-2px);
-    }
-    
-    .facility-btn-reserve:hover i {
-      transform: scale(1.1);
-    }
 
     .facility-btn-free {
       background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%);
@@ -340,6 +324,41 @@
     
     .facility-card.list-view .facility-action-btn span {
       font-size: 0.75rem;
+    }
+    
+    /* ===== MONITORING FACILITY CARDS STYLES ===== */
+    .monitoring-facility-card {
+      transition: all 0.3s ease;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .monitoring-facility-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-color: #3b82f6;
+    }
+
+    .monitoring-facility-card .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+    }
+
+    .monitoring-facility-card .btn {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .monitoring-facility-card .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .monitoring-facility-card .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     
     /* Responsive adjustments */
@@ -656,8 +675,8 @@
                   <!-- Action Buttons -->
                   <div class="mt-auto pt-4 border-t border-gray-100">
                     @if($facility->status === 'available')
-                      <!-- 4 buttons layout for available facilities -->
-                      <div class="grid grid-cols-2 gap-3 text-sm">
+                      <!-- 3 buttons layout for available facilities -->
+                      <div class="grid grid-cols-3 gap-3 text-sm">
                         <button type="button"
                            class="openViewFacilityBtn facility-action-btn facility-btn-view h-9"
                            data-id="{{ $facility->id }}">
@@ -674,14 +693,6 @@
                            data-status="{{ $facility->status }}">
                           <i data-lucide="edit" class="w-3 h-3" style="fill: none;"></i>
                           <span>Edit</span>
-                        </button>
-
-                        <button type="button"
-                           class="openReserveFacilityBtn facility-action-btn facility-btn-reserve h-9"
-                           data-id="{{ $facility->id }}"
-                           data-name="{{ $facility->name }}">
-                          <i data-lucide="calendar-plus" class="w-3 h-3" style="fill: none;"></i>
-                          <span>Reserve</span>
                         </button>
 
                         <button type="button" 
@@ -758,82 +769,43 @@
           <!-- End Content Section -->
         </div>
 
-        <!-- Monitoring Tab Panel (empty placeholder for now) -->
+        <!-- Monitoring Tab Panel -->
         <div id="facilitiesMonitoringView" class="bg-white rounded-xl shadow-lg p-6 hidden">
-          <!-- Monitoring Header with Export Button -->
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-bold text-gray-800 flex items-center">
-              <i data-lucide="activity" class="w-6 h-6 text-blue-500 mr-3"></i>
-              Monitoring Dashboard
-            </h3>
+          <!-- Monitoring Header with Stats and Export Button -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div>
+              <h3 class="text-xl font-bold text-gray-800 flex items-center mb-2">
+                <i data-lucide="activity" class="w-6 h-6 text-blue-500 mr-3"></i>
+                Monitoring Dashboard
+              </h3>
+              <!-- Quick Stats -->
+              <div class="flex flex-wrap gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500">Active Reservations:</span>
+                  <span class="font-bold text-blue-600" id="mon-total-active">0</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500">Available Facilities:</span>
+                  <span class="font-bold text-green-600" id="mon-available">0</span>
+                </div>
+              </div>
+            </div>
             <button onclick="exportMonitoringPdf()" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-md hover:shadow-lg">
               <i data-lucide="download" class="w-4 h-4 mr-2"></i>
               Export Data
             </button>
           </div>
           
-          <!-- Stats Row -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-gray-500">Total Requests</span>
-                  <i data-lucide="clipboard-list" class="w-5 h-5 text-blue-600"></i>
-                </div>
-                <div class="text-3xl font-bold" id="mon-total">0</div>
-                <div class="badge badge-success badge-outline mt-2 text-xs" id="mon-total-diff">&nbsp;</div>
-              </div>
-            </div>
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-warning">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-gray-500">In Progress</span>
-                  <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i>
-                </div>
-                <div class="text-3xl font-bold" id="mon-inprogress">0</div>
-                <div class="badge badge-error badge-outline mt-2 text-xs" id="mon-inprogress-diff">&nbsp;</div>
-              </div>
-            </div>
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-success">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-gray-500">Completed</span>
-                  <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
-                </div>
-                <div class="text-3xl font-bold" id="mon-completed">0</div>
-                <div class="badge badge-success badge-outline mt-2 text-xs" id="mon-completed-diff">&nbsp;</div>
-              </div>
-            </div>
-            <div class="card bg-base-100 shadow-xl transition-all duration-300 border-l-4 border-l-error">
-              <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-gray-500">Urgent</span>
-                  <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
-                </div>
-                <div class="text-3xl font-bold" id="mon-urgent">0</div>
-                <div class="badge badge-error badge-outline mt-2 text-xs" id="mon-urgent-diff">&nbsp;</div>
-              </div>
-            </div>
+          <!-- Facility Cards Grid -->
+          <div id="monitoring-facilities-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading state - will be replaced by cards -->
           </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Weekly Requests Overview -->
-            <div class="card bg-base-100 shadow border lg:col-span-2">
-              <div class="card-body">
-                <h3 class="card-title text-lg mb-2">Weekly Requests Overview</h3>
-                <canvas id="mon-weekly-chart" height="120"></canvas>
-              </div>
-            </div>
-            <!-- Recent Requests -->
-            <div class="card bg-base-100 shadow border">
-              <div class="card-body">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="card-title text-lg">Recent Requests</h3>
-                  <a href="{{ route('facility_reservations.index') }}" class="text-sm text-blue-600 hover:underline">View All</a>
-                </div>
-                <div id="mon-recent" class="space-y-3 max-h-96 overflow-y-auto pr-2 border border-gray-100 rounded-lg p-3 bg-gray-50/30"></div>
-              </div>
-            </div>
+          
+          <!-- Empty state -->
+          <div id="monitoring-empty-state" class="hidden text-center py-12 text-gray-500">
+            <i data-lucide="building" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+            <h4 class="text-lg font-semibold mb-2">No Active Reservations</h4>
+            <p>There are currently no active facility reservations to monitor.</p>
           </div>
         </div>
 
@@ -936,105 +908,6 @@
     </div>
   </div>
   
-  <!-- Reserve Facility Modal -->
-  <div id="reserveFacilityModal" class="modal">
-    <div class="modal-box w-11/12 max-w-3xl bg-white text-gray-800 rounded-xl" data-theme="light" onclick="event.stopPropagation()">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-2xl font-bold text-gray-800">Reserve a Facility</h3>
-        <button id="closeReserveFacilityModal" class="btn btn-sm btn-circle btn-ghost">
-          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-        </button>
-      </div>
-
-      <form id="reserveFacilityForm" action="{{ route('facility_reservations.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <div class="space-y-6">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold flex items-center gap-2">
-                <i data-lucide=\"building\" class="w-4 h-4 text-blue-500"></i>
-                Facility *
-              </span>
-            </label>
-            <select name="facility_id" id="rf_facility_id" class="select select-bordered w-full" required>
-              <option value="">Select facility</option>
-              @foreach(\App\Models\Facility::where('status','available')->get() as $fac)
-                <option value="{{ $fac->id }}">{{ $fac->name }} ({{ $fac->location }})</option>
-              @endforeach
-            </select>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold flex items-center gap-2">
-                  <i data-lucide=\"calendar\" class="w-4 h-4 text-blue-500"></i>
-                  Start Time *
-                </span>
-              </label>
-              <input type="datetime-local" name="start_time" class="input input-bordered w-full" required>
-            </div>
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold flex items-center gap-2">
-                  <i data-lucide=\"clock\" class="w-4 h-4 text-blue-500"></i>
-                  End Time *
-                </span>
-              </label>
-              <input type="datetime-local" name="end_time" class="input input-bordered w-full" required>
-            </div>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold flex items-center gap-2">
-                <i data-lucide=\"file-text\" class="w-4 h-4 text-blue-500"></i>
-                Purpose
-              </span>
-            </label>
-            <textarea name="purpose" class="textarea textarea-bordered w-full h-24" placeholder="Enter purpose for reservation"></textarea>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold flex items-center gap-2">
-                <i data-lucide=\"upload\" class="w-4 h-4 text-blue-500"></i>
-                Supporting Document (Optional)
-              </span>
-            </label>
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-              <input type="file" name="document" class="hidden" id="rf_document" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
-              <label for="rf_document" class="cursor-pointer">
-                <i data-lucide="upload-cloud" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
-                <p class="text-gray-600">Click to upload or drag and drop</p>
-                <p class="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, TXT, JPG, PNG (Max 10MB)</p>
-              </label>
-            </div>
-          </div>
-
-          <div class="alert alert-info">
-            <i data-lucide="brain" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-            <div>
-              <h3 class="font-bold">AI-Powered Processing</h3>
-              <div class="text-sm">
-                <p>• Your document will be automatically analyzed by AI for classification</p>
-                <p>• The system will check facility availability automatically</p>
-                <p>• You'll receive instant approval or notification for review</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3">
-            <button type="button" class="btn btn-outline btn-sm hover:btn-primary transition-all duration-300 shadow-sm hover:shadow-md" id="cancelReserveFacility">Cancel</button>
-            <button type="submit" class="btn btn-primary btn-sm hover:btn-primary-focus transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105">
-              <i data-lucide="calendar-plus" class="w-4 h-4 mr-2"></i>
-              Submit Reservation
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
   <!-- View Facility Modal -->
   <div id="viewFacilityModal" class="modal">
     <div class="modal-box w-11/12 max-w-5xl bg-white text-gray-800 rounded-xl" data-theme="light" onclick="event.stopPropagation()">
@@ -1222,6 +1095,110 @@
       </form>
     </div>
   </div>
+  
+  <!-- Facility Checkout/Inspection Modal -->
+  <div id="checkoutInspectionModal" class="modal" role="dialog" aria-labelledby="checkout-modal-title" aria-modal="true">
+    <div class="modal-box w-11/12 max-w-2xl bg-white text-gray-800 rounded-xl" data-theme="light" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <i data-lucide="clipboard-check" class="w-6 h-6 text-blue-500"></i>
+          <h3 id="checkout-modal-title" class="text-2xl font-bold text-gray-800">Facility Inspection: <span id="checkout-facility-name">—</span></h3>
+        </div>
+        <button id="closeCheckoutModal" class="btn btn-sm btn-circle btn-ghost" aria-label="Close inspection modal">
+          <i data-lucide="x" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
+        </button>
+      </div>
+
+      <form id="checkoutInspectionForm">
+        @csrf
+        <input type="hidden" id="checkout-request-id" name="request_id" value="">
+        
+        <!-- Damage Found Section -->
+        <div class="form-control mb-6">
+          <label class="label">
+            <span class="label-text font-semibold text-lg">Damage Found?</span>
+          </label>
+          <div class="flex gap-4 mt-2">
+            <label class="label cursor-pointer justify-start gap-3 flex-1">
+              <input type="radio" name="damage_status" value="no_damage" class="radio radio-primary" checked onchange="toggleDamageFields(false)">
+              <span class="label-text">No Damage</span>
+            </label>
+            <label class="label cursor-pointer justify-start gap-3 flex-1">
+              <input type="radio" name="damage_status" value="damage_found" class="radio radio-primary" onchange="toggleDamageFields(true)">
+              <span class="label-text">Damage Found</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Damage Alert (shown when damage found) -->
+        <div id="damage-alert" class="alert alert-warning mb-6 hidden">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          <div>
+            <h3 class="font-bold">Damage Detected</h3>
+            <div class="text-sm">This will create a legal case automatically</div>
+          </div>
+        </div>
+
+        <!-- Damage Fields (shown only when damage found) -->
+        <div id="damage-fields" class="hidden space-y-4 mb-6">
+          <!-- Damage Severity -->
+          <div class="form-control">
+            <label for="damage_severity" class="label">
+              <span class="label-text font-semibold">Damage Severity</span>
+            </label>
+            <select id="damage_severity" name="damage_severity" class="select select-bordered w-full">
+              <option value="">Select severity</option>
+              <option value="minor">Minor (25% of base fine)</option>
+              <option value="moderate">Moderate (50% of base fine)</option>
+              <option value="major">Major (100% of base fine)</option>
+              <option value="severe">Severe (200% of base fine)</option>
+            </select>
+          </div>
+
+          <!-- Damage Description -->
+          <div class="form-control">
+            <label for="damage_description" class="label">
+              <span class="label-text font-semibold">Damage Description</span>
+            </label>
+            <textarea id="damage_description" name="damage_description" class="textarea textarea-bordered h-32" placeholder="Describe the damage in detail..."></textarea>
+          </div>
+
+          <!-- Estimated Damage Cost -->
+          <div class="form-control">
+            <label for="damage_cost" class="label">
+              <span class="label-text font-semibold">Estimated Damage Cost (₱)</span>
+            </label>
+            <input type="number" id="damage_cost" name="damage_cost" class="input input-bordered w-full" min="0" step="0.01" placeholder="Enter estimated cost (e.g., 15000.00)">
+            <p class="text-sm text-gray-500 mt-2">
+              <i data-lucide="info" class="w-4 h-4 inline"></i>
+              If cost is ₱10,000 or more, this will automatically escalate to Legal Management
+            </p>
+          </div>
+        </div>
+
+        <!-- Inspector Notes (Optional) -->
+        <div class="form-control mb-6">
+          <label for="inspection_notes" class="label">
+            <span class="label-text font-semibold">Inspector Notes (Optional)</span>
+          </label>
+          <textarea id="inspection_notes" name="inspection_notes" class="textarea textarea-bordered h-32" placeholder="Additional observations..."></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" id="cancelCheckoutBtn" class="btn btn-ghost btn-sm">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+            Submit Inspection
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="modal-backdrop" onclick="closeCheckoutModal()" aria-label="Close inspection modal"></div>
+  </div>
+  
   <script>
     // Real-time date and time
     function updateDateTime() {
@@ -1240,6 +1217,389 @@
     let currentViewMode = 'grid';
     let isCalendarView = false;
     let filteredFacilities = [];
+
+    // Monitoring: fetch and render facility cards (GLOBAL FUNCTION) - EXACTLY LIKE VISITOR MANAGEMENT
+    function loadFacilitiesMonitoring() {
+      console.log('Loading facilities monitoring data...');
+      const container = document.getElementById('monitoring-facilities-cards');
+      if (container) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-gray-500">
+            <i data-lucide="loader" class="w-12 h-12 text-gray-400 mx-auto mb-4 animate-spin"></i>
+            <p>Loading facilities...</p>
+          </div>
+        `;
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      }
+      
+      fetch('{{ route('facilities.monitoring.summary') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => {
+          console.log('Response status:', response.status);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Monitoring facilities response:', data);
+          if (data.success) {
+            console.log('Facilities loaded:', data.data);
+            console.log('Number of facilities:', data.data ? data.data.length : 0);
+            updateMonitoringFacilitiesCards(data.data || []);
+            // Update stats
+            const totalActiveEl = document.getElementById('mon-total-active');
+            const availableEl = document.getElementById('mon-available');
+            if (totalActiveEl) totalActiveEl.textContent = data.summary?.total_active ?? 0;
+            if (availableEl) availableEl.textContent = data.summary?.available_facilities ?? 0;
+          } else {
+            console.error('Error loading monitoring facilities:', data.message);
+            const container = document.getElementById('monitoring-facilities-cards');
+            if (container) {
+              container.innerHTML = `
+                <div class="col-span-full text-center py-12 text-red-500">
+                  <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                  <p>Error: ${data.message || 'Failed to load facilities'}</p>
+                </div>
+              `;
+              if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error loading monitoring facilities:', error);
+          const container = document.getElementById('monitoring-facilities-cards');
+          if (container) {
+            container.innerHTML = `
+              <div class="col-span-full text-center py-12 text-red-500">
+                <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                <p>Error loading facilities. Please try again.</p>
+                <p class="text-sm mt-2">${error.message}</p>
+              </div>
+            `;
+            if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+          }
+        });
+    }
+
+    // Update monitoring facilities cards - EXACTLY LIKE VISITOR MANAGEMENT
+    function updateMonitoringFacilitiesCards(facilities) {
+      console.log('Updating monitoring facilities cards with:', facilities);
+      console.log('Facilities array length:', facilities ? facilities.length : 0);
+      const container = document.getElementById('monitoring-facilities-cards');
+      const emptyState = document.getElementById('monitoring-empty-state');
+      
+      if (!container) {
+        console.error('monitoring-facilities-cards container not found');
+        return;
+      }
+
+      if (!facilities || facilities.length === 0) {
+        console.log('No facilities found, showing empty state');
+        container.innerHTML = '';
+        if (emptyState) {
+          emptyState.classList.remove('hidden');
+          console.log('Empty state shown');
+        }
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+        return;
+      }
+
+      console.log('Rendering', facilities.length, 'facility cards');
+      if (emptyState) emptyState.classList.add('hidden');
+      
+      container.innerHTML = facilities.map(facility => {
+        const statusLabel = facility.status_label || (facility.status === 'active' ? 'Active' : facility.status === 'pending' ? 'Pending' : 'Completed');
+        let statusConfig;
+        switch (facility.status) {
+          case 'active':
+            statusConfig = { label: statusLabel, color: '#10b981', badgeClass: 'badge-success' };
+            break;
+          case 'pending':
+            if (statusLabel.toLowerCase().includes('legal')) {
+              statusConfig = { label: statusLabel, color: '#f97316', badgeClass: 'badge-warning' };
+            } else {
+              statusConfig = { label: statusLabel, color: '#f59e0b', badgeClass: 'badge-warning' };
+            }
+            break;
+          default:
+            statusConfig = { label: statusLabel, color: '#6b7280', badgeClass: 'badge-neutral' };
+        }
+
+        return `
+          <div class="monitoring-facility-card bg-white rounded-lg border-2 border-gray-100 p-4 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 shadow-lg" 
+               style="background-color: var(--color-white); border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+            
+            <!-- Card Header with Status Badge -->
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-900 mb-1" style="color: var(--color-charcoal-ink);">${facility.facility_name}</h3>
+                <p class="text-sm text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">${facility.facility_location}</p>
+              </div>
+              <span class="badge ${statusConfig.badgeClass} text-xs font-semibold px-2 py-1" style="background-color: ${statusConfig.color}; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" data-field="status">
+                ${statusConfig.label}
+              </span>
+            </div>
+
+            <!-- Reservation ID -->
+            <div class="mb-3 p-2 bg-gray-50 rounded-md" style="background-color: #f8fafc;">
+              <div class="flex items-center gap-2 text-xs text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">
+                <i data-lucide="hash" class="w-3 h-3 text-blue-500"></i>
+                <span class="font-semibold">Reservation ID:</span>
+                <span class="font-mono text-blue-600 font-bold">#${String(facility.id).padStart(6, '0')}</span>
+              </div>
+            </div>
+
+            <!-- Reserver Information -->
+            <div class="mb-3 space-y-2">
+              <div class="flex items-center gap-2 text-xs text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">
+                <i data-lucide="user" class="w-3 h-3 text-green-500"></i>
+                <span class="font-medium">Reserved By: ${facility.reserver_name}</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">
+                <i data-lucide="mail" class="w-3 h-3 text-purple-500"></i>
+                <span class="font-medium">${facility.reserver_email}</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">
+                <i data-lucide="building" class="w-3 h-3 text-orange-500"></i>
+                <span class="font-medium">${facility.reserver_department}</span>
+              </div>
+            </div>
+
+            <!-- Reservation Details -->
+            <div class="mb-3 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-md border border-blue-100" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+              <div class="text-xs space-y-1">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="target" class="w-3 h-3 text-blue-600"></i>
+                  <span class="font-semibold text-gray-700" style="color: var(--color-charcoal-ink);">Purpose:</span>
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">${facility.purpose}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Time Information -->
+            <div class="mb-3 p-2 bg-gray-50 rounded-md border border-gray-200" style="background-color: #f9fafb; border-color: #e5e7eb;">
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">Start Time:</span>
+                  <span class="font-semibold text-blue-600" style="color: #2563eb;">${facility.start_time}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-600 font-medium" style="color: var(--color-charcoal-ink); opacity: 0.8;">End Time:</span>
+                  <span class="font-semibold text-orange-600" style="color: #ea580c;">${facility.end_time}</span>
+                </div>
+              </div>
+            </div>
+
+            ${facility.legal_case_status && facility.legal_case_status !== 'completed' ? `
+              <div class="mb-3 p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
+                <div class="flex items-center gap-2 font-semibold">
+                  <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                  Pending Legal Action
+                </div>
+                <p class="mt-1">Legal case ${facility.legal_case_status === 'pending' ? 'awaiting resolution' : facility.legal_case_status}</p>
+              </div>
+            ` : ''}
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2 pt-3 border-t border-gray-200" style="border-color: #e5e7eb;">
+              ${facility.status === 'active' ? `
+              <!-- ACTIVE reservations: Check Out and Details -->
+              <button 
+                onclick="checkOutFacility(${facility.id}, '${facility.facility_name.replace(/'/g, "\\'")}')" 
+                class="btn btn-sm flex-1"
+                style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+                onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>Check Out
+              </button>
+              <button 
+                onclick="viewFacilityReservation(${facility.id})" 
+                class="btn btn-sm"
+                style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+                onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                <i data-lucide="info" class="w-4 h-4 mr-1"></i>Details
+              </button>
+              ` : facility.status === 'pending' ? `
+              <!-- PENDING reservations: Details only -->
+              <button 
+                onclick="viewFacilityReservation(${facility.id})" 
+                class="btn btn-sm w-full"
+                style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+                onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                <i data-lucide="info" class="w-4 h-4 mr-1"></i>Details
+              </button>
+              ` : `
+              <!-- COMPLETED reservations: View Details -->
+              <button 
+                onclick="viewFacilityReservation(${facility.id})" 
+                class="btn btn-sm w-full"
+                style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+                onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                <i data-lucide="info" class="w-4 h-4 mr-1"></i>Details
+              </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    }
+
+    // View facility reservation details
+    function viewFacilityReservation(reservationId) {
+      window.location.href = `{{ route('facility_reservations.index') }}?reservation=${reservationId}`;
+    }
+
+    // Check out facility - opens inspection modal
+    let currentCheckoutRequestId = null;
+    let currentCheckoutFacilityName = null;
+    
+    function checkOutFacility(requestId, facilityName) {
+      currentCheckoutRequestId = requestId;
+      currentCheckoutFacilityName = facilityName || 'Facility';
+      
+      // Set modal values
+      document.getElementById('checkout-request-id').value = requestId;
+      document.getElementById('checkout-facility-name').textContent = facilityName || 'Facility';
+      
+      // Reset form
+      document.getElementById('checkoutInspectionForm').reset();
+      document.querySelector('input[name="damage_status"][value="no_damage"]').checked = true;
+      toggleDamageFields(false);
+      
+      // Show modal
+      document.getElementById('checkoutInspectionModal').classList.add('modal-open');
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    }
+
+    // Close checkout modal
+    function closeCheckoutModal() {
+      document.getElementById('checkoutInspectionModal').classList.remove('modal-open');
+      currentCheckoutRequestId = null;
+      currentCheckoutFacilityName = null;
+    }
+
+    // Toggle damage fields based on radio selection
+    function toggleDamageFields(showDamage) {
+      const damageFields = document.getElementById('damage-fields');
+      const damageAlert = document.getElementById('damage-alert');
+      
+      if (showDamage) {
+        damageFields.classList.remove('hidden');
+        damageAlert.classList.remove('hidden');
+        // Make damage fields required
+        document.getElementById('damage_severity').required = true;
+        document.getElementById('damage_description').required = true;
+        document.getElementById('damage_cost').required = true;
+      } else {
+        damageFields.classList.add('hidden');
+        damageAlert.classList.add('hidden');
+        // Remove required and clear values
+        document.getElementById('damage_severity').required = false;
+        document.getElementById('damage_description').required = false;
+        document.getElementById('damage_cost').required = false;
+        document.getElementById('damage_severity').value = '';
+        document.getElementById('damage_description').value = '';
+        document.getElementById('damage_cost').value = '';
+      }
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    }
+
+    // Handle checkout form submission
+    document.addEventListener('DOMContentLoaded', function() {
+      const checkoutForm = document.getElementById('checkoutInspectionForm');
+      const closeCheckoutBtn = document.getElementById('closeCheckoutModal');
+      const cancelCheckoutBtn = document.getElementById('cancelCheckoutBtn');
+      
+      if (closeCheckoutBtn) {
+        closeCheckoutBtn.addEventListener('click', closeCheckoutModal);
+      }
+      
+      if (cancelCheckoutBtn) {
+        cancelCheckoutBtn.addEventListener('click', closeCheckoutModal);
+      }
+      
+      if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(checkoutForm);
+          const requestId = formData.get('request_id');
+          const damageStatus = formData.get('damage_status');
+          const hasDamage = damageStatus === 'damage_found';
+          
+          // Prepare data
+          const submitData = {
+            request_id: requestId,
+            damage_flag: hasDamage ? 1 : 0,
+            inspection_notes: formData.get('inspection_notes') || null,
+          };
+          
+          if (hasDamage) {
+            submitData.damage_severity = formData.get('damage_severity');
+            submitData.damage_description = formData.get('damage_description');
+            submitData.damage_cost = formData.get('damage_cost');
+          }
+          
+          // Submit inspection and complete request
+          fetch(`{{ route('facility_reservations.complete', ':id') }}`.replace(':id', requestId), {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(submitData)
+          })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.message || `HTTP error! status: ${response.status}`);
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              if (data.has_damage) {
+                // If damage found, redirect to legal cases page (main Legal Cases submodule)
+                showNotification('Inspection submitted. Damage case has been created and escalated to Legal Management.', 'success');
+                setTimeout(() => {
+                  window.location.href = '{{ route("legal.case_deck") }}';
+                }, 1500);
+              } else {
+                // If no damage, just show success and reload monitoring
+                showNotification('Facility checked out successfully! The facility is now available.', 'success');
+                closeCheckoutModal();
+                // Reload monitoring data to update the display
+                loadFacilitiesMonitoring();
+              }
+            } else {
+              showNotification(data.message || 'Failed to submit inspection', 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error submitting inspection:', error);
+            showNotification(error.message || 'Error submitting inspection. Please try again.', 'error');
+          });
+        });
+      }
+      
+      // Close modal on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('checkoutInspectionModal');
+          if (modal && modal.classList.contains('modal-open')) {
+            closeCheckoutModal();
+          }
+        }
+      });
+    });
 
     // Facilities tabs: directory | monitoring (scoped, minimal; non-breaking)
     function facilityShowTab(tabName) {
@@ -1522,95 +1882,11 @@
         facilityShowTab('directory');
       }
       
-      // Monitoring: fetch and render
-      async function loadFacilitiesMonitoring() {
-        try {
-          const res = await fetch('{{ route('facilities.monitoring.summary') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-          const data = await res.json();
-          if (!data.success) throw new Error('Failed to load monitoring data');
+      // Pre-load monitoring data so it's ready when tab is clicked
+      loadFacilitiesMonitoring();
 
-          // Stat cards
-          document.getElementById('mon-total').textContent = data.summary.total ?? 0;
-          document.getElementById('mon-inprogress').textContent = data.summary.in_progress ?? 0;
-          document.getElementById('mon-completed').textContent = data.summary.completed ?? 0;
-          document.getElementById('mon-urgent').textContent = data.summary.urgent ?? 0;
-
-          // Weekly chart
-          const chartCanvas = document.getElementById('mon-weekly-chart');
-          if (chartCanvas) {
-            const ctx = chartCanvas.getContext('2d');
-            const labels = (data.summary.weekly || []).map(p => p.day);
-            const values = (data.summary.weekly || []).map(p => p.count);
-            console.log('Chart data:', { labels, values });
-            try {
-              new Chart(ctx, {
-                type: 'bar',
-                data: {
-                  labels,
-                  datasets: [{
-                    label: 'Requests',
-                    data: values,
-                    backgroundColor: ['#60a5fa','#34d399','#fbbf24','#60a5fa','#34d399','#fbbf24','#60a5fa'],
-                    borderRadius: 6,
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  plugins: { legend: { display: false } },
-                  scales: { y: { beginAtZero: true, ticks: { precision:0 } } }
-                }
-              });
-            } catch (chartError) {
-              console.error('Chart creation error:', chartError);
-            }
-          } else {
-            console.error('Chart canvas not found');
-          }
-
-          // Recent list
-          const recentWrap = document.getElementById('mon-recent');
-          if (recentWrap) {
-            recentWrap.innerHTML = '';
-            (data.recent || []).forEach(r => {
-              const priColor = r.priority === 'urgent' ? 'bg-red-100 text-red-700' : (r.priority === 'high' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700');
-              const statusColor = r.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : (r.status === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700');
-              const div = document.createElement('div');
-              div.className = 'border rounded-lg p-3 hover:shadow-sm transition flex items-start justify-between';
-              
-              // Add Out button for approved requests
-              const outButton = r.status === 'approved' ? 
-                `<button onclick="window.completeRequest(${r.id})" class="btn btn-sm btn-outline btn-success ml-2" title="Mark as Completed" style="cursor: pointer;">
-                  <i data-lucide="log-out" class="w-3 h-3 mr-1"></i>Out
-                </button>` : '';
-              
-              div.innerHTML = `
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">${r.code} <span class="ml-2 inline-block px-2 py-0.5 rounded ${statusColor}">${(r.status||'').charAt(0).toUpperCase() + (r.status||'').slice(1)}</span></div>
-                  <div class="font-medium text-gray-800">${r.title || ''}</div>
-                  <div class="text-xs text-gray-500 mt-1">${(r.facility ? r.facility + ' • ' : '')}${r.department || ''}</div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-block px-2 py-0.5 rounded ${priColor}">${(r.priority||'').charAt(0).toUpperCase() + (r.priority||'').slice(1)}</span>
-                  <span class="text-xs text-gray-400">${r.created_ago || ''}</span>
-                  ${outButton}
-                </div>`;
-              recentWrap.appendChild(div);
-            });
-          }
-
-          if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-        } catch (e) {
-          console.error('Error loading monitoring data:', e);
-          // Show error in the UI
-          document.getElementById('mon-total').textContent = 'Error';
-          document.getElementById('mon-inprogress').textContent = 'Error';
-          document.getElementById('mon-completed').textContent = 'Error';
-          document.getElementById('mon-urgent').textContent = 'Error';
-        }
-      }
-
-      // Notification function
-      function showNotification(message, type = 'info') {
+      // Notification function (GLOBAL SCOPE)
+      window.showNotification = function(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
           type === 'success' ? 'bg-green-500 text-white' : 
@@ -1674,10 +1950,6 @@
           showNotification('Error completing request', 'error');
         }
       }
-
-      // Pre-load monitoring data so it's ready when tab is clicked
-      loadFacilitiesMonitoring();
-
 
       // Equipment details fetch -> render as cards
       async function loadEquipmentDetails(){
@@ -2023,30 +2295,6 @@
             console.error(e);
             alert('Failed to load facility details.');
           }
-        });
-      });
-
-      // Reserve modal handlers
-      const reserveModal = document.getElementById('reserveFacilityModal');
-      const closeReserveBtn = document.getElementById('closeReserveFacilityModal');
-      const cancelReserveBtn = document.getElementById('cancelReserveFacility');
-      function openReserveModal(){ reserveModal.classList.add('modal-open'); }
-      function closeReserveModal(){ reserveModal.classList.remove('modal-open'); }
-      if (closeReserveBtn) closeReserveBtn.addEventListener('click', closeReserveModal);
-      if (cancelReserveBtn) cancelReserveBtn.addEventListener('click', closeReserveModal);
-      if (reserveModal) reserveModal.addEventListener('click', function(e){ if(e.target === reserveModal) closeReserveModal(); });
-
-      document.querySelectorAll('.openReserveFacilityBtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.getAttribute('data-id');
-          const name = btn.getAttribute('data-name') || '';
-          const select = document.getElementById('rf_facility_id');
-          if (select) {
-            // preselect facility
-            Array.from(select.options).forEach(o => { o.selected = (o.value === id); });
-          }
-          openReserveModal();
-          lucide.createIcons();
         });
       });
 

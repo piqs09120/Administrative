@@ -1618,8 +1618,64 @@ public function archiveLegalDocument($id)
                 return redirect()->route('legal.legal_documents')->with('error', 'Document is already archived!');
             }
 
-            // Archive with retention policy
+            // Direct database update to ensure it's saved
+            $archivedAt = now();
+            $retentionYears = $document->getDefaultRetentionYears();
+            $disposalDate = $archivedAt->copy()->addYears($retentionYears);
+            
+            // Update directly in database
+            $updated = \DB::table('documents')
+                ->where('id', $document->id)
+                ->update([
+                    'status' => 'archived',
+                    'archived_at' => $archivedAt,
+                    'retention_years' => $retentionYears,
+                    'disposal_date' => $disposalDate,
+                    'can_dispose' => false,
+                    'disposal_reason' => 'Administrative archive',
+                    'updated_at' => now()
+                ]);
+            
+            if ($updated === 0) {
+                throw new \Exception('Failed to update document in database');
+            }
+            
+            // Also use the model method for consistency
             $document->archiveWithRetention();
+            
+            // Force save to ensure database is updated
+            $document->save();
+            
+            // Refresh from database to get latest values
+            $document->refresh();
+            
+            // Verify the document was actually archived
+            $verification = \DB::table('documents')
+                ->where('id', $document->id)
+                ->where(function($q) {
+                    $q->where('status', 'archived')
+                      ->orWhereNotNull('archived_at');
+                })
+                ->first();
+            
+            if (!$verification) {
+                \Log::error('Archive verification failed', [
+                    'document_id' => $document->id,
+                    'status' => $document->status,
+                    'archived_at' => $document->archived_at,
+                    'db_status' => \DB::table('documents')->where('id', $document->id)->value('status'),
+                    'db_archived_at' => \DB::table('documents')->where('id', $document->id)->value('archived_at')
+                ]);
+                throw new \Exception('Failed to archive document - verification failed');
+            }
+            
+            \Log::info('Document archived successfully', [
+                'document_id' => $document->id,
+                'title' => $document->title,
+                'status' => $document->status,
+                'archived_at' => $document->archived_at,
+                'db_verified' => true
+            ]);
 
             // Safe archiving log (non-fatal if logging fails) - use DeptAccount Dept_no
             try {
@@ -1651,7 +1707,10 @@ public function archiveLegalDocument($id)
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Legal document archived successfully! Disposal date: ' . $document->disposal_date->format('Y-m-d')
+                    'message' => 'Legal document archived successfully! Disposal date: ' . $document->disposal_date->format('Y-m-d'),
+                    'document_id' => $document->id,
+                    'status' => $document->status,
+                    'archived_at' => $document->archived_at ? $document->archived_at->toDateTimeString() : null
                 ]);
             }
 
@@ -1906,54 +1965,157 @@ public function archiveLegalDocument($id)
      */
     public function archived(Request $request)
     {
-        $query = Document::where(function($query) {
-                $query->where('status', 'archived')
-                      ->orWhere('status', 'expired')
-                      ->orWhere(function($q) {
-                          $q->whereNotNull('retention_until')
-                            ->where('retention_until', '<=', now()->addDays(30));
-                      });
-            })
-            ->with(['uploader']);
+        // Include documents that are archived, expired, disposed, or have archived_at set
+        // This includes ALL documents regardless of source (legal_management, etc.)
+        // Use a simpler, more reliable query structure
+        $q = Document::query();
+        $q->where(function($query) {
+            $query->where('status', 'archived')
+                  ->orWhere('status', 'expired')
+                  ->orWhere('status', 'disposed')
+                  ->orWhereNotNull('archived_at');
+        });
+        
+        // Debug: Log the query to see what we're looking for
+        $countBeforeFilters = $q->count();
+        $sampleIds = $q->limit(5)->pluck('id')->toArray();
+        
+        \Log::info('Archived documents query - BEFORE filters', [
+            'count_before_filters' => $countBeforeFilters,
+            'sample_ids' => $sampleIds,
+            'query_sql' => $q->toSql(),
+            'query_bindings' => $q->getBindings()
+        ]);
 
-        // Apply filters
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('author', 'like', "%{$search}%");
+        // search
+        if ($s = trim($request->string('search'))) {
+            $q->where(function($w) use ($s) {
+                $w->where('title','like',"%{$s}%")
+                  ->orWhere('description','like',"%{$s}%")
+                  ->orWhere('author','like',"%{$s}%");
             });
         }
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->input('category'));
+        // filters
+        if ($cat = $request->string('category'))         $q->where('category',$cat);
+        if ($auth = $request->string('author'))          $q->where('author','like',"%{$auth}%");
+        if ($dept = $request->string('department'))      $q->where('department',$dept);
+        if ($conf = $request->string('confidentiality')) $q->where('confidentiality_level',$conf);
+        if ($from = $request->date('date_from')) $q->whereDate('created_at','>=',$from);
+        if ($to   = $request->date('date_to'))   $q->whereDate('created_at','<=',$to);
+
+        // sorting
+        $sortBy = $request->input('sort_by','created_at');
+        $dir    = $request->input('sort_order','desc') === 'asc' ? 'asc' : 'desc';
+        $allowed = [
+            'created_at','title','author','view_count','download_count','last_edited_at'
+        ];
+        if (!in_array($sortBy, $allowed)) $sortBy = 'created_at';
+        $q->orderBy($sortBy, $dir);
+
+        // Get totals for stat cards (BEFORE applying search/filters, but AFTER base archived query)
+        // This ensures we get the true count of all archived documents
+        $baseQuery = Document::query()->where(function($query) {
+            $query->where('status', 'archived')
+                  ->orWhere('status', 'expired')
+                  ->orWhere('status', 'disposed')
+                  ->orWhereNotNull('archived_at');
+        });
+        
+        $totalCount = $baseQuery->count();
+        
+        // Received today should check archived_at, not created_at
+        $receivedToday = Document::where(function($query) {
+            $query->where('status', 'archived')
+                  ->orWhere('status', 'expired')
+                  ->orWhere('status', 'disposed')
+                  ->orWhereNotNull('archived_at');
+        })
+        ->where(function($query) {
+            $query->whereDate('archived_at', '>=', now()->startOfDay())
+                  ->orWhere(function($q) {
+                      // Also check if status was changed to archived today
+                      $q->where('status', 'archived')
+                        ->whereDate('updated_at', '>=', now()->startOfDay());
+                  });
+        })
+        ->count();
+            
+        $expiredCount = Document::where('status', 'expired')->count();
+        
+        // Log AFTER filters but BEFORE pagination
+        $countAfterFilters = $q->count();
+        \Log::info('Archived documents query - AFTER filters', [
+            'count_after_filters' => $countAfterFilters,
+            'search' => $request->string('search'),
+            'category' => $request->string('category'),
+            'author' => $request->string('author'),
+            'department' => $request->string('department'),
+            'date_from' => $request->date('date_from'),
+            'date_to' => $request->date('date_to'),
+            'query_sql' => $q->toSql(),
+            'query_bindings' => $q->getBindings()
+        ]);
+        
+        // If we have documents in the database but filters are hiding them all,
+        // clear ALL filters except search (user might be searching)
+        if ($totalCount > 0 && $countAfterFilters === 0) {
+            // Check if user explicitly set filters (using filled() to check for actual values)
+            $hasExplicitFilters = $request->filled('category') || $request->filled('author') || 
+                                   $request->filled('department') || $request->filled('date_from') || 
+                                   $request->filled('date_to') || $request->filled('confidentiality');
+            
+            if (!$hasExplicitFilters) {
+                // Reset the query without ANY filters (only base archived query + search if exists)
+                $q = Document::query()->where(function($query) {
+                    $query->where('status', 'archived')
+                          ->orWhere('status', 'expired')
+                          ->orWhere('status', 'disposed')
+                          ->orWhereNotNull('archived_at');
+                });
+                
+                // Only apply search if it exists and is meaningful
+                if ($s = trim($request->string('search'))) {
+                    if (strlen($s) > 2) { // Only if search is more than 2 characters
+                        $q->where(function($w) use ($s) {
+                            $w->where('title','like',"%{$s}%")
+                              ->orWhere('description','like',"%{$s}%")
+                              ->orWhere('author','like',"%{$s}%");
+                        });
+                    }
+                }
+                
+                // Re-apply sorting
+                $q->orderBy($sortBy, $dir);
+                $countAfterFilters = $q->count();
+                
+                \Log::info('Auto-cleared ALL filters because documents were hidden', [
+                    'total_count' => $totalCount,
+                    'count_after_auto_clear' => $countAfterFilters,
+                    'had_explicit_filters' => $hasExplicitFilters
+                ]);
+            }
         }
+        
+        // paginate (this applies search and filters)
+        $documents = $q->paginate(15)->withQueryString();
+        
+        // Debug: Log what we're actually returning
+        \Log::info('Archived documents result - FINAL', [
+            'total_count' => $totalCount,
+            'received_today' => $receivedToday,
+            'count_before_filters' => $countBeforeFilters,
+            'count_after_filters' => $countAfterFilters,
+            'documents_count' => $documents->count(),
+            'documents_total' => $documents->total(),
+            'current_page' => $documents->currentPage(),
+            'last_page' => $documents->lastPage(),
+            'has_documents' => $documents->count() > 0,
+            'first_item_id' => $documents->count() > 0 ? $documents->first()->id : null,
+            'all_document_ids' => $documents->count() > 0 ? $documents->pluck('id')->toArray() : []
+        ]);
 
-        if ($request->filled('author')) {
-            $query->where('author', 'like', '%' . $request->input('author') . '%');
-        }
-
-        if ($request->filled('department')) {
-            $query->where('department', $request->input('department'));
-        }
-
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $query->whereBetween('created_at', [$request->input('date_from'), $request->input('date_to')]);
-        }
-
-        if ($request->filled('confidentiality')) {
-            $query->where('confidentiality_level', $request->input('confidentiality'));
-        }
-
-        // Apply sorting
-        $sortBy = $request->input('sort_by', 'created_at');
-        $sortOrder = $request->input('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $documents = $query->paginate(20);
-
-        return view('document.archived', compact('documents'));
+        return view('document.archived', compact('documents', 'totalCount', 'receivedToday', 'expiredCount'));
     }
 
     /**

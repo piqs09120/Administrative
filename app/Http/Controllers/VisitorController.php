@@ -94,7 +94,6 @@ class VisitorController extends Controller
             'id_number' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'time_in' => 'nullable|date',
-            'id_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120', // 5MB max
         ]);
 
         // Generate pass ID
@@ -111,9 +110,6 @@ class VisitorController extends Controller
 
         // Calculate pass validity based on expected time out
         $validity = $this->calculatePassValidity($request);
-        
-        // Handle ID document upload
-        $idDocumentData = $this->handleIdDocumentUpload($request);
         
         $visitorData = [
             'name' => $request->name,
@@ -141,9 +137,6 @@ class VisitorController extends Controller
             'escort_required' => 'no',
             'status' => 'registered', // Changed from 'active' to 'registered'
         ];
-
-        // Merge ID document data
-        $visitorData = array_merge($visitorData, $idDocumentData);
         
         $visitor = Visitor::create($visitorData);
         
@@ -186,6 +179,7 @@ class VisitorController extends Controller
             'company' => 'nullable|string|max:255',
             'id_type' => 'required|string|in:philnational_id,passport,drivers_license,umid,postal_id,voters_id,sss_id,gsis_id,tin_id,prc_id,barangay_id,senior_citizen_id,pwd_id,company_id,school_id,other_id',
             'id_number' => 'required|string|max:255',
+            'id_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
             'vehicle_plate' => 'nullable|string|max:255',
             'expected_date_out' => 'nullable|date',
             'expected_time_out' => 'nullable|date_format:H:i',
@@ -195,8 +189,14 @@ class VisitorController extends Controller
             'scheduled_date' => 'nullable|date|after:today',
             'scheduled_time' => 'nullable|date_format:H:i',
             'status' => 'nullable|string',
-            'id_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120', // 5MB max
+            'agree' => 'accepted',
         ]);
+        
+        // Handle ID image upload
+        $idDocumentPath = null;
+        if ($request->hasFile('id_image')) {
+            $idDocumentPath = $request->file('id_image')->store('id_documents', 'public');
+        }
 
         // Generate pass ID
         $passId = $this->generatePassId();
@@ -235,6 +235,7 @@ class VisitorController extends Controller
                 'company' => $request->company,
                 'id_type' => $request->id_type,
                 'id_number' => $request->id_number,
+                'id_document_path' => $idDocumentPath,
                 'vehicle_plate' => $request->vehicle_plate,
                 'scheduled_date' => $request->scheduled_date,
                 'scheduled_time' => $request->scheduled_time,
@@ -270,9 +271,6 @@ class VisitorController extends Controller
         } else {
             // For immediate visits, use existing logic
             $validity = $this->calculatePassValidity($request);
-            
-            // Handle ID document upload
-            $idDocumentData = $this->handleIdDocumentUpload($request);
 
             $visitorData = [
                 'name' => $validated['name'],
@@ -286,6 +284,7 @@ class VisitorController extends Controller
                 'company' => $request->company,
                 'id_type' => $request->id_type,
                 'id_number' => $request->id_number,
+                'id_document_path' => $idDocumentPath,
                 'vehicle_plate' => $request->vehicle_plate,
                 'arrival_date' => $request->arrival_date,
                 'arrival_time' => $request->arrival_time,
@@ -301,9 +300,6 @@ class VisitorController extends Controller
                 'escort_required' => 'no',
                 'status' => 'registered',
             ];
-
-            // Merge ID document data
-            $visitorData = array_merge($visitorData, $idDocumentData);
 
             $visitor = Visitor::create($visitorData);
 
@@ -1587,74 +1583,8 @@ class VisitorController extends Controller
      */
     private function handleIdDocumentUpload(Request $request): array
     {
-        $idDocumentData = [
-            'id_document_path' => null,
-            'id_document_original_name' => null,
-            'id_document_mime_type' => null,
-            'id_document_size' => null,
-            'id_validation_status' => 'pending',
-            'id_validation_confidence' => 0,
-            'id_validation_details' => null,
-        ];
-
-        if ($request->hasFile('id_document')) {
-            $file = $request->file('id_document');
-            
-            // Validate file
-            $validated = $request->validate([
-                'id_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120' // 5MB max
-            ]);
-
-            // Generate unique filename
-            $filename = 'id_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            
-            // Store file in storage/app/public/visitor_id_documents
-            $path = $file->storeAs('visitor_id_documents', $filename, 'public');
-            
-            // Perform layered validation pipeline if ID type is provided
-            $validationResult = null;
-            if ($request->has('id_type') && $request->id_type) {
-                try {
-                    $validationResult = $this->idValidationPipelineService->validateIdDocument(
-                        $path, 
-                        $request->id_type, 
-                        $request->id_number
-                    );
-                    
-                    \Log::info('ID Validation Pipeline Result', [
-                        'id_type' => $request->id_type,
-                        'is_valid' => $validationResult['is_valid'],
-                        'score' => $validationResult['score'],
-                        'status' => $validationResult['status'],
-                        'confidence' => $validationResult['confidence'],
-                        'reasons' => $validationResult['reasons'],
-                        'file_path' => $path
-                    ]);
-                } catch (\Exception $e) {
-                    \Log::error('ID Validation Pipeline Error: ' . $e->getMessage());
-                    $validationResult = [
-                        'is_valid' => false,
-                        'score' => 0,
-                        'status' => 'rejected',
-                        'confidence' => 0,
-                        'reasons' => ['Validation service unavailable'],
-                        'error_message' => 'Validation service unavailable'
-                    ];
-                }
-            }
-            
-            $idDocumentData = [
-                'id_document_path' => $path,
-                'id_document_original_name' => $file->getClientOriginalName(),
-                'id_document_mime_type' => $file->getMimeType(),
-                'id_document_size' => $file->getSize(),
-                'id_validation_status' => $validationResult ? ($validationResult['is_valid'] ? 'validated' : 'rejected') : 'pending',
-                'id_validation_confidence' => $validationResult['confidence'] ?? 0,
-                'id_validation_details' => $validationResult ? json_encode($validationResult) : null,
-            ];
-        }
-
-        return $idDocumentData;
+        // ID document upload is now optional - return empty array
+        return [];
     }
 
     /**

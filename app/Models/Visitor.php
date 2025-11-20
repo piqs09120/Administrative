@@ -13,9 +13,8 @@ class Visitor extends Model
     protected $fillable = [
         'name', 'email', 'contact', 'purpose', 'facility_id', 'time_in', 'time_out', 'company', 'department', 'host_employee', 'facility_reservation_id',
         'pass_type', 'pass_validity', 'pass_valid_from', 'pass_valid_until', 'access_level', 'escort_required',
-        'special_instructions', 'generate_digital_pass', 'pass_id', 'pass_data', 'id_type', 'id_number', 'vehicle_plate', 'status', 'expected_time_out', 'expected_date_out', 'arrival_date', 'arrival_time', 'pending_exit', 'pending_exit_at',
+        'special_instructions', 'generate_digital_pass', 'pass_id', 'pass_data', 'id_type', 'id_number', 'id_document_path', 'vehicle_plate', 'status', 'expected_time_out', 'expected_date_out', 'arrival_date', 'arrival_time', 'pending_exit', 'pending_exit_at',
         'scheduled_date', 'scheduled_time', 'expected_duration', 'phone', 'access_code',
-        'id_document_path', 'id_document_original_name', 'id_document_mime_type', 'id_document_size',
         'id_verified', 'id_verified_at', 'id_verified_by', 'id_verification_notes', 'id_verification_method', 'id_scanned_data'
     ];
 

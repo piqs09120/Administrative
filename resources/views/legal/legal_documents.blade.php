@@ -640,13 +640,19 @@
 
                 <!-- Action Buttons -->
                 <div class="md:col-span-2 flex gap-2">
-                  <button onclick="startBulkAnalysis()" class="btn btn-primary btn-sm flex-1">
-                    <i data-lucide="brain" class="w-4 h-4 mr-1"></i>
+                  <button onclick="startBulkAnalysis()" 
+                          class="btn btn-primary btn-sm inline-flex items-center justify-center whitespace-nowrap min-w-[90px] sm:min-w-[100px] text-xs sm:text-sm">
+                    <i data-lucide="brain" class="w-4 h-4 mr-1 flex-shrink-0"></i>
                     <span class="hidden sm:inline">Bulk AI</span>
+                    <span class="sm:hidden">AI</span>
                   </button>
-                  <button onclick="exportViolationReport()" class="btn btn-outline btn-sm flex-1">
-                    <i data-lucide="download" class="w-4 h-4 mr-1"></i>
-                    <span class="hidden sm:inline">Export</span>
+                  <button onclick="exportViolationReport()" 
+                          class="btn btn-sm inline-flex items-center justify-center whitespace-nowrap min-w-[90px] sm:min-w-[100px] text-xs sm:text-sm transition-all duration-200 cursor-pointer hover:scale-105"
+                          style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
+                          onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                          onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'">
+                    <i data-lucide="download" class="w-4 h-4 mr-1 flex-shrink-0" style="fill: none;"></i>
+                    <span>Export</span>
                   </button>
                 </div>
               </div>
@@ -1810,25 +1816,26 @@
      function archiveDocument(documentId) {
        Swal.fire({
          title: 'Confirm Archive',
-         text: 'Are you sure you want to archive this legal document? It will be retained according to retention policy and cannot be deleted. The document will be marked for disposal after the retention period.',
+         html: `
+           <div class="text-left">
+             <div class="flex items-center justify-center mb-4">
+               <i data-lucide="help-circle" class="w-16 h-16 text-blue-500"></i>
+             </div>
+             <p class="text-gray-700 mb-2">Are you sure you want to archive this legal document?</p>
+             <p class="text-sm text-gray-600">It will be retained according to retention policy and cannot be deleted. The document will be marked for disposal after the retention period.</p>
+           </div>
+         `,
          icon: 'question',
          showCancelButton: true,
          confirmButtonText: 'ARCHIVE DOCUMENT',
          cancelButtonText: 'CANCEL',
-         confirmButtonColor: '#f59e0b',
+         confirmButtonColor: '#ef4444',
          cancelButtonColor: '#6b7280',
          reverseButtons: true,
-         focusCancel: true
-       }).then((result) => {
-         if (result.isConfirmed) {
-           // Show loading state
-           const button = event.target.closest('button');
-           const originalHTML = button.innerHTML;
-           button.innerHTML = '<i class="loading loading-spinner"></i>';
-           button.disabled = true;
-       
-           // Make archive request
-           fetch(`/legal/documents/${documentId}/archive-only`, {
+         focusCancel: true,
+         showLoaderOnConfirm: true,
+         preConfirm: () => {
+           return fetch(`/legal/documents/${documentId}/archive-only`, {
              method: 'POST',
              headers: {
                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1837,51 +1844,63 @@
              }
            })
            .then(response => {
-             if (response.ok) {
-               return response.json();
-             } else {
+             if (!response.ok) {
                throw new Error(`Archive failed with status ${response.status}`);
              }
+             return response.json();
            })
            .then(data => {
-             if (data.success) {
-               // Update the row to show archived status
-               const row = document.querySelector(`tr[data-document-id="${documentId}"]`);
-               if (row) {
-                 // Update status column
-                 const statusCell = row.querySelector('.status-badge');
-                 if (statusCell) {
-                   statusCell.innerHTML = '<span class="badge badge-warning">Archived</span>';
-                 }
-                 
-                 // Replace archive button with archived status
-                 const actionCell = row.querySelector('.action-buttons');
-                 if (actionCell) {
-                   const archiveButton = actionCell.querySelector(`button[onclick="archiveDocument(${documentId})"]`);
-                   if (archiveButton) {
-                     archiveButton.outerHTML = '<span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">Archived</span>';
-                   }
-                 }
-                 
-                 // Show success toast
-                 showToast('Document archived successfully! ' + (data.message || ''), 'success');
-               }
-             } else {
+             console.log('Archive response:', data);
+             if (!data.success) {
                throw new Error(data.message || 'Archive failed');
              }
+             // Log the archived document info
+             console.log('Document archived:', {
+               id: data.document_id,
+               status: data.status,
+               archived_at: data.archived_at
+             });
+             return data;
            })
            .catch(error => {
-             console.error('Archive error:', error);
-             // Show error toast
-             showToast('Error archiving document: ' + error.message, 'error');
-           })
-           .finally(() => {
-             // Restore button
-             button.innerHTML = originalHTML;
-             button.disabled = false;
+             Swal.showValidationMessage(`Error: ${error.message}`);
+             return false;
+           });
+         },
+         allowOutsideClick: () => !Swal.isLoading()
+       }).then((result) => {
+         if (result.isConfirmed && result.value) {
+           Swal.fire({
+             title: 'Archived!',
+             html: `
+               <div class="text-center">
+                 <i data-lucide="check-circle" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
+                 <p class="text-gray-700 mb-2 font-semibold">Document has been archived successfully!</p>
+                 <p class="text-sm text-gray-600">Redirecting to Archived Documents...</p>
+               </div>
+             `,
+             icon: 'success',
+             showConfirmButton: false,
+             timer: 2000,
+             didOpen: () => {
+               lucide.createIcons();
+             }
+           }).then(() => {
+             // Longer delay to ensure database transaction is committed, then redirect
+             setTimeout(() => {
+               // Redirect without any filter parameters that might interfere
+               window.location.href = '/document/archived?archived=' + documentId;
+             }, 1500);
            });
          }
        });
+       
+       // Initialize icons in the modal
+       setTimeout(() => {
+         if (window.lucide && window.lucide.createIcons) {
+           window.lucide.createIcons();
+         }
+       }, 100);
      }
      
      // Document CRUD functions

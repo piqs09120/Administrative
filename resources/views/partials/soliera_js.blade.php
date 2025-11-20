@@ -189,3 +189,8 @@ setInterval(displayPhilippineTime, 1000);
  // Initialize when DOM loads
  document.addEventListener('DOMContentLoaded', initSidebar);
 </script>
+
+{{-- Legal Consent Modal Component (hidden across Legal Management pages) --}}
+@if (!request()->is('legal*'))
+  <x-legal-consent :open="false" />
+@endif

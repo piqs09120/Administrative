@@ -23,6 +23,7 @@ class LegalCase extends Model
         'filing_date',
         'court_date',
         'outcome',
+        'amount',
         'notes',
         'linked_case_id',
         'employee_involved',

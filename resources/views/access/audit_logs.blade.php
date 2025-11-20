@@ -61,7 +61,7 @@
         <div class="mb-8">
           <div class="mb-6">
             <h1 class="text-3xl font-bold text-gray-800 mb-2" style="color: var(--color-charcoal-ink);">Audit Trail & Transaction</h1>
-            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track all system activities and user actions (excluding login/logout)</p>
+            <p class="text-gray-600" style="color: var(--color-charcoal-ink); opacity: 0.8;">Monitor and track all system activities and user actions including login/logout</p>
           </div>
 
           <!-- Record Count -->
@@ -112,6 +112,8 @@
             <div class="flex items-center gap-2">
               <select id="actionFilter" class="select select-bordered select-sm w-40">
                 <option value="">All Actions</option>
+                <option value="Login">Login</option>
+                <option value="Logout">Logout</option>
                 <option value="save_legal_draft">Save Legal Draft</option>
                 <option value="document_view">Document View</option>
                 <option value="Document_uploaded">Document Uploaded</option>
@@ -173,6 +175,8 @@
                     <td class="py-3 px-4 module-cell">
                       @php
                         $moduleMap = [
+                          'Login' => 'Authentication',
+                          'Logout' => 'Authentication',
                           'save_legal_draft' => 'Legal Management',
                           'document_view' => 'Document Management',
                           'Document_uploaded' => 'Document Management',
@@ -214,7 +218,7 @@
                           <i data-lucide="activity" class="w-10 h-10 text-gray-400"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-600 mb-2">No System Activity Logs Found</h3>
-                        <p class="text-gray-500 text-sm">No system activity logs available at the moment (excluding login/logout).</p>
+                        <p class="text-gray-500 text-sm">No system activity logs available at the moment.</p>
                       </div>
                     </td>
                   </tr>

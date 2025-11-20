@@ -336,6 +336,7 @@
                               'confidentiality' => 'Confidentiality',
                               'property_damage' => 'Property Damage',
                               'property' => 'Property Damage',
+                              'facility_damage' => 'Facility Damage',
                               'guest_complaint' => 'Guest Complaint',
                               'complaint' => 'Guest Complaint',
                               'regulatory_violation' => 'Regulatory',

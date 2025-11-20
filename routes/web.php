@@ -213,10 +213,11 @@ Route::post('/guest/logout', [App\Http\Controllers\userController::class, 'guest
 Route::post('/guest/login', [App\Http\Controllers\userController::class, 'guestlogin'])->name('guest.login');
 
 // Legal Documents - accessible to Legal Officers, Administrators, and Super Admins
-Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin'])->group(function () {
+Route::middleware(['auth', 'role:Legal Officer,Administrator,Super Admin', \App\Http\Middleware\EnsurePoliciesAccepted::class])->group(function () {
     Route::get('/legal/documents', [LegalController::class, 'legalDocuments'])->name('legal.legal_documents');
     // Legal Cases - accessible to all legal roles
     Route::get('/legal/cases', [LegalController::class, 'caseDeck'])->name('legal.legal_cases');
+    // Facility Damage Cases
     // Internal legal document creation (draft/publish)
     Route::get('/legal/documents/create', [LegalController::class, 'createInternalDocument'])->name('legal.documents.create');
     Route::post('/legal/documents', [LegalController::class, 'storeInternalDocument'])->name('legal.documents.store');
@@ -385,6 +386,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/facility-stats', [DashboardController::class, 'facilityStats'])->name('dashboard.facility_stats');
     Route::get('/dashboard/user-mgmt-stats', [DashboardController::class, 'userMgmtStats'])->name('dashboard.user_mgmt_stats');
     Route::get('/dashboard/active-users', [DashboardController::class, 'activeUsersCount'])->name('dashboard.active_users');
+    Route::get('/dashboard/recent-activity', [DashboardController::class, 'recentActivity'])->name('dashboard.recent_activity');
     // Legal monitoring proxies for dashboard (accessible to any authenticated user)
     Route::get('/dashboard/legal/summary', [LegalController::class, 'monitoringSummary'])->name('dashboard.legal_summary');
     Route::get('/dashboard/legal/list', [LegalController::class, 'monitoringList'])->name('dashboard.legal_list');
@@ -396,6 +398,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile/send-verification', [ProfileController::class, 'send'])->name('verification.send');
     Route::put('/profile', [ProfileController::class, 'update'])->name('password.update');
+
+    // Policy Consent Routes
+    Route::get('/policies/latest', [App\Http\Controllers\PolicyConsentController::class, 'latest'])->name('policies.latest');
+    Route::post('/policies/consent', [App\Http\Controllers\PolicyConsentController::class, 'store'])->name('policies.consent');
 
     // Calendar legacy route: redirect old /reservations/calendar → new path to avoid conflict with reservations.show
     Route::get('/reservations/calendar/{facilityId?}', function ($facilityId = null) {
@@ -424,7 +430,6 @@ Route::middleware(['auth'])->group(function () {
     
     // Access Protection
     Route::prefix('access')->group(function () {
-    Route::get('/logs', [AccessController::class, 'logs'])->name('access.logs');
     Route::get('/audit-logs', [AccessController::class, 'auditLogs'])->name('access.audit_logs');
     Route::get('/users', [AccessController::class, 'users'])->name('access.users');
     Route::get('/users/{id}', [AccessController::class, 'showUser'])->name('access.users.show');
@@ -438,8 +443,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/department-accounts/{id}', [AccessController::class, 'showDepartmentAccount'])->name('access.department_accounts.show');
     Route::put('/department-accounts/{id}', [AccessController::class, 'updateDepartmentAccount'])->name('access.department_accounts.update');
     Route::post('/department-accounts/{id}/toggle', [AccessController::class, 'toggleDepartmentAccountStatus'])->name('access.department_accounts.toggle');
-    Route::get('/department-logs', [AccessController::class, 'departmentLogs'])->name('access.department_logs');
-    Route::get('/account-logs/export', [AccessController::class, 'exportAccountLogs'])->name('access.account_logs.export');
     Route::get('/audit-logs/export', [AccessController::class, 'exportAuditLogs'])->name('access.audit_logs.export');
 });
 
@@ -854,6 +857,21 @@ Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeA
     // Document Disposal Routes
     Route::post('/document/{id}/dispose', [DocumentController::class, 'dispose'])->name('document.dispose');
     
+    // Document API Routes (for archived.blade.php)
+    Route::get('/document/{doc}', [\App\Http\Controllers\DocumentApiController::class,'show']);
+    Route::post('/legal/documents/{doc}/view', [\App\Http\Controllers\DocumentApiController::class,'logView']);
+    Route::post('/legal/documents/{doc}/download', [\App\Http\Controllers\DocumentApiController::class,'logDownload']);
+    Route::get('/legal/documents/{doc}/collaborators', [\App\Http\Controllers\DocumentApiController::class,'listCollaborators']);
+    Route::post('/legal/documents/{doc}/collaborators', [\App\Http\Controllers\DocumentApiController::class,'addCollaborator']);
+    Route::delete('/legal/documents/{doc}/collaborators/{userId}', [\App\Http\Controllers\DocumentApiController::class,'removeCollaborator']);
+    Route::get('/document/{doc}/history', [\App\Http\Controllers\DocumentApiController::class,'history']);
+    Route::get('/legal/documents/{doc}/history', [\App\Http\Controllers\DocumentApiController::class,'history']);
+    Route::get('/legal/documents/{doc}/activity-tracking', [\App\Http\Controllers\DocumentApiController::class,'activityTracking']);
+    Route::post('/document/{doc}/archive', [\App\Http\Controllers\DocumentApiController::class,'archive']);
+    Route::post('/document/{doc}/unarchive', [\App\Http\Controllers\DocumentApiController::class,'unarchive']);
+    Route::post('/document/{doc}/dispose', [\App\Http\Controllers\DocumentApiController::class,'dispose']);
+    Route::get('/document/{doc}/download', [\App\Http\Controllers\DocumentApiController::class,'download']);
+    
     
     // Document Access Control and Analytics Routes
     Route::get('/document/analytics', [App\Http\Controllers\DocumentAnalyticsController::class, 'index'])->name('document.analytics');
@@ -981,6 +999,12 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
     Route::post('/facility_reservations/store-request', [App\Http\Controllers\FacilityReservationController::class, 'storeRequest'])->name('facility_reservations.store_request');
     Route::post('/facility_reservations/{id}/approve', [App\Http\Controllers\FacilityReservationController::class, 'approve'])->name('facility_reservations.approve');
     Route::post('/facility_reservations/{id}/deny', [App\Http\Controllers\FacilityReservationController::class, 'deny'])->name('facility_reservations.deny');
+    
+    // Return Inspection Routes - Employee,Administrator,Super Admin
+    Route::get('/facility_reservations/{id}/return-review', [\App\Http\Controllers\FacilityReservationController::class, 'returnReview'])
+        ->name('facility_reservations.return_review');
+    Route::post('/facility_reservations/{id}/return-inspection', [\App\Http\Controllers\FacilityReservationController::class, 'submitReturnInspection'])
+        ->name('facility_reservations.return_inspection');
         Route::post('/facility_reservations/{id}/approve-request', [App\Http\Controllers\FacilityReservationController::class, 'approveRequest'])->name('facility_reservations.approve_request');
         Route::post('/facility_reservations/{id}/complete', [App\Http\Controllers\FacilityReservationController::class, 'completeRequest'])->name('facility_reservations.complete');
         Route::get('/facility_reservations/{id}/show-request', [App\Http\Controllers\FacilityReservationController::class, 'showRequest'])->name('facility_reservations.show_request');
