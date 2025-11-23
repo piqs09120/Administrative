@@ -115,8 +115,14 @@
           <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
         </div>
 
-        <!-- Forgot Password -->
-        <div class="flex items-center justify-end mb-6">
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center">
+            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/30 rounded bg-white/10">
+            <label for="remember-me" class="ml-2 block text-sm text-white/80">
+              Remember me
+            </label>
+          </div>
           <div class="text-sm">
             <a href="#" class="font-medium text-blue-400 hover:text-blue-300">
               Forgot password?

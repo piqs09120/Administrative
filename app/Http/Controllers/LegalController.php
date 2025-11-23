@@ -779,6 +779,181 @@ class LegalController extends Controller
     }
 
     /**
+     * Transition a legal case to the next workflow stage
+     */
+    public function transitionCase(Request $request, $id)
+    {
+        $request->validate([
+            'current_stage' => 'required|string',
+            'notes' => 'nullable|string|max:2000'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Verify current stage matches
+            if ($case->workflow_stage !== $request->current_stage) {
+                return redirect()->back()->withErrors(['error' => 'Case stage has changed. Please refresh the page.']);
+            }
+
+            // Determine next stage
+            $stageTransitions = [
+                'filing' => 'investigation',
+                'investigation' => 'review',
+                'review' => 'resolution',
+                'resolution' => 'closed'
+            ];
+
+            $nextStage = $stageTransitions[$case->workflow_stage] ?? null;
+
+            if (!$nextStage) {
+                return redirect()->back()->withErrors(['error' => 'Cannot transition from current stage.']);
+            }
+
+            // Check if transition is allowed
+            if (!$case->canTransitionTo($nextStage)) {
+                return redirect()->back()->withErrors(['error' => 'Transition to ' . $nextStage . ' is not allowed from current stage.']);
+            }
+
+            // Perform transition
+            $success = $case->transitionTo($nextStage, $request->notes);
+
+            if (!$success) {
+                return redirect()->back()->withErrors(['error' => 'Failed to transition case.']);
+            }
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'transition_legal_case',
+                'description' => "Transitioned legal case ID {$case->id} from {$request->current_stage} to {$nextStage}",
+                'ip_address' => request()->ip()
+            ]);
+
+            return redirect()->back()->with('success', "Case successfully transitioned from " . ucfirst($request->current_stage) . " to " . ucfirst($nextStage) . ".");
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error transitioning case: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Add a witness to a legal case
+     */
+    public function addWitness(Request $request, $id)
+    {
+        $request->validate([
+            'witness_name' => 'required|string|max:255',
+            'witness_department' => 'nullable|string|max:255',
+            'witness_position' => 'nullable|string|max:255',
+            'witness_contact' => 'nullable|string|max:255',
+            'witness_email' => 'nullable|email|max:255',
+            'statement' => 'nullable|string|max:5000',
+            'statement_type' => 'nullable|string|in:written,verbal,video,other',
+            'statement_date' => 'nullable|date'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Create witness record
+            $witness = \App\Models\CaseWitness::create([
+                'legal_case_id' => $case->id,
+                'witness_name' => $request->witness_name,
+                'witness_department' => $request->witness_department,
+                'witness_position' => $request->witness_position,
+                'witness_contact' => $request->witness_contact,
+                'witness_email' => $request->witness_email,
+                'statement' => $request->statement,
+                'statement_type' => $request->statement_type ?? 'written',
+                'statement_date' => $request->statement_date ? now()->parse($request->statement_date) : null,
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'add_legal_case_witness',
+                'description' => "Added witness '{$witness->witness_name}' to legal case ID {$case->id}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Witness added successfully!',
+                    'witness' => $witness
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Witness added successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error adding witness: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error adding witness: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Add or update investigation notes for a legal case
+     */
+    public function addInvestigationNote(Request $request, $id)
+    {
+        $request->validate([
+            'investigation_notes' => 'required|string|max:10000',
+            'investigation_findings' => 'nullable|string|max:10000'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Update investigation notes and findings
+            $case->update([
+                'investigation_notes' => $request->investigation_notes,
+                'investigation_findings' => $request->investigation_findings,
+            ]);
+
+            // Set investigation started date if not already set
+            if (!$case->investigation_started_at) {
+                $case->update(['investigation_started_at' => now()]);
+            }
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'update_investigation_notes',
+                'description' => "Updated investigation notes for legal case ID {$case->id}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Investigation notes saved successfully!',
+                    'case' => $case
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Investigation notes saved successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error saving investigation notes: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error saving investigation notes: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Edit legal case
      */
     public function edit($id)

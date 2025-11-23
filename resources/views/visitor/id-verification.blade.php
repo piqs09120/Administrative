@@ -68,12 +68,16 @@
                                     <!-- Action Buttons -->
                                     <div class="flex space-x-2">
                                         <button onclick="openVerificationModal({{ $visitor->id }}, '{{ $visitor->name }}')" 
-                                                class="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-green-700">
+                                                type="button"
+                                                class="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-green-700 transition-colors cursor-pointer"
+                                                style="pointer-events: auto;">
                                             <i data-lucide="check" class="h-4 w-4 inline mr-1"></i>
                                             Verify
                                         </button>
                                         <button onclick="openRejectionModal({{ $visitor->id }}, '{{ $visitor->name }}')" 
-                                                class="flex-1 bg-red-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-red-700">
+                                                type="button"
+                                                class="flex-1 bg-red-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
+                                                style="pointer-events: auto;">
                                             <i data-lucide="x" class="h-4 w-4 inline mr-1"></i>
                                             Reject
                                         </button>
@@ -125,7 +129,7 @@
     </div>
 
     <!-- Image Modal -->
-    <div id="imageModal" class="modal">
+    <div id="imageModal" class="modal" onclick="if(event.target === this) closeImageModal()">
         <div class="modal-box max-w-4xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold">ID Document</h3>
@@ -138,7 +142,7 @@
     </div>
 
     <!-- Verification Modal -->
-    <div id="verificationModal" class="modal">
+    <div id="verificationModal" class="modal" onclick="if(event.target === this) closeVerificationModal()">
         <div class="modal-box">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold">Verify ID Document</h3>
@@ -203,7 +207,7 @@
     </div>
 
     <!-- Rejection Modal -->
-    <div id="rejectionModal" class="modal">
+    <div id="rejectionModal" class="modal" onclick="if(event.target === this) closeRejectionModal()">
         <div class="modal-box">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold">Reject ID Verification</h3>
@@ -243,36 +247,54 @@
         // Image Modal Functions
         function openImageModal(imageSrc) {
             document.getElementById('modalImage').src = imageSrc;
-            document.getElementById('imageModal').showModal();
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('modal-open');
         }
 
         function closeImageModal() {
-            document.getElementById('imageModal').close();
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('modal-open');
         }
 
         // Verification Modal Functions
         function openVerificationModal(visitorId, visitorName) {
+            console.log('Opening verification modal for visitor:', visitorId);
             document.getElementById('visitor_id').value = visitorId;
             document.getElementById('verificationForm').action = "{{ route('visitor.verify_id', '') }}/" + visitorId;
-            document.getElementById('verificationForm').reset();
-            document.getElementById('verificationModal').showModal();
+            
+            // Reset form but keep visitor_id
+            const verificationMethod = document.getElementById('verification_method');
+            const verificationNotes = document.getElementById('verification_notes');
+            if (verificationMethod) verificationMethod.value = '';
+            if (verificationNotes) verificationNotes.value = '';
+            
+            const modal = document.getElementById('verificationModal');
+            modal.classList.add('modal-open');
         }
 
         function closeVerificationModal() {
-            document.getElementById('verificationModal').close();
+            const modal = document.getElementById('verificationModal');
+            modal.classList.remove('modal-open');
             stopScanner();
         }
 
         // Rejection Modal Functions
         function openRejectionModal(visitorId, visitorName) {
+            console.log('Opening rejection modal for visitor:', visitorId);
             document.getElementById('reject_visitor_id').value = visitorId;
             document.getElementById('rejectionForm').action = "{{ route('visitor.reject_id', '') }}/" + visitorId;
-            document.getElementById('rejectionForm').reset();
-            document.getElementById('rejectionModal').showModal();
+            
+            // Reset form but keep visitor_id
+            const rejectionReason = document.getElementById('rejection_reason');
+            if (rejectionReason) rejectionReason.value = '';
+            
+            const modal = document.getElementById('rejectionModal');
+            modal.classList.add('modal-open');
         }
 
         function closeRejectionModal() {
-            document.getElementById('rejectionModal').close();
+            const modal = document.getElementById('rejectionModal');
+            modal.classList.remove('modal-open');
         }
 
         // Scanner Functions
@@ -450,7 +472,23 @@
         });
 
         // Initialize Lucide icons
-        lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            // Debug: Log when page is ready
+            console.log('ID Verification page loaded');
+            console.log('Verify buttons:', document.querySelectorAll('button[onclick*="openVerificationModal"]').length);
+            console.log('Reject buttons:', document.querySelectorAll('button[onclick*="openRejectionModal"]').length);
+        });
+        
+        // Reinitialize icons after any dynamic content changes
+        function reinitializeIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
     </script>
 </body>
 </html>

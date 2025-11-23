@@ -17,7 +17,9 @@ class LegalCase extends Model
         'case_type',
         'priority',
         'status',
+        'workflow_stage',
         'assigned_to',
+        'investigator_id',
         'created_by',
         'case_number',
         'filing_date',
@@ -25,17 +27,32 @@ class LegalCase extends Model
         'outcome',
         'amount',
         'notes',
+        'investigation_notes',
+        'investigation_findings',
+        'resolution_decision',
+        'resolution_notes',
+        'disciplinary_actions',
+        'preventive_measures',
         'linked_case_id',
         'employee_involved',
         'incident_date',
         'incident_location',
         'metadata',
+        'investigation_started_at',
+        'investigation_completed_at',
+        'resolved_at',
+        'stage_changed_at',
+        'days_in_current_stage',
     ];
 
     protected $casts = [
         'filing_date' => 'date',
         'court_date' => 'date',
         'incident_date' => 'datetime',
+        'investigation_started_at' => 'datetime',
+        'investigation_completed_at' => 'datetime',
+        'resolved_at' => 'datetime',
+        'stage_changed_at' => 'datetime',
         'metadata' => 'array',
     ];
 
@@ -61,6 +78,38 @@ class LegalCase extends Model
     public function documents()
     {
         return $this->hasMany(Document::class, 'linked_case_id');
+    }
+
+    /**
+     * Get activities for this case
+     */
+    public function activities()
+    {
+        return $this->hasMany(CaseActivity::class, 'legal_case_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get evidence for this case
+     */
+    public function evidence()
+    {
+        return $this->hasMany(CaseEvidence::class, 'legal_case_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get witnesses for this case
+     */
+    public function witnesses()
+    {
+        return $this->hasMany(CaseWitness::class, 'legal_case_id');
+    }
+
+    /**
+     * Get the investigator assigned to this case
+     */
+    public function investigator()
+    {
+        return $this->belongsTo(DeptAccount::class, 'investigator_id', 'Dept_no');
     }
 
     /**
@@ -92,6 +141,99 @@ class LegalCase extends Model
             'closed' => 'text-green-600 bg-green-100',
             default => 'text-gray-600 bg-gray-100'
         };
+    }
+
+    /**
+     * Get workflow stage color for display
+     */
+    public function getWorkflowStageColorAttribute()
+    {
+        return match($this->workflow_stage) {
+            'filing' => 'bg-blue-100 text-blue-800',
+            'investigation' => 'bg-orange-100 text-orange-800',
+            'review' => 'bg-purple-100 text-purple-800',
+            'resolution' => 'bg-green-100 text-green-800',
+            'closed' => 'bg-gray-100 text-gray-800',
+            default => 'bg-gray-100 text-gray-800'
+        };
+    }
+
+    /**
+     * Get workflow stage icon
+     */
+    public function getWorkflowStageIconAttribute()
+    {
+        return match($this->workflow_stage) {
+            'filing' => 'file-text',
+            'investigation' => 'search',
+            'review' => 'clipboard-check',
+            'resolution' => 'check-circle',
+            'closed' => 'archive',
+            default => 'help-circle'
+        };
+    }
+
+    /**
+     * Check if case can transition to next stage
+     */
+    public function canTransitionTo($newStage)
+    {
+        $allowedTransitions = [
+            'filing' => ['investigation'],
+            'investigation' => ['review'],
+            'review' => ['resolution'],
+            'resolution' => ['closed'],
+            'closed' => [],
+        ];
+
+        return in_array($newStage, $allowedTransitions[$this->workflow_stage] ?? []);
+    }
+
+    /**
+     * Transition to new workflow stage
+     */
+    public function transitionTo($newStage, $notes = null)
+    {
+        if (!$this->canTransitionTo($newStage)) {
+            return false;
+        }
+
+        $oldStage = $this->workflow_stage;
+        $this->workflow_stage = $newStage;
+        $this->stage_changed_at = now();
+        $this->days_in_current_stage = 0;
+
+        // Stage-specific updates
+        if ($newStage === 'investigation' && !$this->investigation_started_at) {
+            $this->investigation_started_at = now();
+        } elseif ($newStage === 'resolution' && !$this->investigation_completed_at) {
+            $this->investigation_completed_at = now();
+        } elseif ($newStage === 'closed' && !$this->resolved_at) {
+            $this->resolved_at = now();
+        }
+
+        $this->save();
+
+        // Log activity
+        CaseActivity::log(
+            $this->id,
+            'stage_changed',
+            "Case moved from {$oldStage} to {$newStage}",
+            ['old_stage' => $oldStage, 'new_stage' => $newStage, 'notes' => $notes]
+        );
+
+        return true;
+    }
+
+    /**
+     * Calculate days in current stage
+     */
+    public function updateDaysInStage()
+    {
+        if ($this->stage_changed_at) {
+            $this->days_in_current_stage = $this->stage_changed_at->diffInDays(now());
+            $this->save();
+        }
     }
 
     /**
@@ -131,7 +273,7 @@ class LegalCase extends Model
     }
 
     /**
-     * Boot method to auto-generate case number
+     * Boot method to auto-generate case number and set initial workflow stage
      */
     protected static function boot()
     {
@@ -141,6 +283,26 @@ class LegalCase extends Model
             if (empty($legalCase->case_number)) {
                 $legalCase->case_number = self::generateCaseNumber();
             }
+            
+            // Set initial workflow stage if not set
+            if (empty($legalCase->workflow_stage)) {
+                $legalCase->workflow_stage = 'filing';
+            }
+            
+            // Set stage_changed_at to current time
+            if (empty($legalCase->stage_changed_at)) {
+                $legalCase->stage_changed_at = now();
+            }
+        });
+
+        // Log initial creation
+        static::created(function ($legalCase) {
+            CaseActivity::log(
+                $legalCase->id,
+                'case_created',
+                "Case created: {$legalCase->case_title}",
+                ['case_number' => $legalCase->case_number]
+            );
         });
     }
 }

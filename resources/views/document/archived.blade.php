@@ -6,6 +6,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Archived Documents - Soliera</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -105,21 +106,64 @@
                          autocomplete="off">
                 </div>
                 
-                <!-- Filters Button with Badge -->
-                <button type="button" 
-                        id="filters-button"
-                        onclick="openFiltersModal()"
-                        class="btn btn-sm inline-flex items-center gap-2 whitespace-nowrap"
-                        style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none;"
-                        onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
-                        onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'"
-                        aria-label="Open filters"
-                        aria-expanded="false"
-                        aria-controls="filters-modal">
-                  <i data-lucide="filter" class="w-4 h-4"></i>
-                  <span>Filters</span>
-                  <span id="filter-badge" class="badge badge-primary badge-sm hidden">0</span>
-                </button>
+                <!-- Sort By Dropdown Button -->
+                <div class="relative">
+                  <button type="button" 
+                          id="sort-by-button"
+                          onclick="toggleSortDropdown()"
+                          class="btn btn-sm inline-flex items-center gap-2 whitespace-nowrap"
+                          style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none; min-width: 180px; justify-content: space-between;"
+                          onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                          onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'"
+                          aria-label="Sort documents"
+                          aria-expanded="false">
+                    <span class="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M7 12h10M11 18h2"></path>
+                      </svg>
+                      <span id="current-sort-label">Sort by: Title</span>
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7 10l5 5 5-5z"/>
+                    </svg>
+                  </button>
+                  
+                  <!-- Sort Dropdown Menu -->
+                  <div id="sort-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                    <div class="py-2">
+                      <button onclick="handleSortChange('title')" class="sort-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center justify-between" data-sort="title">
+                        <span>Title</span>
+                        <svg class="checkmark w-4 h-4 text-blue-600 hidden" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </button>
+                      <button onclick="handleSortChange('date')" class="sort-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center justify-between" data-sort="date">
+                        <span>Date</span>
+                        <svg class="checkmark w-4 h-4 text-blue-600 hidden" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </button>
+                      <button onclick="handleSortChange('author')" class="sort-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center justify-between" data-sort="author">
+                        <span>Author</span>
+                        <svg class="checkmark w-4 h-4 text-blue-600 hidden" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </button>
+                      <button onclick="handleSortChange('category')" class="sort-option active w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center justify-between" data-sort="category">
+                        <span>Category</span>
+                        <svg class="checkmark w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </button>
+                      <button onclick="handleSortChange('type')" class="sort-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center justify-between" data-sort="type">
+                        <span>Type</span>
+                        <svg class="checkmark w-4 h-4 text-blue-600 hidden" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -407,144 +451,137 @@
         </div>
 
         <!-- Document Details Panel (Google Drive Style) -->
-        <div id="document-details-panel" class="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto">
-          <div class="sticky top-0 bg-white border-b border-gray-200 z-10">
+        <div id="document-details-panel" class="gdrive-details-panel" style="position: fixed; top: 0; right: 0; height: 100vh; width: 400px; background: #fff; box-shadow: -2px 0 8px rgba(0,0,0,0.1); z-index: 9999; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); overflow-y: auto; font-family: 'Roboto', sans-serif;">
+          <div style="position: sticky; top: 0; background: #fff; border-bottom: 1px solid #e0e0e0; z-index: 10;">
             <!-- Panel Header -->
-            <div class="flex items-center justify-between p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center flex-shrink-0">
-                  <span class="text-sm font-bold text-white" id="details-doc-initials">--</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div id="details-doc-icon" style="width: 40px; height: 40px; border-radius: 4px; background: #1a73e8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                  </svg>
                 </div>
-                <div>
-                  <h3 id="details-doc-title" class="font-semibold text-gray-900 text-sm">Document</h3>
-                  <p id="details-doc-id" class="text-xs text-gray-500">#--</p>
+                <div style="flex: 1; min-width: 0;">
+                  <h3 id="details-doc-title" style="font-size: 16px; font-weight: 500; color: #202124; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Document</h3>
+                  <p id="details-doc-id" style="font-size: 12px; color: #5f6368; margin: 2px 0 0 0;">#--</p>
                 </div>
               </div>
               <button onclick="closeDocumentDetailsPanel()" 
-                      class="btn btn-sm btn-circle btn-ghost"
-                      title="Hide details">
-                <i data-lucide="x" class="w-4 h-4"></i>
+                      style="background: none; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #5f6368; transition: background-color 0.2s;"
+                      onmouseover="this.style.backgroundColor='#f1f3f4'"
+                      onmouseout="this.style.backgroundColor='transparent'"
+                      title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
               </button>
             </div>
             
             <!-- Tabs -->
-            <div class="flex border-b border-gray-200">
+            <div style="display: flex; border-bottom: 1px solid #e0e0e0;">
               <button id="details-tab-btn" 
                       onclick="switchDetailsTab('details')"
-                      class="flex-1 px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50">
+                      style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; color: #1a73e8; background: none; border: none; border-bottom: 2px solid #1a73e8; cursor: pointer; transition: all 0.2s;">
                 Details
               </button>
               <button id="activity-tab-btn" 
                       onclick="switchDetailsTab('activity')"
-                      class="flex-1 px-4 py-3 text-sm font-medium text-gray-600 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300">
+                      style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; color: #5f6368; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;"
+                      onmouseover="this.style.backgroundColor='#f8f9fa'"
+                      onmouseout="this.style.backgroundColor='transparent'">
                 Activity
               </button>
             </div>
           </div>
 
           <!-- Details Tab Content -->
-          <div id="details-tab-content" class="p-4 space-y-6">
-            <!-- Document Information -->
-            <div>
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">Document Information</h4>
-              <div class="space-y-3">
+          <div id="details-tab-content" style="padding: 24px 20px;">
+            <!-- Type, Size, Storage -->
+            <div style="margin-bottom: 32px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div>
-                  <label class="text-xs text-gray-500">Title</label>
-                  <p id="details-title" class="text-sm text-gray-900 mt-1">--</p>
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Type</div>
+                  <div id="details-type" style="font-size: 14px; color: #202124;">Document</div>
                 </div>
                 <div>
-                  <label class="text-xs text-gray-500">Description</label>
-                  <p id="details-description" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Category</label>
-                  <p id="details-category" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Department</label>
-                  <p id="details-department" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Status</label>
-                  <p id="details-status" class="text-sm text-gray-900 mt-1">--</p>
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Size</div>
+                  <div id="details-size" style="font-size: 14px; color: #202124;">--</div>
                 </div>
               </div>
-            </div>
-
-            <!-- Dates -->
-            <div>
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">Dates</h4>
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs text-gray-500">Created</label>
-                  <p id="details-created" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Last Modified</label>
-                  <p id="details-modified" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Archived Date</label>
-                  <p id="details-archived" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Disposal Date</label>
-                  <p id="details-disposal" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Retention & Confidentiality -->
-            <div>
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">Retention & Confidentiality</h4>
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs text-gray-500">Retention Period</label>
-                  <p id="details-retention" class="text-sm text-gray-900 mt-1">--</p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Confidentiality Level</label>
-                  <p id="details-confidentiality" class="text-sm text-gray-900 mt-1">--</p>
+              <div style="margin-top: 12px;">
+                <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Location</div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f1f3f4; border-radius: 16px; font-size: 13px; color: #202124;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#5f6368">
+                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                  </svg>
+                  <span id="details-location">Archived Documents</span>
                 </div>
               </div>
             </div>
 
             <!-- Who has access -->
-            <div>
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">Who has access</h4>
-              <div id="details-access-list" class="space-y-2">
+            <div style="margin-bottom: 32px;">
+              <h4 style="font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 16px;">Who has access</h4>
+              <div id="details-access-list" style="margin-bottom: 12px;">
                 <!-- Access list will be populated here -->
               </div>
-              <button onclick="showManageAccess()" class="btn btn-sm btn-outline mt-3 w-full">
-                <i data-lucide="users" class="w-4 h-4 mr-2"></i>
-                Manage access
+              <button onclick="showShareDialog(window.currentDocumentId)" style="width: 100%; padding: 10px; background: none; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; font-weight: 500; color: #1a73e8; cursor: pointer; transition: all 0.2s; font-family: 'Roboto', sans-serif;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='transparent'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                  <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                </svg>
+                Share
               </button>
             </div>
 
-            <!-- Security Limitations -->
-            <div>
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">Security limitations</h4>
-              <p class="text-sm text-gray-500">No limitations applied</p>
-              <p class="text-xs text-gray-400 mt-1">If any are applied, they will appear here</p>
+            <!-- Details -->
+            <div style="margin-bottom: 32px;">
+              <h4 style="font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 16px;">Details</h4>
+              <div style="display: grid; gap: 16px;">
+                <div>
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Modified</div>
+                  <div id="details-modified" style="font-size: 14px; color: #202124;">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Opened</div>
+                  <div id="details-opened" style="font-size: 14px; color: #202124;">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Created</div>
+                  <div id="details-created" style="font-size: 14px; color: #202124;">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Owner</div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div id="details-owner-avatar" style="width: 24px; height: 24px; border-radius: 50%; background: #1a73e8; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500;">U</div>
+                    <span id="details-owner" style="font-size: 14px; color: #202124;">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div style="margin-bottom: 32px;">
+              <h4 style="font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 8px;">Description</h4>
+              <p id="details-description" style="font-size: 14px; color: #5f6368; line-height: 1.5;">No description</p>
             </div>
           </div>
 
           <!-- Activity Tab Content -->
-          <div id="activity-tab-content" class="p-4 space-y-4 hidden">
-            <div id="activity-list" class="space-y-4">
+          <div id="activity-tab-content" style="padding: 24px 20px; display: none;">
+            <div id="activity-list">
               <!-- Activity items will be populated here -->
-              <div class="text-center py-8">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <i data-lucide="activity" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <p class="text-sm text-gray-500">Loading activity...</p>
+              <div style="text-align: center; padding: 48px 0;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#9aa0a6" style="display: block; margin: 0 auto 16px;">
+                  <path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm1-11h-2v6l5.25 3.15.75-1.23-4-2.42V9z"/>
+                </svg>
+                <p style="font-size: 14px; color: #5f6368;">Loading activity...</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Overlay for details panel -->
-        <div id="details-panel-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeDocumentDetailsPanel()"></div>
+        <div id="details-panel-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9998; display: none;" onclick="closeDocumentDetailsPanel()"></div>
 
         <!-- Filters Modal/Drawer -->
         <div id="filters-modal" 
@@ -1016,6 +1053,41 @@
     #search-input:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+    
+    /* Sort dropdown styles */
+    #sort-dropdown-menu {
+      animation: fadeInDropdown 0.2s ease-out;
+    }
+    
+    @keyframes fadeInDropdown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .sort-option {
+      transition: background-color 0.15s ease;
+      cursor: pointer;
+      color: #374151;
+    }
+    
+    .sort-option:hover {
+      background-color: #f3f4f6;
+    }
+    
+    .sort-option.active {
+      background-color: #eff6ff;
+      color: #1d4ed8;
+    }
+    
+    .sort-option .checkmark {
+      flex-shrink: 0;
     }
   </style>
   
@@ -1600,19 +1672,30 @@
 
     // View document details in sidebar panel (Google Drive style)
     function viewDocumentDetails(documentId) {
+      // Store document ID globally
+      window.currentDocumentId = documentId;
+      
       // Open the sidebar panel
       openDocumentDetailsPanel();
       
-      // Show loading state
-      document.getElementById('details-tab-content').innerHTML = `
-        <div class="text-center py-12">
-          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-gray-400"></i>
+      // Show loading state with Google Drive style
+      const detailsContent = document.getElementById('details-tab-content');
+      if (detailsContent) {
+        detailsContent.innerHTML = `
+          <div style="text-align: center; padding: 64px 20px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="#9aa0a6" style="display: block; margin: 0 auto 16px; animation: spin 1s linear infinite;">
+              <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z" />
+            </svg>
+            <p style="font-size: 14px; color: #5f6368;">Loading details...</p>
           </div>
-          <p class="text-sm text-gray-500">Loading document details...</p>
-        </div>
-      `;
-      lucide.createIcons();
+          <style>
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          </style>
+        `;
+      }
 
       // Fetch document details
       fetch(`/document/${documentId}`, {
@@ -1632,6 +1715,80 @@
       .then(data => {
         if (data.success && data.document) {
           const doc = data.document;
+          
+          // Restore the original HTML structure
+          const detailsContent = document.getElementById('details-tab-content');
+          if (detailsContent) {
+            detailsContent.innerHTML = `
+              <!-- Type, Size, Storage -->
+              <div style="margin-bottom: 32px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div>
+                    <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Type</div>
+                    <div id="details-type" style="font-size: 14px; color: #202124;">Document</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Size</div>
+                    <div id="details-size" style="font-size: 14px; color: #202124;">--</div>
+                  </div>
+                </div>
+                <div style="margin-top: 12px;">
+                  <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Location</div>
+                  <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f1f3f4; border-radius: 16px; font-size: 13px; color: #202124;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#5f6368">
+                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                    </svg>
+                    <span id="details-location">Archived Documents</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Who has access -->
+              <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 16px;">Who has access</h4>
+                <div id="details-access-list" style="margin-bottom: 12px;"></div>
+                <button onclick="showShareDialog(window.currentDocumentId)" style="width: 100%; padding: 10px; background: none; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; font-weight: 500; color: #1a73e8; cursor: pointer; transition: all 0.2s; font-family: 'Roboto', sans-serif;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='transparent'">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                  </svg>
+                  Share
+                </button>
+              </div>
+
+              <!-- Details -->
+              <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 16px;">Details</h4>
+                <div style="display: grid; gap: 16px;">
+                  <div>
+                    <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Modified</div>
+                    <div id="details-modified" style="font-size: 14px; color: #202124;">--</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Opened</div>
+                    <div id="details-opened" style="font-size: 14px; color: #202124;">--</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Created</div>
+                    <div id="details-created" style="font-size: 14px; color: #202124;">--</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; font-weight: 500; color: #5f6368; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Owner</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div id="details-owner-avatar" style="width: 24px; height: 24px; border-radius: 50%; background: #1a73e8; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500;">U</div>
+                      <span id="details-owner" style="font-size: 14px; color: #202124;">--</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 8px;">Description</h4>
+                <p id="details-description" style="font-size: 14px; color: #5f6368; line-height: 1.5;">No description</p>
+              </div>
+            `;
+          }
+          
           populateDocumentDetails(doc);
           loadDocumentActivity(documentId);
         } else {
@@ -1640,16 +1797,21 @@
       })
       .catch(error => {
         console.error('Error fetching document details:', error);
-        document.getElementById('details-tab-content').innerHTML = `
-          <div class="text-center py-12">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i data-lucide="alert-circle" class="w-8 h-8 text-red-500"></i>
+        const detailsContent = document.getElementById('details-tab-content');
+        if (detailsContent) {
+          detailsContent.innerHTML = `
+            <div style="text-align: center; padding: 64px 20px;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="#ea4335" style="display: block; margin: 0 auto 16px;">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+              <p style="font-size: 14px; color: #202124; font-weight: 500; margin-bottom: 8px;">Failed to load document details</p>
+              <p style="font-size: 12px; color: #5f6368;">${error.message}</p>
+              <button onclick="viewDocumentDetails(${documentId})" style="margin-top: 16px; padding: 8px 16px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Roboto', sans-serif;" onmouseover="this.style.backgroundColor='#1765cc'" onmouseout="this.style.backgroundColor='#1a73e8'">
+                Retry
+              </button>
             </div>
-            <p class="text-sm text-red-600">Failed to load document details</p>
-            <p class="text-xs text-gray-500 mt-2">${error.message}</p>
-          </div>
-        `;
-        lucide.createIcons();
+          `;
+        }
       });
     }
 
@@ -1658,11 +1820,10 @@
       const panel = document.getElementById('document-details-panel');
       const overlay = document.getElementById('details-panel-overlay');
       if (panel) {
-        panel.classList.remove('translate-x-full');
-        panel.classList.add('translate-x-0');
+        panel.style.transform = 'translateX(0)';
       }
       if (overlay) {
-        overlay.classList.remove('hidden');
+        overlay.style.display = 'block';
       }
       // Switch to Details tab by default
       switchDetailsTab('details');
@@ -1673,11 +1834,10 @@
       const panel = document.getElementById('document-details-panel');
       const overlay = document.getElementById('details-panel-overlay');
       if (panel) {
-        panel.classList.remove('translate-x-0');
-        panel.classList.add('translate-x-full');
+        panel.style.transform = 'translateX(100%)';
       }
       if (overlay) {
-        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
       }
     }
 
@@ -1689,107 +1849,154 @@
       const activityContent = document.getElementById('activity-tab-content');
 
       if (tab === 'details') {
-        detailsBtn.classList.add('text-blue-600', 'border-blue-600', 'bg-blue-50');
-        detailsBtn.classList.remove('text-gray-600', 'border-transparent');
-        activityBtn.classList.remove('text-blue-600', 'border-blue-600', 'bg-blue-50');
-        activityBtn.classList.add('text-gray-600', 'border-transparent');
-        detailsContent.classList.remove('hidden');
-        activityContent.classList.add('hidden');
+        // Details tab active
+        detailsBtn.style.color = '#1a73e8';
+        detailsBtn.style.borderBottomColor = '#1a73e8';
+        activityBtn.style.color = '#5f6368';
+        activityBtn.style.borderBottomColor = 'transparent';
+        detailsContent.style.display = 'block';
+        activityContent.style.display = 'none';
       } else {
-        activityBtn.classList.add('text-blue-600', 'border-blue-600', 'bg-blue-50');
-        activityBtn.classList.remove('text-gray-600', 'border-transparent');
-        detailsBtn.classList.remove('text-blue-600', 'border-blue-600', 'bg-blue-50');
-        detailsBtn.classList.add('text-gray-600', 'border-transparent');
-        activityContent.classList.remove('hidden');
-        detailsContent.classList.add('hidden');
+        // Activity tab active
+        activityBtn.style.color = '#1a73e8';
+        activityBtn.style.borderBottomColor = '#1a73e8';
+        detailsBtn.style.color = '#5f6368';
+        detailsBtn.style.borderBottomColor = 'transparent';
+        activityContent.style.display = 'block';
+        detailsContent.style.display = 'none';
       }
     }
 
     // Populate document details in the panel
     function populateDocumentDetails(doc) {
-      // Format dates
-      const formatDate = (dateString) => {
-        if (!dateString) return 'Not Set';
+      // Store current document ID for share button
+      window.currentDocumentId = doc.id;
+
+      // Format dates in Google Drive style
+      const formatSmartDate = (dateString) => {
+        if (!dateString) return 'Unknown';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) {
+          // Today - show time
+          return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        } else if (diffDays === 1) {
+          return 'Yesterday';
+        } else if (diffDays < 7) {
+          return `${diffDays} days ago`;
+        } else if (diffDays < 30) {
+          const weeks = Math.floor(diffDays / 7);
+          return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+        } else if (date.getFullYear() === now.getFullYear()) {
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } else {
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+      };
+
+      const formatFullDate = (dateString) => {
+        if (!dateString) return 'Unknown';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
           year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
         });
       };
 
-      const formatDateShort = (dateString) => {
-        if (!dateString) return 'Not Set';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
-      };
-
-      // Get document initials
+      // Get document title
       const title = doc.title || 'Untitled Document';
-      const initials = title.substring(0, 2).toUpperCase();
 
       // Populate header
-      document.getElementById('details-doc-initials').textContent = initials;
       document.getElementById('details-doc-title').textContent = title;
       document.getElementById('details-doc-id').textContent = `#${doc.id}`;
 
-      // Populate Details tab
-      document.getElementById('details-title').textContent = title;
-      document.getElementById('details-description').textContent = doc.description || 'No description';
-      document.getElementById('details-category').textContent = doc.category ? doc.category.replace('_', ' ').charAt(0).toUpperCase() + doc.category.replace('_', ' ').slice(1) : 'Unknown';
-      document.getElementById('details-department').textContent = doc.department || 'Unassigned';
-      document.getElementById('details-status').textContent = doc.status ? doc.status.replace('_', ' ').charAt(0).toUpperCase() + doc.status.replace('_', ' ').slice(1) : 'Active';
+      // Populate type
+      const type = doc.category ? doc.category.replace('_', ' ').charAt(0).toUpperCase() + doc.category.replace('_', ' ').slice(1) : 'Document';
+      const typeEl = document.getElementById('details-type');
+      if (typeEl) typeEl.textContent = type;
+
+      // Populate size
+      const sizeEl = document.getElementById('details-size');
+      if (sizeEl) sizeEl.textContent = doc.file_size || 'Unknown';
+
+      // Populate location
+      const locationEl = document.getElementById('details-location');
+      if (locationEl) locationEl.textContent = doc.department || 'Archived Documents';
+
+      // Populate dates
+      const modifiedEl = document.getElementById('details-modified');
+      if (modifiedEl) modifiedEl.textContent = formatSmartDate(doc.updated_at || doc.created_at);
       
-      document.getElementById('details-created').textContent = formatDateShort(doc.created_at);
-      document.getElementById('details-modified').textContent = formatDateShort(doc.updated_at || doc.created_at);
-      document.getElementById('details-archived').textContent = doc.archived_at ? formatDateShort(doc.archived_at) : 'Not archived';
-      document.getElementById('details-disposal').textContent = doc.disposal_date ? formatDateShort(doc.disposal_date) : 'Not set';
+      const createdEl = document.getElementById('details-created');
+      if (createdEl) createdEl.textContent = formatFullDate(doc.created_at);
+      
+      const openedEl = document.getElementById('details-opened');
+      if (openedEl) openedEl.textContent = formatSmartDate(doc.last_viewed_at || doc.created_at);
 
-      // Retention period
-      const retentionPeriod = doc.retention_period || (doc.retention_years ? `${doc.retention_years} Years` : 'Not set');
-      document.getElementById('details-retention').textContent = retentionPeriod;
+      // Populate owner
+      const ownerName = doc.uploader_name || doc.owner_name || 'Unknown';
+      const ownerInitial = ownerName.charAt(0).toUpperCase();
+      const ownerEl = document.getElementById('details-owner');
+      const ownerAvatarEl = document.getElementById('details-owner-avatar');
+      if (ownerEl) ownerEl.textContent = ownerName;
+      if (ownerAvatarEl) {
+        ownerAvatarEl.textContent = ownerInitial;
+        ownerAvatarEl.style.background = getAvatarColor(ownerName);
+      }
 
-      // Confidentiality
-      const confidentiality = doc.confidentiality_level || 'internal';
-      document.getElementById('details-confidentiality').textContent = confidentiality.charAt(0).toUpperCase() + confidentiality.slice(1);
+      // Populate description
+      const descEl = document.getElementById('details-description');
+      if (descEl) descEl.textContent = doc.description || 'No description';
 
-      // Who has access
+      // Populate "Who has access"
       const accessList = document.getElementById('details-access-list');
-      accessList.innerHTML = `
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
-            ${(doc.uploader_name || 'U').substring(0, 1).toUpperCase()}
+      if (accessList) {
+        const collaboratorCount = doc.collaborators ? doc.collaborators.length : 0;
+        const accessText = collaboratorCount > 0 
+          ? `${ownerName} is the owner. Shared with ${collaboratorCount} other${collaboratorCount > 1 ? 's' : ''}.`
+          : `Only ${ownerName} has access`;
+          
+        accessList.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: ${getAvatarColor(ownerName)}; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 500;">
+              ${ownerInitial}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 14px; color: #202124; font-weight: 500;">${ownerName}</div>
+              <div style="font-size: 12px; color: #5f6368;">Owner</div>
+            </div>
           </div>
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-900">${doc.uploader_name || 'You'}</p>
-            <p class="text-xs text-gray-500">Owner</p>
+          <div style="font-size: 12px; color: #5f6368; margin-top: 8px;">
+            ${accessText}
           </div>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">Owned by ${doc.uploader_name || 'you'}. ${doc.collaborators && doc.collaborators.length > 0 ? `Shared with ${doc.collaborators.length} other${doc.collaborators.length > 1 ? 's' : ''}.` : 'Not shared.'}</p>
-      `;
-
-      // Re-initialize icons
-      lucide.createIcons();
+        `;
+      }
     }
 
     // Load document activity
     function loadDocumentActivity(documentId) {
       const activityList = document.getElementById('activity-list');
       activityList.innerHTML = `
-        <div class="text-center py-8">
-          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-gray-400"></i>
-          </div>
-          <p class="text-sm text-gray-500">Loading activity...</p>
+        <div style="text-align: center; padding: 48px 0;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="#9aa0a6" style="display: block; margin: 0 auto 16px; animation: spin 1s linear infinite;">
+            <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z" />
+          </svg>
+          <p style="font-size: 14px; color: #5f6368;">Loading activity...</p>
         </div>
+        <style>
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        </style>
       `;
-      lucide.createIcons();
 
       // Fetch activity logs
       fetch(`/legal/documents/${documentId}/activity-tracking`, {
@@ -1806,49 +2013,55 @@
           const activities = data.activity_log;
           if (activities.length === 0) {
             activityList.innerHTML = `
-              <div class="text-center py-8">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <i data-lucide="activity" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <p class="text-sm text-gray-500">No activity recorded</p>
+              <div style="text-align: center; padding: 48px 0;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#9aa0a6" style="display: block; margin: 0 auto 16px;">
+                  <path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm1-11h-2v6l5.25 3.15.75-1.23-4-2.42V9z"/>
+                </svg>
+                <p style="font-size: 14px; color: #5f6368;">No activity yet</p>
               </div>
             `;
           } else {
-            activityList.innerHTML = activities.map(activity => `
-              <div class="flex items-start gap-3 pb-4 border-b border-gray-200 last:border-0">
-                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <i data-lucide="${getActivityIcon(activity.action)}" class="w-4 h-4 text-blue-600"></i>
+            activityList.innerHTML = activities.map(activity => {
+              const userInitial = (activity.user_name || 'S').charAt(0).toUpperCase();
+              const avatarColor = getAvatarColor(activity.user_name || 'System');
+              return `
+                <div style="display: flex; align-items: start; gap: 12px; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: ${avatarColor}; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 500; flex-shrink: 0;">
+                    ${userInitial}
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 14px; color: #202124; margin-bottom: 4px;">
+                      <strong>${activity.user_name || 'System'}</strong> ${activity.description || activity.action}
+                    </div>
+                    <div style="font-size: 12px; color: #5f6368;">
+                      ${activity.formatted_date || 'Unknown date'}
+                    </div>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm text-gray-900">${activity.description || activity.action}</p>
-                  <p class="text-xs text-gray-500 mt-1">${activity.user_name || 'System'} • ${activity.formatted_date || 'Unknown date'}</p>
-                </div>
-              </div>
-            `).join('');
+              `;
+            }).join('');
           }
         } else {
           activityList.innerHTML = `
-            <div class="text-center py-8">
-              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="activity" class="w-8 h-8 text-gray-400"></i>
-              </div>
-              <p class="text-sm text-gray-500">No activity recorded</p>
+            <div style="text-align: center; padding: 48px 0;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="#9aa0a6" style="display: block; margin: 0 auto 16px;">
+                <path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm1-11h-2v6l5.25 3.15.75-1.23-4-2.42V9z"/>
+              </svg>
+              <p style="font-size: 14px; color: #5f6368;">No activity yet</p>
             </div>
           `;
         }
-        lucide.createIcons();
       })
       .catch(error => {
         console.error('Error loading activity:', error);
         activityList.innerHTML = `
-          <div class="text-center py-8">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i data-lucide="activity" class="w-8 h-8 text-gray-400"></i>
-            </div>
-            <p class="text-sm text-gray-500">No activity recorded</p>
+          <div style="text-align: center; padding: 48px 0;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="#9aa0a6" style="display: block; margin: 0 auto 16px;">
+              <path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm1-11h-2v6l5.25 3.15.75-1.23-4-2.42V9z"/>
+            </svg>
+            <p style="font-size: 14px; color: #5f6368;">No activity yet</p>
           </div>
         `;
-        lucide.createIcons();
       });
     }
 
@@ -2027,7 +2240,24 @@
       });
     }
 
+    // ============================================
+    // GOOGLE DRIVE-STYLE SHARE MODAL
+    // ============================================
+    
+    // Global state for share modal
+    window.shareModalState = {
+      mode: 'initial', // 'initial' or 'compose'
+      selectedRecipients: [],
+      documentId: null,
+      docTitle: ''
+    };
+
     function showShareDialog(documentId) {
+      // Initialize state
+      window.shareModalState.documentId = documentId;
+      window.shareModalState.mode = 'initial';
+      window.shareModalState.selectedRecipients = [];
+      
       // Fetch document details and collaborators
       Promise.all([
         fetch(`/document/${documentId}`, {
@@ -2055,31 +2285,72 @@
         
         // Get document title
         const docTitle = doc ? doc.title : 'Document';
+        window.shareModalState.docTitle = docTitle;
         
+        // Render the modal based on current state
+        renderShareModal(documentId, docTitle, currentUser, collaborators, shareUrl);
+      })
+      .catch(error => {
+        console.error('Error loading share dialog:', error);
         Swal.fire({
-          title: '',
-          html: `
-            <div class="text-left" style="max-width: 520px; padding: 24px;">
-              <!-- Header with title and icons -->
-              <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                <h3 class="text-lg font-normal text-gray-900">Share '${docTitle}'</h3>
-                <div class="flex items-center gap-2">
-                  <button class="p-1.5 hover:bg-gray-100 rounded-full transition-colors" title="Help">
-                    <i data-lucide="help-circle" class="w-5 h-5 text-gray-600"></i>
-                  </button>
-                  <button class="p-1.5 hover:bg-gray-100 rounded-full transition-colors" title="Settings">
-                    <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
-                  </button>
-                </div>
-              </div>
+          title: 'Error',
+          text: 'Failed to load share settings',
+          icon: 'error'
+        });
+      });
+    }
 
-              <!-- Add people input -->
-              <div class="mb-6">
-                <input type="text" 
-                       id="share-add-people" 
-                       placeholder="Add people, groups, spaces and calendar events"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+    function renderShareModal(documentId, docTitle, currentUser, collaborators, shareUrl) {
+      if (window.shareModalState.mode === 'compose') {
+        renderComposeShareModal(documentId, docTitle, currentUser, collaborators, shareUrl);
+      } else {
+        renderInitialShareModal(documentId, docTitle, currentUser, collaborators, shareUrl);
+      }
+    }
+
+    function renderInitialShareModal(documentId, docTitle, currentUser, collaborators, shareUrl) {
+      Swal.fire({
+        title: '',
+        html: `
+          <div class="text-left" style="max-width: 520px; padding: 24px;">
+            <!-- Header with title and icons -->
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+              <h3 class="text-lg font-normal text-gray-900">Share "${escapeHtml(docTitle)}"</h3>
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 hover:bg-gray-100 rounded-full transition-colors" title="Help">
+                  <i data-lucide="help-circle" class="w-5 h-5 text-gray-600"></i>
+                </button>
+                <button class="p-1.5 hover:bg-gray-100 rounded-full transition-colors" title="Settings">
+                  <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
+                </button>
               </div>
+            </div>
+
+            <!-- Add people input with autocomplete -->
+            <div class="mb-6 relative">
+              <input type="text" 
+                     id="share-add-people" 
+                     placeholder="Add people or email addresses"
+                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+              <!-- Autocomplete dropdown -->
+              <div id="share-autocomplete-dropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+            </div>
+            
+            <!-- Get Link Section -->
+            <div class="mb-6 pb-6 border-b border-gray-200">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                  <span class="text-sm font-medium text-gray-700">Get Link</span>
+                </div>
+                <button id="copy-link-btn" data-share-url="${shareUrl}" class="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  Copy link
+                </button>
+              </div>
+            </div>
 
               <!-- People with access -->
               <div class="mb-6">
@@ -2159,13 +2430,52 @@
           didOpen: () => {
             lucide.createIcons();
             
-            // Add event listener for adding people
+            // Add event listener for copy link button
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            if (copyLinkBtn) {
+              copyLinkBtn.addEventListener('click', function() {
+                const url = this.getAttribute('data-share-url');
+                showLinkShareOptions(url);
+              });
+            }
+            
+            // Add event listener for email autocomplete and Enter to transition
             const addPeopleInput = document.getElementById('share-add-people');
+            const autocompleteDropdown = document.getElementById('share-autocomplete-dropdown');
+            
             if (addPeopleInput) {
+              // Input event for autocomplete
+              addPeopleInput.addEventListener('input', function(e) {
+                const query = this.value.trim();
+                if (query.length >= 2) {
+                  searchUsersAndEmails(query, autocompleteDropdown, documentId);
+                } else {
+                  autocompleteDropdown.classList.add('hidden');
+                  autocompleteDropdown.innerHTML = '';
+                }
+              });
+              
+              // Enter key to add recipient and transition to compose modal
               addPeopleInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && this.value.trim()) {
-                  addPersonToShare(documentId, this.value.trim());
-                  this.value = '';
+                  e.preventDefault();
+                  const email = this.value.trim();
+                  
+                  // Validate email
+                  if (isValidEmail(email)) {
+                    addRecipientAndTransition(email);
+                    this.value = '';
+                    autocompleteDropdown.classList.add('hidden');
+                  } else {
+                    Swal.showValidationMessage('Please enter a valid email address');
+                  }
+                }
+              });
+              
+              // Click outside to close autocomplete
+              document.addEventListener('click', function(e) {
+                if (!addPeopleInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
+                  autocompleteDropdown.classList.add('hidden');
                 }
               });
             }
@@ -2264,15 +2574,6 @@
             }, 300);
           }
         });
-      })
-      .catch(error => {
-        console.error('Error loading share dialog:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'Failed to load share settings',
-          icon: 'error'
-        });
-      });
     }
 
     function copyShareLinkFromDialog(shareUrl) {
@@ -2388,6 +2689,478 @@
       // Close current share dialog and show add collaborator modal
       Swal.close();
       showAddCollaboratorModal(documentId);
+    }
+
+    // HTML escape helper
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Email validation helper
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    // Search users and emails for autocomplete
+    function searchUsersAndEmails(query, dropdown, documentId) {
+      fetch('/users/search?q=' + encodeURIComponent(query), {
+        method: 'GET',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.users && data.users.length > 0) {
+          dropdown.innerHTML = data.users.map(user => {
+            const safeEmail = escapeHtml(user.email);
+            const safeName = escapeHtml(user.name);
+            return `
+              <div class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 autocomplete-user-item" 
+                   data-user-email="${safeEmail}" 
+                   data-user-name="${safeName}">
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+                  ${user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div class="text-sm font-medium">${safeName}</div>
+                  <div class="text-xs text-gray-500">${safeEmail}</div>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          // Add click listeners
+          dropdown.querySelectorAll('.autocomplete-user-item').forEach(item => {
+            item.addEventListener('click', function() {
+              const email = this.getAttribute('data-user-email');
+              const name = this.getAttribute('data-user-name');
+              selectUserFromAutocomplete(email, name);
+            });
+          });
+          
+          dropdown.classList.remove('hidden');
+        } else {
+          // Show option to add email directly
+          if (isValidEmail(query)) {
+            dropdown.innerHTML = `
+              <div class="p-2 hover:bg-gray-100 cursor-pointer autocomplete-email-item" data-email="${escapeHtml(query)}">
+                <div class="text-sm">Add: <strong>${escapeHtml(query)}</strong></div>
+              </div>
+            `;
+            
+            // Add click listener
+            const emailItem = dropdown.querySelector('.autocomplete-email-item');
+            if (emailItem) {
+              emailItem.addEventListener('click', function() {
+                const email = this.getAttribute('data-email');
+                selectUserFromAutocomplete(email, email);
+              });
+            }
+            
+            dropdown.classList.remove('hidden');
+          } else {
+            dropdown.classList.add('hidden');
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error searching users:', error);
+        dropdown.classList.add('hidden');
+      });
+    }
+
+    // Select user from autocomplete
+    function selectUserFromAutocomplete(email, name) {
+      const input = document.getElementById('share-add-people');
+      if (input) {
+        input.value = email;
+        // Trigger Enter key to add recipient
+        const event = new KeyboardEvent('keypress', { key: 'Enter' });
+        input.dispatchEvent(event);
+      }
+    }
+
+    // Add recipient and transition to compose modal
+    function addRecipientAndTransition(email) {
+      // Add to selected recipients
+      window.shareModalState.selectedRecipients.push({
+        email: email,
+        role: 'Viewer'
+      });
+      
+      // Switch to compose mode
+      window.shareModalState.mode = 'compose';
+      
+      // Close current modal
+      Swal.close();
+      
+      // Get current document data from the initial modal
+      const documentId = window.shareModalState.documentId;
+      const docTitle = window.shareModalState.docTitle;
+      
+      // Fetch fresh data and render compose modal
+      Promise.all([
+        fetch(`/document/${documentId}`, {
+          method: 'GET',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        }).then(r => r.json()),
+        fetch(`/legal/documents/${documentId}/collaborators`, {
+          method: 'GET',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        }).then(r => r.json())
+      ])
+      .then(([docData, collabData]) => {
+        const doc = docData.success ? docData.document : null;
+        const collaborators = collabData.success ? collabData.collaborators : [];
+        const currentUser = { name: '{{ auth()->user()->name }}', email: '{{ auth()->user()->email }}' };
+        const shareUrl = `${window.location.origin}/document/${documentId}`;
+        
+        // Render compose modal directly
+        renderComposeShareModal(documentId, docTitle, currentUser, collaborators, shareUrl);
+      })
+      .catch(error => {
+        console.error('Error transitioning to compose modal:', error);
+      });
+    }
+
+    // Render Google Drive-style compose modal
+    function renderComposeShareModal(documentId, docTitle, currentUser, collaborators, shareUrl) {
+      // Create custom modal elements
+      const backdrop = document.createElement('div');
+      backdrop.className = 'gdrive-share-backdrop';
+      backdrop.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9998; display: flex; align-items: center; justify-content: center;';
+      backdrop.onclick = function(e) {
+        if (e.target === backdrop) closeGDriveShareModal();
+      };
+      
+      const modalContainer = document.createElement('div');
+      modalContainer.className = 'gdrive-share-modal';
+      modalContainer.style.cssText = 'background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); width: 560px; max-width: 90vw; max-height: 90vh; overflow-y: auto; z-index: 9999; position: relative;';
+      
+      // Generate chips HTML
+      const chipsHTML = window.shareModalState.selectedRecipients.map((recipient, index) => `
+        <div class="gdrive-chip" style="display: inline-flex; align-items: center; background: #eef2f7; border: 1px solid #dadce0; border-radius: 16px; padding: 2px 8px 2px 2px; margin: 2px 4px; font-size: 14px; font-family: Roboto, sans-serif; height: 32px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: ${getAvatarColor(recipient.email)}; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 500; margin-right: 8px; flex-shrink: 0;">
+            ${recipient.email.charAt(0).toUpperCase()}
+          </div>
+          <span style="color: #3c4043; margin-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${escapeHtml(recipient.email)}</span>
+          <button type="button" data-remove-index="${index}" class="remove-chip-btn" style="background: none; border: none; color: #5f6368; cursor: pointer; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 18px; line-height: 1; flex-shrink: 0; transition: background-color 0.2s;" title="Remove" onmouseover="this.style.backgroundColor='#dadce0'" onmouseout="this.style.backgroundColor='transparent'">×</button>
+        </div>
+      `).join('');
+      
+      modalContainer.innerHTML = `
+        <div style="padding: 24px;">
+          <!-- Header with back button -->
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <button type="button" id="back-btn" style="background: none; border: none; padding: 8px; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="Back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <h3 style="font-size: 18px; font-weight: 400; color: #3c4043; margin: 0; flex: 1;">Share "${escapeHtml(docTitle)}"</h3>
+          </div>
+
+          <!-- Chips input and role dropdown -->
+          <div style="display: flex; align-items: stretch; gap: 16px; margin-bottom: 20px;">
+            <!-- Chips container -->
+            <div id="gdrive-chips-input" style="flex: 1; border: 1px solid #dadce0; border-radius: 8px; padding: 8px 12px; min-height: 48px; display: flex; flex-wrap: wrap; align-items: center; cursor: text; background: white;">
+              ${chipsHTML}
+              <input type="text" id="gdrive-add-more" placeholder="Add more people" style="border: none; outline: none; flex: 1; min-width: 120px; font-size: 14px; font-family: Roboto, sans-serif; padding: 4px 0;">
+            </div>
+            
+            <!-- Role dropdown -->
+            <select id="gdrive-role-dropdown" style="border: 1px solid #dadce0; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #5f6368; background: white; cursor: pointer; min-width: 120px; height: 48px; display: flex; align-items: center;">
+              <option value="Viewer">Viewer</option>
+              <option value="Commenter">Commenter</option>
+              <option value="Editor">Editor</option>
+            </select>
+          </div>
+
+          <!-- Notify people checkbox -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #3c4043;">
+              <input type="checkbox" id="gdrive-notify-checkbox" checked style="width: 18px; height: 18px; cursor: pointer;">
+              <span>Notify people</span>
+            </label>
+          </div>
+
+          <!-- Message textarea -->
+          <div style="margin-bottom: 20px;">
+            <textarea id="gdrive-message-textarea" placeholder="Message (optional)" style="width: 100%; border: 1px solid #dadce0; border-radius: 8px; padding: 12px; font-size: 14px; font-family: Roboto, sans-serif; resize: vertical; min-height: 80px;" rows="3"></textarea>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #dadce0;">
+            <button type="button" id="cancel-btn" style="background: none; border: none; padding: 10px 24px; font-size: 14px; font-weight: 500; color: #1a73e8; cursor: pointer; border-radius: 4px;">Cancel</button>
+            <button type="button" id="send-btn" style="background: #1a73e8; color: white; border: none; padding: 10px 24px; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 4px;">Send</button>
+          </div>
+        </div>
+      `;
+      
+      backdrop.appendChild(modalContainer);
+      document.body.appendChild(backdrop);
+      
+      // Add event listeners
+      document.getElementById('back-btn').onclick = backToInitialShareModal;
+      document.getElementById('cancel-btn').onclick = closeGDriveShareModal;
+      document.getElementById('send-btn').onclick = () => sendShareInvitationsGDrive(documentId);
+      
+      // Remove chip buttons
+      modalContainer.querySelectorAll('.remove-chip-btn').forEach(btn => {
+        btn.onclick = function() {
+          const index = parseInt(this.getAttribute('data-remove-index'));
+          removeRecipient(index);
+        };
+      });
+      
+      // Focus on add more input
+      setTimeout(() => {
+        const addMoreInput = document.getElementById('gdrive-add-more');
+        if (addMoreInput) {
+          addMoreInput.focus();
+        }
+      }, 100);
+      
+      // Setup keyboard handlers
+      setupKeyboardHandlers(modalContainer, documentId);
+      setupChipsInputHandlers();
+    }
+
+    // Close Google Drive share modal
+    function closeGDriveShareModal() {
+      const backdrop = document.querySelector('.gdrive-share-backdrop');
+      if (backdrop) {
+        backdrop.remove();
+      }
+      // Reset state
+      window.shareModalState.mode = 'initial';
+    }
+
+    // Back to initial share modal
+    function backToInitialShareModal() {
+      // Reset state
+      window.shareModalState.mode = 'initial';
+      window.shareModalState.selectedRecipients = [];
+      
+      // Close compose modal
+      closeGDriveShareModal();
+      
+      // Show initial modal
+      showShareDialog(window.shareModalState.documentId);
+    }
+
+    // Remove recipient chip
+    function removeRecipient(index) {
+      window.shareModalState.selectedRecipients.splice(index, 1);
+      
+      if (window.shareModalState.selectedRecipients.length === 0) {
+        // Return to initial modal if no recipients
+        backToInitialShareModal();
+      } else {
+        // Re-render compose modal
+        closeGDriveShareModal();
+        showShareDialog(window.shareModalState.documentId);
+      }
+    }
+
+    // Get avatar color based on email
+    function getAvatarColor(email) {
+      const colors = ['#1a73e8', '#ea4335', '#34a853', '#fbbc04', '#ff6d00', '#9334e9', '#06b6d4'];
+      const hash = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return colors[hash % colors.length];
+    }
+
+    // Setup keyboard handlers
+    function setupKeyboardHandlers(modal, documentId) {
+      const escHandler = function(e) {
+        if (e.key === 'Escape') {
+          closeGDriveShareModal();
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+    }
+
+    // Setup chips input handlers
+    function setupChipsInputHandlers() {
+      const chipsInput = document.getElementById('gdrive-chips-input');
+      const addMoreInput = document.getElementById('gdrive-add-more');
+      
+      if (chipsInput && addMoreInput) {
+        // Backspace to remove last chip
+        addMoreInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Backspace' && this.value === '' && window.shareModalState.selectedRecipients.length > 0) {
+            removeRecipient(window.shareModalState.selectedRecipients.length - 1);
+          }
+        });
+        
+        // Enter to add new recipient
+        addMoreInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter' && this.value.trim()) {
+            e.preventDefault();
+            const email = this.value.trim();
+            
+            if (isValidEmail(email)) {
+              window.shareModalState.selectedRecipients.push({
+                email: email,
+                role: 'Viewer'
+              });
+              this.value = '';
+              
+              // Re-render
+              closeGDriveShareModal();
+              showShareDialog(window.shareModalState.documentId);
+            } else {
+              alert('Please enter a valid email address');
+            }
+          }
+        });
+        
+        // Paste multiple emails
+        addMoreInput.addEventListener('paste', function(e) {
+          e.preventDefault();
+          const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+          const emails = pastedText.split(/[\s,;]+/).filter(email => isValidEmail(email.trim()));
+          
+          if (emails.length > 0) {
+            emails.forEach(email => {
+              window.shareModalState.selectedRecipients.push({
+                email: email.trim(),
+                role: 'Viewer'
+              });
+            });
+            this.value = '';
+            
+            // Re-render
+            closeGDriveShareModal();
+            showShareDialog(window.shareModalState.documentId);
+          }
+        });
+      }
+    }
+
+    // Send share invitations
+    function sendShareInvitationsGDrive(documentId) {
+      const notify = document.getElementById('gdrive-notify-checkbox')?.checked || false;
+      const message = document.getElementById('gdrive-message-textarea')?.value || '';
+      const role = document.getElementById('gdrive-role-dropdown')?.value || 'Viewer';
+      
+      // Update all recipients with selected role
+      window.shareModalState.selectedRecipients.forEach(recipient => {
+        recipient.role = role;
+      });
+      
+      // Send to API
+      fetch(`/legal/documents/${documentId}/share`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          recipients: window.shareModalState.selectedRecipients,
+          notify: notify,
+          message: message
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            title: 'Shared!',
+            text: 'Document shared successfully',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          closeGDriveShareModal();
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: data.message || 'Failed to share document',
+            icon: 'error'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error sharing document:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to share document. Please try again.',
+          icon: 'error'
+        });
+      });
+    }
+
+    // Show link share options
+    function showLinkShareOptions(shareUrl) {
+      Swal.fire({
+        title: 'Share Link',
+        html: `
+          <div class="text-left">
+            <p class="text-sm text-gray-600 mb-4">Anyone with this link can view this document</p>
+            <div class="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+              <input type="text" value="${escapeHtml(shareUrl)}" readonly class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700" id="share-url-input">
+              <button type="button" onclick="copyLinkToClipboard()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                Copy
+              </button>
+            </div>
+          </div>
+        `,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: 'Close',
+        width: '500px'
+      });
+    }
+
+    // Copy link to clipboard
+    function copyLinkToClipboard() {
+      const input = document.getElementById('share-url-input');
+      if (input) {
+        input.select();
+        input.setSelectionRange(0, 99999); // For mobile devices
+        
+        navigator.clipboard.writeText(input.value).then(() => {
+          Swal.fire({
+            title: 'Copied!',
+            text: 'Link copied to clipboard',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }).catch(() => {
+          // Fallback for older browsers
+          document.execCommand('copy');
+          Swal.fire({
+            title: 'Copied!',
+            text: 'Link copied to clipboard',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        });
+      }
     }
 
     // User tooltip with 2-second delay - Make functions global
@@ -3246,8 +4019,128 @@
       });
     }
 
+    // Sort functionality
+    let currentSortBy = 'category'; // Default sort
+
+    function toggleSortDropdown() {
+      const dropdown = document.getElementById('sort-dropdown-menu');
+      const button = document.getElementById('sort-by-button');
+      
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        button.setAttribute('aria-expanded', 'true');
+      } else {
+        dropdown.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    function handleSortChange(sortBy) {
+      currentSortBy = sortBy;
+      
+      // Update the label
+      const sortLabels = {
+        'title': 'Title',
+        'date': 'Date',
+        'author': 'Author',
+        'category': 'Category',
+        'type': 'Type'
+      };
+      
+      document.getElementById('current-sort-label').textContent = `Sort by: ${sortLabels[sortBy]}`;
+      
+      // Update active state in dropdown
+      document.querySelectorAll('.sort-option').forEach(option => {
+        const optionSort = option.getAttribute('data-sort');
+        const checkmark = option.querySelector('.checkmark');
+        
+        if (optionSort === sortBy) {
+          option.classList.add('active');
+          if (checkmark) checkmark.classList.remove('hidden');
+        } else {
+          option.classList.remove('active');
+          if (checkmark) checkmark.classList.add('hidden');
+        }
+      });
+      
+      // Close dropdown
+      toggleSortDropdown();
+      
+      // Perform sorting
+      sortTableBy(sortBy);
+    }
+
+    function sortTableBy(sortBy) {
+      const tbody = document.querySelector('table tbody');
+      if (!tbody) return;
+      
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      
+      rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(sortBy) {
+          case 'title':
+            aValue = a.querySelector('td:nth-child(1) .font-bold')?.textContent.trim().toLowerCase() || '';
+            bValue = b.querySelector('td:nth-child(1) .font-bold')?.textContent.trim().toLowerCase() || '';
+            break;
+          case 'date':
+            aValue = a.querySelector('td:nth-child(4)')?.textContent.trim() || '';
+            bValue = b.querySelector('td:nth-child(4)')?.textContent.trim() || '';
+            // Convert to date for proper comparison
+            aValue = new Date(aValue).getTime();
+            bValue = new Date(bValue).getTime();
+            break;
+          case 'author':
+            aValue = a.querySelector('td:nth-child(1) .font-bold')?.textContent.trim().toLowerCase() || '';
+            bValue = b.querySelector('td:nth-child(1) .font-bold')?.textContent.trim().toLowerCase() || '';
+            break;
+          case 'category':
+            aValue = a.querySelector('td:nth-child(2)')?.textContent.trim().toLowerCase() || '';
+            bValue = b.querySelector('td:nth-child(2)')?.textContent.trim().toLowerCase() || '';
+            break;
+          case 'type':
+            aValue = a.querySelector('td:nth-child(2)')?.textContent.trim().toLowerCase() || '';
+            bValue = b.querySelector('td:nth-child(2)')?.textContent.trim().toLowerCase() || '';
+            break;
+          default:
+            return 0;
+        }
+        
+        if (sortBy === 'date') {
+          return bValue - aValue; // Descending for dates (newest first)
+        } else {
+          if (aValue < bValue) return -1;
+          if (aValue > bValue) return 1;
+          return 0;
+        }
+      });
+      
+      // Re-append sorted rows
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('sort-dropdown-menu');
+      const button = document.getElementById('sort-by-button');
+      
+      if (dropdown && button && !dropdown.contains(e.target) && !button.contains(e.target)) {
+        dropdown.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+      }
+    });
+
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
+      // Debug: Verify functions are loaded
+      console.log('Document ready. Functions loaded:', {
+        viewDocument: typeof viewDocument,
+        downloadDocument: typeof downloadDocument,
+        showShareDialog: typeof showShareDialog,
+        showVersionHistory: typeof showVersionHistory
+      });
+      
       // Add Enter key support for password field (only for administrators)
       if (isAdministrator) {
         const passwordField = document.getElementById('unarchivePassword');
