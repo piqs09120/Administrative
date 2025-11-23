@@ -110,20 +110,16 @@
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-white">
-                        <span class="gradient-text">SOLIERA</span>
-                    </h1>
+                    <img src="{{ asset('images/logo/logofinal.png') }}" alt="SOLIERA Logo" class="h-12 md:h-16 w-auto object-contain">
                 </div>
-                <div class="hidden md:flex space-x-8">
+                <div class="hidden md:flex space-x-8 mx-auto">
                     <a href="#features" class="text-white hover:text-yellow-400 transition-colors">Features</a>
                     <a href="#register" class="text-white hover:text-yellow-400 transition-colors">Register Visitor</a>
                     <a href="#benefits" class="text-white hover:text-yellow-400 transition-colors">Benefits</a>
                     <a href="#contact" class="text-white hover:text-yellow-400 transition-colors">Contact</a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('visitor.index') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Get Started
-                    </a>
+                    <!-- Spacer to keep navigation centered -->
                 </div>
             </div>
         </div>

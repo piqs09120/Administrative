@@ -111,20 +111,13 @@
                   <button type="button" 
                           id="sort-by-button"
                           onclick="toggleSortDropdown()"
-                          class="btn btn-sm inline-flex items-center gap-2 whitespace-nowrap"
-                          style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #2C3E50; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25); border: none; min-width: 180px; justify-content: space-between;"
-                          onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
-                          onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'"
+                          class="inline-flex items-center gap-2 px-4 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors"
+                          style="font-family: sans-serif; font-size: 14px; justify-content: space-between; min-width: 100px;"
                           aria-label="Sort documents"
                           aria-expanded="false">
-                    <span class="flex items-center gap-2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 6h18M7 12h10M11 18h2"></path>
-                      </svg>
-                      <span id="current-sort-label">Sort by: Title</span>
-                    </span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7 10l5 5 5-5z"/>
+                    <span class="text-gray-700">Sort by</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M6 9l6 6 6-6"/>
                     </svg>
                   </button>
                   
@@ -4037,17 +4030,6 @@
 
     function handleSortChange(sortBy) {
       currentSortBy = sortBy;
-      
-      // Update the label
-      const sortLabels = {
-        'title': 'Title',
-        'date': 'Date',
-        'author': 'Author',
-        'category': 'Category',
-        'type': 'Type'
-      };
-      
-      document.getElementById('current-sort-label').textContent = `Sort by: ${sortLabels[sortBy]}`;
       
       // Update active state in dropdown
       document.querySelectorAll('.sort-option').forEach(option => {

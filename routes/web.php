@@ -946,6 +946,7 @@ Route::post('/document/{id}/analyze-ajax', [DocumentController::class, 'analyzeA
         Route::post('/legal/cases/{id}/transition', [LegalController::class, 'transitionCase'])->name('legal.cases.transition');
         Route::post('/legal/cases/{id}/witness/add', [LegalController::class, 'addWitness'])->name('legal.cases.witness.add');
         Route::post('/legal/cases/{id}/investigation/note', [LegalController::class, 'addInvestigationNote'])->name('legal.cases.investigation.note');
+        Route::post('/legal/cases/{id}/resolution', [LegalController::class, 'submitResolution'])->name('legal.cases.resolution');
     });
 
 // Super Admin Routes

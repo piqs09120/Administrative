@@ -954,6 +954,61 @@ class LegalController extends Controller
     }
 
     /**
+     * Submit resolution for a legal case
+     */
+    public function submitResolution(Request $request, $id)
+    {
+        $request->validate([
+            'resolution_decision' => 'required|string|in:approved,rejected,dismissed,settled,pending',
+            'resolution_notes' => 'required|string|max:5000',
+            'disciplinary_actions' => 'nullable|string|max:5000',
+            'preventive_measures' => 'nullable|string|max:5000'
+        ]);
+
+        try {
+            $case = \App\Models\LegalCase::findOrFail($id);
+            
+            // Update case with resolution details
+            $case->update([
+                'resolution_decision' => $request->resolution_decision,
+                'resolution_notes' => $request->resolution_notes,
+                'disciplinary_actions' => $request->disciplinary_actions,
+                'preventive_measures' => $request->preventive_measures,
+                'resolved_at' => now(),
+                'status' => $request->resolution_decision === 'pending' ? 'on_hold' : 'completed',
+            ]);
+
+            // Log the action
+            AccessLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'submit_case_resolution',
+                'description' => "Submitted resolution ({$request->resolution_decision}) for legal case ID {$case->id}",
+                'ip_address' => request()->ip()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Case resolution submitted successfully!',
+                    'case' => $case
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Case resolution submitted successfully!');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error submitting resolution: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Error submitting resolution: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Edit legal case
      */
     public function edit($id)
