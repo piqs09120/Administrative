@@ -2098,7 +2098,8 @@ public function archiveLegalDocument($id)
         }
         
         // paginate (this applies search and filters)
-        $documents = $q->paginate(15)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        $documents = $q->paginate($perPage)->withQueryString();
         
         // Debug: Log what we're actually returning
         \Log::info('Archived documents result - FINAL', [

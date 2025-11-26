@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Safeguard if the table already exists from a previous setup
+        if (Schema::hasTable('legal_audit_logs')) {
+            return;
+        }
+
         Schema::create('legal_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->string('action_type'); // document_upload, complaint_filed, violation_reported, ai_analysis, etc.

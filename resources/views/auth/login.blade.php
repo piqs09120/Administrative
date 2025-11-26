@@ -133,10 +133,13 @@
         <!-- Sign In Button -->
         <button 
           type="submit" 
-          class="w-full btn-primary btn"
+          class="w-full btn-primary btn flex items-center justify-center gap-3 transition-all"
           id="loginSubmitBtn"
         >
-          Sign in
+          <span class="btn-spinner hidden" aria-hidden="true">
+            <span class="inline-block h-5 w-5 border-2 border-white/60 border-t-transparent rounded-full animate-spin"></span>
+          </span>
+          <span class="btn-text">Sign in</span>
         </button>
       </form>
       
@@ -200,11 +203,32 @@ function togglePasswordVisibility() {
 // Client-side check to ensure captcha completed before submit
 document.addEventListener('DOMContentLoaded', function(){
   const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('loginSubmitBtn');
+
+  const setButtonLoadingState = (isLoading) => {
+    if (!submitBtn) {
+      return;
+    }
+
+    const spinnerWrapper = submitBtn.querySelector('.btn-spinner');
+
+    submitBtn.disabled = isLoading;
+    submitBtn.classList.toggle('opacity-70', isLoading);
+    submitBtn.classList.toggle('cursor-not-allowed', isLoading);
+
+    if (spinnerWrapper) {
+      spinnerWrapper.classList.toggle('hidden', !isLoading);
+    }
+  };
+
   if (!form) return;
+
   form.addEventListener('submit', function(e){
+    setButtonLoadingState(true);
     const response = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse() : '';
     if (!response) {
       e.preventDefault();
+      setButtonLoadingState(false);
       alert('Please complete the CAPTCHA before signing in.');
     }
   });

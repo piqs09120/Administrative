@@ -982,6 +982,7 @@ Route::get('/superadmin/users', function () { return view('superadmin.users'); }
     Route::get('/visitor/export/excel', [App\Http\Controllers\VisitorController::class, 'exportExcel'])->name('visitor.export.excel');
     Route::get('/visitor/export/pdf', [App\Http\Controllers\VisitorController::class, 'exportPdf'])->name('visitor.export.pdf');
     Route::post('/visitor/export/report', [App\Http\Controllers\VisitorController::class, 'exportReport'])->name('visitor.export.report');
+    Route::post('/visitor/{id}/rate', [App\Http\Controllers\VisitorController::class, 'rateVisitor'])->name('visitor.rate');
 
 
 

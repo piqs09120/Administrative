@@ -19,9 +19,10 @@ class VisitorLogController extends Controller
         $stats = $this->getBasicStats();
         
         // Get all visitors for the logs table
+        $perPage = $request->get('per_page', 10);
         $visitors = Visitor::with('facility')
             ->latest()
-            ->paginate(20);
+            ->paginate($perPage);
             
         // Get facilities for filters
         $facilities = Facility::all();
@@ -91,7 +92,8 @@ class VisitorLogController extends Controller
             });
         }
         
-        $visitors = $query->latest()->paginate(20);
+        $perPage = $request->get('per_page', 10);
+        $visitors = $query->latest()->paginate($perPage);
         
         return response()->json($visitors);
     }

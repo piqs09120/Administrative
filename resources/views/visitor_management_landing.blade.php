@@ -380,19 +380,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- ID/Passport Number -->
-                                <div class="space-y-2">
-                                    <label for="id_number" class="block text-sm font-semibold text-gray-700">
-                                        ID/Passport Number <span class="text-red-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <i class="fas fa-id-badge absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                        <input type="text" id="id_number" name="id_number" required
-                                               class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50"
-                                               placeholder="Enter ID or passport number">
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         
@@ -530,36 +517,6 @@
                                                class="form-input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50">
                                     </div>
                                 </div>
-                                
-                                <!-- Company -->
-                                <div class="space-y-2">
-                                    <label for="company" class="block text-sm font-semibold text-gray-700">
-                                        Company/Organization
-                                    </label>
-                                    <input type="text" id="company" name="company"
-                                           class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50"
-                                           placeholder="Company or organization name">
-                                </div>
-                                
-                                <!-- Vehicle Plate -->
-                                <div class="space-y-2">
-                                    <label for="vehicle_plate" class="block text-sm font-semibold text-gray-700">
-                                        Vehicle Plate Number
-                                    </label>
-                                    <input type="text" id="vehicle_plate" name="vehicle_plate"
-                                           class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50"
-                                           placeholder="Vehicle plate number (if applicable)">
-                                </div>
-                                
-                                <!-- Special Requirements -->
-                                <div class="space-y-2 md:col-span-2">
-                                    <label for="special_requirements" class="block text-sm font-semibold text-gray-700">
-                                        Special Requirements
-                                    </label>
-                                    <textarea id="special_requirements" name="special_requirements" rows="3"
-                                              class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-yellow-50 resize-none"
-                                              placeholder="Any special accommodation needs, accessibility requirements, etc."></textarea>
-                                </div>
                             </div>
                         </div>
                         
@@ -695,192 +652,74 @@
         </div>
     </footer>
 
-    <!-- Privacy Modal -->
+    <!-- Privacy Modal (restored simpler styling) -->
     <dialog id="privacyModal" class="modal">
-        <div class="modal-box w-full max-w-4xl md:max-w-3xl sm:max-w-xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white flex flex-col max-h-[90vh] md:max-h-[88vh] sm:max-h-[90vh]">
-            <div class="px-8 pt-8 pb-6 bg-[#0b2a61] text-white">
-                <h3 class="text-2xl font-semibold leading-tight">Data Privacy Policy</h3>
-                <p class="text-sm text-blue-100/80 mt-1">How Soliera protects and processes the personal information you share.</p>
+        <div class="modal-box w-11/12 max-w-3xl space-y-5 bg-white text-gray-700 leading-7 max-h-[85vh]">
+            <div class="space-y-2 text-center">
+                <h3 class="text-2xl font-semibold text-gray-900">Data Privacy Policy</h3>
+                <p class="text-sm text-gray-500">Please read the full policy below before agreeing.</p>
             </div>
-            <div class="px-8 pb-5 flex-1 min-h-0 flex flex-col">
-                <div id="privacyScrollArea" class="mt-5 flex-1 overflow-y-auto pr-3 text-sm leading-7 text-gray-600 space-y-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner px-5 py-4">
-                  <section class="space-y-3">
-                    <p><strong>Soliera Hospitality Group (“Soliera”, “we”, “our”)</strong> is committed to protecting
-                      the privacy of our guests, visitors, suppliers, and business partners. This Data Privacy Policy
-                      outlines how we collect, use, store, disclose, and protect personal data in accordance with the
-                      Data Privacy Act of 2012 (Republic Act No. 10173), its Implementing Rules and Regulations, and
-                      relevant issuances of the National Privacy Commission (NPC).</p>
-                    <p>This policy applies to personal data submitted through our visitor-management web application,
-                      at the front desk, at hotel access points, and through any Soliera-managed digital or
-                      on-premises systems.</p>
-                  </section>
-
-                  <section class="space-y-3">
+            <div id="privacyScrollArea" class="border border-gray-200 rounded-xl px-5 py-4 overflow-y-auto max-h-[55vh] text-sm space-y-5">
+                <section class="space-y-3">
+                    <p><strong>Soliera Hospitality Group (“Soliera”, “we”, “our”)</strong> is committed to protecting the privacy of our guests, visitors, suppliers, and business partners.</p>
+                    <p>This Data Privacy Policy outlines how we collect, use, store, disclose, and protect personal data in accordance with the Data Privacy Act of 2012 (Republic Act No. 10173), its Implementing Rules and Regulations, and relevant issuances of the National Privacy Commission (NPC).</p>
+                    <p>The policy covers information submitted through our visitor-management web application, at the front desk, at hotel access points, and through any Soliera-managed digital or on-premises systems.</p>
+                </section>
+                <section class="space-y-2">
                     <h4 class="font-semibold text-gray-900">1. Personal Data We Collect</h4>
-                    <p>Subject to the principle of proportionality, we may collect and process the following
-                      categories of personal data:</p>
+                    <p>Depending on your transaction with us, we may request:</p>
                     <ul class="list-disc list-inside space-y-1">
-                      <li><strong>Identifying information</strong>: full name, preferred name, date of birth, sex,
-                        nationality, civil status, company/organization, job title.</li>
-                      <li><strong>Contact details</strong>: address, email address, mobile/landline number, emergency
-                        contact person.</li>
-                      <li><strong>Government-issued or supporting documents</strong>: ID type and number, ID image or
-                        copy, travel/passport information, visas or immigration documents when required by law.</li>
-                      <li><strong>Stay and visit particulars</strong>: room/share details, booking references,
-                        arrival/departure dates, facility/meeting schedules, host department, visitor type,
-                        vehicle/plate number, purpose of visit, declared preferences, special assistance requests.</li>
-                      <li><strong>Security and monitoring data</strong>: QR or RFID passes, access logs, CCTV images,
-                        incident reports, audit trails, communication records, system usage metadata (e.g. IP address,
-                        browser, device ID).</li>
+                        <li><strong>Identifying data</strong>: full name, preferred name, date of birth, sex, nationality, civil status, company/organization, job title.</li>
+                        <li><strong>Contact details</strong>: address, email, mobile/landline number, emergency contact.</li>
+                        <li><strong>Government-issued documents</strong>: ID type and number, ID image or copy, passport/visa information.</li>
+                        <li><strong>Visit particulars</strong>: arrival/departure schedules, host department, visitor purpose/type, vehicle/plate number, special assistance requests.</li>
+                        <li><strong>Security and monitoring data</strong>: QR/RFID passes, access logs, CCTV footage, incident reports, system metadata (IP address, browser, device ID).</li>
                     </ul>
-                    <p>We do not knowingly collect personal data of minors without the consent of a parent or legal
-                      guardian.</p>
-                  </section>
-
-                  <section class="space-y-3">
-                    <h4 class="font-semibold text-gray-900">2. Purpose and Legal Basis for Processing</h4>
-                    <p>We process personal data only for legitimate, specified, and lawful purposes including:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                      <li>Facilitating reservations, check-ins/outs, visitor passes, and meeting schedules.</li>
-                      <li>Providing hospitality, concierge, transportation, facility access, and guest-relations
-                        services.</li>
-                      <li>Complying with statutory and regulatory requirements (e.g. Bureau of Immigration, local
-                        government ordinances, revenue audits).</li>
-                      <li>Ensuring safety, security, emergency response, and incident investigation within hotel
-                        premises.</li>
-                      <li>Maintaining audit trails, financial records, and business continuity documentation.</li>
-                      <li>Sending service-related advisories, billing notices, feedback requests, and partner offers
-                        that may interest you (subject to marketing consent, when required).</li>
-                      <li>Handling complaints, requests, disputes, or legal claims.</li>
-                    </ul>
-                    <p>Processing is anchored on one or more lawful bases such as your consent, fulfillment of a
-                      contract, compliance with legal obligations, protection of vital interests, pursuit of our
-                      legitimate business purposes, or defense of legal claims.</p>
-                  </section>
-
-                  <section class="space-y-3">
+                    <p>We do not knowingly collect personal data of minors without parent or guardian consent.</p>
+                </section>
+                <section class="space-y-2">
+                    <h4 class="font-semibold text-gray-900">2. Purpose and Legal Basis</h4>
+                    <p>Personal data is processed only for legitimate purposes such as facilitating reservations and visitor passes, complying with statutory requirements, ensuring safety and security, maintaining audit trails, sending service advisories, and handling inquiries or legal claims. Processing relies on lawful bases including your consent, contract fulfillment, legal obligations, protection of vital interests, legitimate business interests, or legal claims.</p>
+                </section>
+                <section class="space-y-2">
                     <h4 class="font-semibold text-gray-900">3. Sharing and Disclosure</h4>
-                    <p>We do not sell personal data. We may disclose information to:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                      <li>Authorized Soliera personnel with a need to know.</li>
-                      <li>Affiliates, business partners, and service providers (e.g. payment gateways, IT support,
-                        transport providers, event planners) under strict confidentiality agreements.</li>
-                      <li>Government agencies (e.g. Bureau of Immigration, Department of Tourism, DOLE, BIR, LGUs,
-                        law-enforcement) when required by law, subpoena, or lawful order.</li>
-                      <li>Emergency responders, insurance providers, legal counsel, auditors, or courts when such
-                        disclosure is necessary to protect life, health, property, or legitimate rights.</li>
-                    </ul>
-                    <p>Whenever personal data is shared, we ensure that recipients implement adequate organizational,
-                      physical, and technical safeguards consistent with NPC standards.</p>
-                  </section>
-
-                  <section class="space-y-3">
+                    <p>We do not sell personal data. We may share information with authorized Soliera personnel, affiliates, service providers, government agencies, emergency responders, insurers, or legal counsel when required by law or to protect life, health, property, or legitimate rights. Recipients are required to implement adequate safeguards.</p>
+                </section>
+                <section class="space-y-2">
                     <h4 class="font-semibold text-gray-900">4. Data Retention</h4>
-                    <p>Personal data is kept only for as long as necessary to fulfill the purposes outlined above, or
-                      as required by applicable laws and regulations. For example:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                      <li>Visitor logs: minimum of one (1) year or longer when required by the LGU or law-enforcement
-                        directives.</li>
-                      <li>Financial/transactional records: ten (10) years per the National Internal Revenue Code.</li>
-                      <li>CCTV footage: up to thirty (30) days unless required for official investigation.</li>
-                      <li>Customer profiles and consent records: retained while you have an active relationship with
-                        Soliera and for a reasonable period thereafter to handle queries or claims.</li>
-                    </ul>
-                    <p>Once retention periods lapse, records are securely disposed of through anonymization, digital
-                      wiping, shredding, or other NPC-compliant destruction methods.</p>
-                  </section>
-
-                  <section class="space-y-3">
-                    <h4 class="font-semibold text-gray-900">5. Data Security Measures</h4>
-                    <p>We maintain appropriate safeguards to protect personal data from loss, misuse, unauthorized
-                      access, disclosure, alteration, or destruction, including but not limited to:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                      <li>Role-based access control, multifactor authentication, and encryption in transit and at
-                        rest.</li>
-                      <li>Secure server facilities, firewalls, intrusion detection systems, antivirus, and periodic
-                        vulnerability scanning.</li>
-                      <li>Continuous CCTV monitoring, visitor pass systems, and incident response protocols.</li>
-                      <li>Privacy-by-design controls in our IT systems, coupled with privacy impact assessments.</li>
-                      <li>Regular training and confidentiality undertakings for employees and contractors.</li>
-                    </ul>
-                  </section>
-
-                  <section class="space-y-3">
-                    <h4 class="font-semibold text-gray-900">6. Your Rights under the Data Privacy Act</h4>
-                    <p>Subject to limitations under RA 10173, you have the right to:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                      <li>Be informed of the personal data we collect and the purposes for which we process it.</li>
-                      <li>Request reasonable access to and copies of your personal data.</li>
-                      <li>Dispute inaccuracies and request corrections or updates.</li>
-                      <li>Withdraw consent, object to processing, or request deletion in certain circumstances.</li>
-                      <li>Obtain data portability, when technically feasible.</li>
-                      <li>Be indemnified for any damages sustained due to inaccurate, incomplete, outdated, false,
-                        unlawfully obtained, or unauthorized use of personal data.</li>
-                      <li>Lodge a complaint with the National Privacy Commission.</li>
-                    </ul>
-                  </section>
-
-                  <section class="space-y-3">
-                    <h4 class="font-semibold text-gray-900">7. How to Exercise Your Rights</h4>
-                    <p>For privacy-related requests, please contact our Data Protection Officer (DPO) through the
-                      channels below. We may require you to verify your identity or authority to act on behalf of a
-                      data subject.</p>
-                    <ul class="list-none space-y-1">
-                      <li><strong>Data Protection Officer:</strong> [Name of DPO]</li>
-                      <li><strong>Email:</strong> <a href="mailto:solierahotelandrestaurant@gmail.com" class="text-blue-600 underline">solierahotelandrestaurant@gmail.com</a></li>
-                      <li><strong>Telephone:</strong> (+63) 2 8123 4567</li>
-                      <li><strong>Office Address:</strong> Soliera Hospitality Group, 28F Soliera Tower, Ayala Avenue,
-                        Makati City, Philippines</li>
-                    </ul>
-                    <p>We will respond within reasonable timelines set by the NPC. Requests that are manifestly
-                      unfounded or excessive may be subject to appropriate fees or lawful refusal.</p>
-                  </section>
-
-                  <section class="space-y-3">
-                    <h4 class="font-semibold text-gray-900">8. Consent and Acknowledgment</h4>
-                    <p>By submitting your information, visiting our premises, or availing of our services, you signify
-                      that you have read, understood, and agree to this Data Privacy Policy. You also represent that
-                      any third-party personal data you provide (e.g. companion names, emergency contacts) has been
-                      obtained with proper authority and consent.</p>
-                    <p>You may withdraw consent at any time; however, this may affect our ability to provide certain
-                      services or access to facilities.</p>
-                  </section>
-
-                  <section class="space-y-3">
-                    <h4 class="font-semibold text-gray-900">9. Changes to This Policy</h4>
-                    <p>We may update this policy to align with changes in law, National Privacy Commission guidance, or
-                      business practices. Any significant updates will be announced through our website or front-office
-                      channels and will take effect upon posting.</p>
-                    
-                  </section>
-                </div>
+                    <p>Information is retained only as long as necessary or as required by law (e.g., visitor logs for at least one year, financial records for ten years, CCTV footage for up to 30 days). Once retention periods lapse, records are securely disposed of through anonymization, wiping, shredding, or other NPC-compliant methods.</p>
+                </section>
+                <section class="space-y-2">
+                    <h4 class="font-semibold text-gray-900">5. Data Security</h4>
+                    <p>Safeguards include role-based access control, MFA, encryption, firewalls, IDS, antivirus, vulnerability scanning, CCTV monitoring, incident response protocols, privacy-by-design controls, and staff confidentiality undertakings.</p>
+                </section>
+                <section class="space-y-2">
+                    <h4 class="font-semibold text-gray-900">6. Your Rights</h4>
+                    <p>You may be informed, access, rectify, or request deletion of your personal data; withdraw consent; object to processing; request data portability (when feasible); seek indemnification for damages; and file a complaint with the National Privacy Commission, subject to RA 10173 limitations.</p>
+                </section>
+                <section class="space-y-2">
+                    <h4 class="font-semibold text-gray-900">7. Contact Our DPO</h4>
+                    <p>For privacy-related concerns, contact our Data Protection Officer via <a href="mailto:solierahotelandrestaurant@gmail.com" class="text-blue-600 underline">solierahotelandrestaurant@gmail.com</a> or (+63) 2 8123 4567. Office: Soliera Hospitality Group, 28F Soliera Tower, Ayala Avenue, Makati City, Philippines.</p>
+                </section>
+                <section class="space-y-2">
+                    <h4 class="font-semibold text-gray-900">8. Consent &amp; Updates</h4>
+                    <p>By submitting your information, visiting our premises, or using our services, you acknowledge that you have read, understood, and agree to this policy. You may withdraw consent anytime, subject to legal limitations. Policy updates will be announced through official channels and take effect upon posting.</p>
+                </section>
             </div>
-            <div class="px-8 py-5 border-t border-gray-200 bg-gray-50">
-                <div class="space-y-3">
-                    <div class="rounded-lg border border-amber-100 bg-amber-50/70 px-4 py-3 text-sm text-gray-700 leading-relaxed">
-                        <p>
-                            By selecting <strong>Agree &amp; Continue</strong>, you confirm that the information you provide is true
-                            and you consent to the collection, use, and storage of your personal data by Soliera Hotel for the purposes
-                            described above and in our full Privacy Policy and Guest Terms.
-                        </p>
-                    </div>
-                    <p class="text-xs text-gray-500">
-                        You may withdraw consent or request access, correction, or deletion of your data by contacting our Front Desk or emailing our Data Protection Officer at
-                        <a href="mailto:solierahotelandrestaurant@gmail.com" class="text-blue-600 underline">solierahotelandrestaurant@gmail.com</a>.
-                    </p>
-                    <label class="flex items-start gap-3 text-sm text-gray-700 select-none">
-                        <input type="checkbox" id="privacyModalCheckbox" class="mt-1 checkbox checkbox-primary checkbox-sm" disabled>
-                        <span>I have read and agree to the Data Privacy &amp; Guest Terms as stated above.</span>
-                    </label>
-                    <div class="flex items-center justify-end gap-2 sm:gap-3 pt-1">
-                        <form method="dialog">
-                            <button class="btn btn-ghost">Close</button>
-                        </form>
-                        <button type="button" id="privacyModalAgree" class="btn bg-gradient-to-r from-[#F7A923] to-[#E6940F] text-[#2C3E50] border-none shadow-md hover:from-[#E6940F] hover:to-[#D2840E] disabled:bg-gray-200 disabled:text-gray-500" disabled>
-                            Agree &amp; Continue
-                        </button>
-                    </div>
-                </div>
+            <div class="space-y-3 text-xs text-gray-500">
+                <p>You may withdraw consent or request access, correction, or deletion of your data by contacting our Front Desk or emailing our Data Protection Officer.</p>
+                <label class="flex items-start gap-3 text-sm text-gray-700 select-none pt-2 border-t border-gray-200">
+                    <input type="checkbox" id="privacyModalCheckbox" class="mt-1 checkbox checkbox-sm" disabled>
+                    <span>I confirm that I have read and agree to the Data Privacy Policy above.</span>
+                </label>
+            </div>
+            <div class="modal-action justify-between">
+                <form method="dialog">
+                    <button class="btn btn-ghost">Close</button>
+                </form>
+                <button type="button" id="privacyModalAgree" class="btn bg-gradient-to-r from-[#F7A923] to-[#E6940F] text-[#2C3E50] border-none shadow-md hover:from-[#E6940F] hover:to-[#D2840E] disabled:bg-gray-200 disabled:text-gray-500" disabled>
+                    Agree &amp; Continue
+                </button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -1159,10 +998,6 @@
                 if (arrivalDate && arrivalTime) {
                     formData.append('time_in', `${arrivalDate} ${arrivalTime}`);
                 }
-            }
-            
-            if (formData.get('special_requirements')) {
-                formData.append('special_instructions', formData.get('special_requirements'));
             }
             
             // Submit form via AJAX to public endpoint

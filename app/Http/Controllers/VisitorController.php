@@ -16,6 +16,8 @@ use Carbon\Carbon;
 use App\Services\VisitorService;
 use App\Services\IdValidationPipelineService;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Mail\VisitorCheckedOutMail;
 
 class VisitorController extends Controller
@@ -176,11 +178,9 @@ class VisitorController extends Controller
             'purpose' => 'required|string|max:1000',
             'facility_id' => 'nullable|integer',
             'host_employee' => 'required|string|max:255',
-            'company' => 'nullable|string|max:255',
             'id_type' => 'required|string|in:philnational_id,passport,drivers_license,umid,postal_id,voters_id,sss_id,gsis_id,tin_id,prc_id,barangay_id,senior_citizen_id,pwd_id,company_id,school_id,other_id',
-            'id_number' => 'required|string|max:255',
+            'id_number' => 'nullable|string|max:255',
             'id_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
-            'vehicle_plate' => 'nullable|string|max:255',
             'expected_date_out' => 'nullable|date',
             'expected_time_out' => 'nullable|date_format:H:i',
             'arrival_date' => 'nullable|date',
@@ -319,12 +319,8 @@ class VisitorController extends Controller
     private function sendScheduledVisitorEmail($visitor)
     {
         try {
-            // Generate a unique access code for the scheduled date
-            $accessCode = $this->generateAccessCode();
-            
-            // Update visitor with access code
-            $visitor->update(['access_code' => $accessCode]);
-            
+            $accessCode = $this->ensureAccessCode($visitor);
+
             // Send email
             Mail::to($visitor->email)->send(new \App\Mail\ScheduledVisitorMail($visitor, $accessCode));
             
@@ -338,7 +334,11 @@ class VisitorController extends Controller
      */
     private function generateAccessCode()
     {
-        return strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+        do {
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        } while (Visitor::where('access_code', $code)->exists());
+
+        return $code;
     }
 
     /**
@@ -347,7 +347,7 @@ class VisitorController extends Controller
     public function validateAccessCode(Request $request): JsonResponse
     {
         $request->validate([
-            'access_code' => 'required|string|size:8',
+            'access_code' => 'required|digits:6',
             'pass_id' => 'required|string'
         ]);
 
@@ -490,6 +490,30 @@ class VisitorController extends Controller
                 'error' => $e->getMessage()
             ], 404);
         }
+    }
+
+    private function storeProfilePhoto(string $photoData): ?string
+    {
+        if (!preg_match('/^data:image\/(\w+);base64,/', $photoData, $matches)) {
+            return null;
+        }
+
+        $type = strtolower($matches[1]);
+        $allowed = ['jpg', 'jpeg', 'png'];
+        if (!in_array($type, $allowed)) {
+            $type = 'jpg';
+        }
+
+        $photoData = substr($photoData, strpos($photoData, ',') + 1);
+        $photoData = base64_decode($photoData);
+        if ($photoData === false) {
+            return null;
+        }
+
+        $fileName = 'visitor_photos/' . Str::uuid() . '.' . $type;
+        Storage::disk('public')->put($fileName, $photoData);
+
+        return Storage::url($fileName);
     }
 
     // Renamed from checkIn to store, as it performs a store operation.
@@ -889,6 +913,8 @@ class VisitorController extends Controller
      */
     private function generateDigitalPass(Visitor $visitor): void
     {
+        $accessCode = $this->ensureAccessCode($visitor);
+
         $passData = [
             'pass_id' => $visitor->pass_id,
             'visitor_name' => $visitor->name,
@@ -902,7 +928,9 @@ class VisitorController extends Controller
             'purpose' => $visitor->purpose ?? 'N/A',
             'special_instructions' => $visitor->special_instructions,
             'generated_at' => now()->format('Y-m-d H:i:s'),
-            'qr_code' => $this->generateQRCode($visitor->pass_id),
+            'access_code' => $accessCode,
+            'qr_code' => $this->generateQRCode($visitor->pass_id, $accessCode),
+            'profile_photo_url' => $visitor->profile_photo_url ?? null,
         ];
 
         $visitor->update(['pass_data' => $passData]);
@@ -911,18 +939,38 @@ class VisitorController extends Controller
     /**
      * Generate QR code data for the pass
      */
-    private function generateQRCode(string $passId): string
+    private function generateQRCode(string $passId, ?string $accessCode = null): string
     {
-        // Payload users should be taken to when QR is scanned
-        $payload = url("/verify-pass/{$passId}");
-        // Use a public QR image generator to avoid adding new dependencies
-        // Keep this stable so the same QR is shown in UI and emails
+        $payload = json_encode([
+            'pass_id' => $passId,
+            'code' => $accessCode,
+        ]);
+
         $qrService = 'https://api.qrserver.com/v1/create-qr-code/';
         $params = http_build_query([
             'size' => '200x200',
             'data' => $payload
         ]);
         return "{$qrService}?{$params}";
+    }
+
+    /**
+     * Ensure visitor has a numeric access code for manual entry / QR encoding.
+     */
+    private function ensureAccessCode(Visitor $visitor): string
+    {
+        if ($visitor->access_code) {
+            return $visitor->access_code;
+        }
+
+        do {
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        } while (Visitor::where('access_code', $code)->exists());
+
+        $visitor->access_code = $code;
+        $visitor->save();
+
+        return $code;
     }
 
     /**
@@ -961,6 +1009,54 @@ class VisitorController extends Controller
             'notes' => $notes,
             'visitor_data' => $visitor->toArray(),
             'action_time' => now()
+        ]);
+    }
+
+    /**
+     * Return detailed visitor info for preview panels / modals.
+     */
+    public function getDetails(int $id): JsonResponse
+    {
+        $visitor = Visitor::with('facility')->findOrFail($id);
+
+        if (!$visitor->pass_id) {
+            $visitor->pass_id = $this->generatePassId();
+            $visitor->save();
+        }
+
+        $passData = $visitor->pass_data ?? [];
+        $accessCode = $this->ensureAccessCode($visitor);
+        $qrCodeUrl = $passData['qr_code'] ?? null;
+
+        if (!$qrCodeUrl) {
+            $qrCodeUrl = $this->generateQRCode($visitor->pass_id, $accessCode);
+            $passData['qr_code'] = $qrCodeUrl;
+            $visitor->update(['pass_data' => $passData]);
+        }
+
+        return response()->json([
+            'id' => $visitor->id,
+            'name' => $visitor->name,
+            'email' => $visitor->email,
+            'contact' => $visitor->contact,
+            'phone' => $visitor->phone,
+            'purpose' => $visitor->purpose,
+            'department' => $visitor->department ?? optional($visitor->facility)->name,
+            'host_employee' => $visitor->host_employee,
+            'company' => $visitor->company,
+            'id_type' => $visitor->id_type,
+            'id_number' => $visitor->id_number,
+            'vehicle_plate' => $visitor->vehicle_plate,
+            'time_in' => $visitor->time_in,
+            'time_out' => $visitor->time_out,
+            'registered_at' => optional($visitor->created_at)?->toDateTimeString(),
+            'special_instructions' => $visitor->special_instructions,
+            'pass_id' => $visitor->pass_id,
+            'access_code' => $accessCode,
+            'qr_code' => $qrCodeUrl,
+            'profile_photo_url' => $visitor->profile_photo_url ?? ($passData['profile_photo_url'] ?? null),
+            'pass_valid_until' => $visitor->pass_valid_until,
+            'status' => $visitor->status,
         ]);
     }
 
@@ -1242,15 +1338,11 @@ class VisitorController extends Controller
     /**
      * Approve a newly registered visitor (pre-check-in stage)
      */
-    public function approveVisitor($id)
+    public function approveVisitor(Request $request, $id)
     {
         $visitor = Visitor::findOrFail($id);
         
         // Check if ID verification is required and completed
-        if (!$visitor->id_verified) {
-            return redirect()->back()->with('error', 'ID verification is required before approving this visitor. Please verify the visitor\'s ID document first.');
-        }
-        
         // Approve and auto check-in
         $visitor->update([
             'status' => 'active',
@@ -1274,6 +1366,14 @@ class VisitorController extends Controller
             ]);
         }
         $this->generateDigitalPass($visitor);
+
+        if ($request->filled('profile_photo')) {
+            $photoUrl = $this->storeProfilePhoto($request->input('profile_photo'));
+            if ($photoUrl) {
+                $visitor->profile_photo_url = $photoUrl;
+                $visitor->save();
+            }
+        }
 
         // Log actions
         $this->logVisitorActivity($visitor, 'checkin', 'Visitor approved and auto-checked in');
@@ -1329,6 +1429,40 @@ class VisitorController extends Controller
                 }
             })
             ->values();
+    }
+
+    /**
+     * Store rating & comment when visitor checks out via logs UI
+     */
+    public function rateVisitor(Request $request, $id): JsonResponse
+    {
+        $visitor = Visitor::findOrFail($id);
+
+        $data = $request->validate([
+            'rating' => 'nullable|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        // Set checkout time if not yet set
+        if (!$visitor->time_out) {
+            $visitor->time_out = now();
+        }
+
+        if (array_key_exists('rating', $data)) {
+            $visitor->rating = $data['rating'];
+        }
+
+        if (array_key_exists('comment', $data)) {
+            $visitor->rating_comment = $data['comment'];
+        }
+
+        $visitor->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thank you for your feedback!',
+            'visitor' => $visitor,
+        ]);
     }
     
     /**

@@ -163,6 +163,46 @@
       font-weight: 500;
     }
     
+    /* Checkout icon button (arrow with vertical bar) */
+    .checkout-icon-btn {
+      padding: 2px 4px;
+      border-radius: 4px;
+      background-color: #fff5ed;
+      border: 1px solid #f97316;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkout-icon {
+      position: relative;
+      width: 14px;
+      height: 14px;
+    }
+
+    .checkout-icon::before {
+      content: '';
+      position: absolute;
+      left: 1px;
+      top: 2px;
+      bottom: 2px;
+      width: 2px;
+      background-color: #f97316;
+      border-radius: 999px;
+    }
+
+    .checkout-icon::after {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 3px;
+      width: 0;
+      height: 0;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      border-left: 6px solid #f97316;
+    }
+    
     /* Table column sizing for duration */
     .duration-column {
       min-width: 90px;
@@ -312,6 +352,436 @@
       background-color: rgba(59, 130, 246, 0.1);
       transform: translateX(4px);
     }
+
+    .interactive-row {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .interactive-row:hover td {
+      background-color: #ffecec !important;
+    }
+
+    .interactive-row.active td {
+      background-color: #ffd9d9 !important;
+    }
+
+    .visitor-panel-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: flex-end;
+      align-items: stretch;
+      pointer-events: none;
+      z-index: 70;
+    }
+
+    .visitor-panel-overlayVisitor {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.55);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .visitor-details-panel {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      background-color: #ffffff;
+      height: 100%;
+      box-shadow: -12px 0 35px rgba(15, 23, 42, 0.2);
+      padding: 24px 22px 32px;
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.25s ease forwards;
+      pointer-events: auto;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .visitor-detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .visitor-detail-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e6731b;
+    }
+
+    .visitor-detail-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .visitor-profile-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #ffffff;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .visitor-profile-block img,
+    .visitor-profile-block .avatar-fallback {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      object-fit: cover;
+      background-color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .visitor-profile-block h4 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .visitor-profile-block p {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .visitor-detail-section {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .visitor-detail-section h4 {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    .detail-row span:first-child {
+      font-weight: 600;
+      color: #a0aec0;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    .detail-row span:last-child {
+      font-weight: 500;
+    }
+
+    .visitor-panel-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .visitor-panel-badge--pending {
+      background: rgba(245, 158, 11, 0.15);
+      color: #d97706;
+    }
+
+    .visitor-panel-badge--approved {
+      background: rgba(16, 185, 129, 0.15);
+      color: #059669;
+    }
+
+    .visitor-panel-badge--rejected {
+      background: rgba(248, 113, 113, 0.2);
+      color: #b91c1c;
+    }
+
+    body.visitor-panel-open {
+      overflow: hidden;
+    }
+
+    /* --- Visitor Details Redesign --- */
+    .visitor-panel-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: flex-end;
+      align-items: stretch;
+      pointer-events: none;
+      z-index: 70;
+    }
+
+    .visitor-panel-overlayVisitor {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.55);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .visitor-details-panel {
+      width: clamp(520px, 45vw, 560px);
+      height: 100%;
+      background: #ffffff;
+      padding: 24px 26px 32px;
+      box-shadow: -18px 0 45px rgba(15, 23, 42, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      pointer-events: auto;
+      transform: translateX(100%);
+      animation: visitor-panel-slide-in 0.28s ease forwards;
+    }
+
+    @keyframes visitor-panel-slide-in {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .visitor-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #e47a1d;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .visitor-panel__header h3 {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .visitor-panel__close {
+      background: transparent;
+      border: none;
+      font-size: 1.4rem;
+      color: #9ca3af;
+      cursor: pointer;
+    }
+
+    .visitor-panel__stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      overflow-y: auto;
+      align-items: center;
+      padding-right: 6px;
+    }
+
+    .visitor-panel__card {
+      background: #f8f9fc;
+      border-radius: 20px;
+      border: 1px solid rgba(149, 156, 175, 0.15);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      padding: 18px 20px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .visitor-panel__card--profile {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .visitor-panel__profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .visitor-panel__avatar,
+    .visitor-panel__avatar img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 1.1rem;
+    }
+
+    .visitor-panel__profile-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .visitor-panel__profile-meta .name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .visitor-panel__profile-meta .meta {
+      font-size: 0.82rem;
+      color: #6b7280;
+      line-height: 1.2;
+    }
+
+    .visitor-panel__profile-meta .note {
+      font-size: 0.72rem;
+      color: #c7cfe8;
+      letter-spacing: 0.04em;
+    }
+
+    .visitor-panel__profile-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .visitor-panel__section-heading {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
+    }
+
+    .visitor-panel__section-heading::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      width: 80px;
+      height: 3px;
+      background: #e97b20;
+      border-radius: 999px;
+    }
+
+    .visitor-panel__kv {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+
+    .visitor-panel__kv-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+      line-height: 1.1;
+    }
+
+    .visitor-panel__kv-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #111827;
+      line-height: 1.25;
+    }
+
+    .visitor-panel__kv--split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .visitor-panel__kv--status {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .visitor-panel__badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .visitor-panel__badge--pending {
+      background: rgba(245, 158, 11, 0.18);
+      color: #d97706;
+    }
+
+    .visitor-panel__badge--approved {
+      background: rgba(16, 185, 129, 0.18);
+      color: #059669;
+    }
+
+    .visitor-panel__badge--rejected {
+      background: rgba(248, 113, 113, 0.25);
+      color: #b91c1c;
+    }
+
+    .table-footer {
+      border-top: none;
+      margin-top: 18px;
+      padding-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #6b7280;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.8);
+      padding-bottom: 6px;
+    }
+    @media (max-width: 640px) {
+      .visitor-details-panel {
+        width: 100%;
+        border-radius: 0;
+        padding: 24px 20px 32px;
+      }
+
+      .visitor-panel__stack {
+        align-items: stretch;
+        padding-right: 0;
+      }
+
+      .visitor-panel__card {
+        max-width: none;
+      }
+
+      .table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body class="bg-base-100">
@@ -348,42 +818,6 @@
           </div>
           <!-- underline divider (matches other modules) -->
           <div class="border-b border-gray-200 mb-6"></div>
-
-          <!-- Quick Stats Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <!-- Total Visitors Today -->
-            <x-stat-card 
-              title="Total Visitors" 
-              :value="$stats['today'] ?? 0" 
-              icon="fa-users" 
-              iconColor="text-yellow-400" 
-              bgColor="bg-blue-900" />
-
-            <!-- Currently In Building -->
-            <x-stat-card 
-              title="In Building" 
-              :value="$stats['currently_in'] ?? 0" 
-              icon="fa-user-check" 
-              iconColor="text-yellow-400" 
-              bgColor="bg-blue-900" />
-
-            <!-- Average Visit Duration -->
-            <x-stat-card 
-              title="Average Duration" 
-              :value="$stats['avg_duration'] ?? '0m'" 
-              icon="fa-clock" 
-              iconColor="text-yellow-400" 
-              bgColor="bg-blue-900" />
-
-            <!-- Peak Hours -->
-            <x-stat-card 
-              title="Busiest Hour" 
-              :value="$stats['peak_hours'] ?? '—'" 
-              icon="fa-activity" 
-              iconColor="text-yellow-400" 
-              bgColor="bg-blue-900" />
-
-          </div>
         </div>
 
         <!-- Main Content Tabs -->
@@ -409,99 +843,183 @@
             <div id="logs-content" class="tab-content">
               <!-- Logs Table -->
               <x-table-card :title="'Visitor Logs'">
-                <!-- Date Filters inside the table card, below the blue banner -->
+                <!-- Search and Filter Controls inside the table card, below the blue banner -->
                 <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                  <div class="grid grid-cols-12 gap-3 md:gap-4 items-end">
-                    <!-- From Date -->
-                    <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0">
-                      <label for="logs-start-date" class="block text-xs font-medium text-slate-500 mb-1">From</label>
+                  <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div class="flex flex-1 gap-3 items-center w-full sm:w-auto">
+                      <!-- Search Input -->
+                      <div class="relative flex-1 sm:flex-initial sm:w-64">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <input 
+                          type="text" 
+                          id="logs-search-input" 
+                          placeholder="Search..." 
+                          class="w-full pl-10 pr-3 py-2.5 text-sm rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      
+                      <!-- Date Range Selector -->
                       <div class="relative">
-                        <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="date" id="logs-start-date" placeholder="mm/dd/yyyy" class="w-full h-10 md:h-11 text-sm px-3 pl-9 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                        <button 
+                          type="button" 
+                          id="logs-date-range-btn"
+                          class="px-4 py-2.5 text-sm font-medium rounded-md border border-transparent hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937; box-shadow: 0 2px 8px rgba(247, 169, 35, 0.25);"
+                          onmouseover="this.style.background='linear-gradient(135deg, #E6940F 0%, #D2840E 100%)'; this.style.boxShadow='0 4px 12px rgba(247, 169, 35, 0.35)'"
+                          onmouseout="this.style.background='linear-gradient(135deg, #F7A923 0%, #E6940F 100%)'; this.style.boxShadow='0 2px 8px rgba(247, 169, 35, 0.25)'"
+                          onclick="toggleDateRangeDropdown()"
+                        >
+                        <span id="logs-date-range-text">All Time</span>
+                          <i data-lucide="chevron-down" class="w-4 h-4 inline-block ml-1" style="color: #1f2937;"></i>
+                        </button>
+                        
+                        <!-- Date Range Dropdown -->
+                        <div id="logs-date-range-dropdown" class="hidden absolute z-10 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1">
+                          <button onclick="setDateRange('all')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">All Time</button>
+                          <button onclick="setDateRange('today')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Today</button>
+                          <button onclick="setDateRange('week')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Last 7 Days</button>
+                          <button onclick="setDateRange('month')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Last 30 Days</button>
+                          <button onclick="setDateRange('quarter')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Last 90 Days</button>
+                          <button onclick="setDateRange('year')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Last Year</button>
+                          <button onclick="setDateRange('custom')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t border-gray-200">Custom Range</button>
+                        </div>
                       </div>
                     </div>
-
-                    <!-- To Date -->
-                    <div class="col-span-12 md:col-span-6 xl:col-span-3 min-w-0">
-                      <label for="logs-end-date" class="block text-xs font-medium text-slate-500 mb-1">To</label>
-                      <div class="relative">
-                        <i data-lucide="calendar" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="date" id="logs-end-date" placeholder="mm/dd/yyyy" class="w-full h-10 md:h-11 text-sm px-3 pl-9 rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 items-center">
+                      <!-- Column Button -->
+                      <div class="flex flex-col items-center">
+                        <button 
+                          type="button"
+                          id="logs-column-btn"
+                          class="w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onclick="openColumnSettings()"
+                          title="Column Settings"
+                        >
+                          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                          </svg>
+                        </button>
+                        <span class="mt-1 text-xs text-gray-500">Column</span>
+                      </div>
+                      
+                      <!-- Export Button -->
+                      <div class="flex flex-col items-center">
+                        <button 
+                          type="button"
+                          id="logs-export-btn"
+                          class="w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onclick="exportVisitorLogs()"
+                          title="Export Logs"
+                        >
+                          <i data-lucide="download" class="w-5 h-5 text-gray-600"></i>
+                        </button>
+                        <span class="mt-1 text-xs text-gray-500">Export</span>
                       </div>
                     </div>
                   </div>
+                  
+                  <!-- Hidden date inputs for date range functionality -->
+                  <input type="date" id="logs-start-date" class="hidden" />
+                  <input type="date" id="logs-end-date" class="hidden" />
                 </div>
 
                 <table class="table table-zebra w-full">
                   <thead>
                     <tr class="bg-gray-50">
-                      <th class="text-left py-3 px-4 font-medium text-gray-700">Visitor Name</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Contact Number</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Purpose</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Check In Date</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Check In Time</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Check Out Date</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">Check Out Time</th>
-                      <th class="text-right py-3 px-4 font-medium text-gray-700 duration-column">Duration</th>
-                      <th class="text-center py-3 px-4 font-medium text-gray-700">ID Number</th>
+                    <th class="text-left py-3 px-4 font-medium text-gray-700" data-column="visitor_name">Visitor Name</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="contact_number">Contact Number</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="purpose">Purpose</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="checkin_checkout">Check-In / Check-Out</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="approval_status">Approval Status</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-700 duration-column" data-column="duration">Duration</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="id_number">ID Number</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="actions">Action</th>
                     </tr>
                   </thead>
                   <tbody id="logs-table-body">
                     @forelse($visitors as $visitor)
-                      <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="py-3 px-4">
+                      <tr class="hover:bg-gray-50 transition-colors interactive-row"
+                        data-id="{{ $visitor->id }}"
+                        data-name="{{ $visitor->name ?? 'Visitor' }}"
+                        data-email="{{ $visitor->email ?? 'N/A' }}"
+                        data-phone="{{ $visitor->contact ?? 'N/A' }}"
+                        data-host="{{ $visitor->host_employee ?? $visitor->host ?? 'N/A' }}"
+                        data-source="{{ $visitor->source ?? 'N/A' }}"
+                        data-checkin="{{ $visitor->time_in ?? '' }}"
+                        data-checkout="{{ $visitor->time_out ?? '' }}"
+                        data-purpose="{{ $visitor->purpose ?? 'N/A' }}"
+                        data-status="{{ strtoupper($visitor->approval_status ?? ($visitor->status === 'active' ? 'APPROVED' : ($visitor->time_out ? 'COMPLETED' : 'PENDING'))) }}"
+                        data-avatar="{{ $visitor->profile_photo_url ?? '' }}"
+                        data-pass-id="{{ $visitor->pass_id ?? 'N/A' }}"
+                        data-company="{{ $visitor->company ?? '' }}"
+                        data-comment="{{ $visitor->rating_comment ?? ($visitor->special_instructions ?? ($visitor->company ?? '')) }}"
+                      >
+                        <td class="py-3 px-4" data-column="visitor_name">
                           <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center">
-                              <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                            <div class="relative">
+                              @if(!empty($visitor->profile_photo_url))
+                                <div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white shadow">
+                                  <img src="{{ $visitor->profile_photo_url }}" alt="{{ $visitor->name }}" class="object-cover w-full h-full">
+                                </div>
+                              @else
+                                <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-white font-semibold ring-2 ring-white shadow">
+                                  {{ strtoupper(substr($visitor->name ?? 'V', 0, 1)) }}
+                                </div>
+                              @endif
+                              @if(!empty($visitor->nationality_flag))
+                                <img src="{{ $visitor->nationality_flag }}" alt="Flag" class="w-4 h-4 absolute -right-2 -bottom-1">
+                              @endif
                             </div>
                             <div>
-                              <div class="font-medium text-gray-900">{{ $visitor->name }}</div>
+                              <div class="font-medium text-gray-900">{{ $visitor->name ?? 'Visitor' }}</div>
+                              <div class="text-xs text-gray-500">{{ $visitor->email ?? 'No email' }}</div>
                             </div>
                           </div>
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">{{ $visitor->contact ?? 'N/A' }}</td>
-                        <td class="py-3 px-4 text-center">
+                        <td class="py-3 px-4 text-center text-sm text-gray-600" data-column="contact_number">{{ $visitor->contact ?? 'N/A' }}</td>
+                        <td class="py-3 px-4 text-center" data-column="purpose">
                           <span class="badge badge-outline badge-sm">{{ $visitor->purpose ?? 'N/A' }}</span>
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">
-                          @if($visitor->time_in)
-                            {{ \Carbon\Carbon::parse($visitor->time_in)->format('M d, Y') }}
+                        <td class="py-3 px-4 text-center text-sm text-gray-600" data-column="checkin_checkout">
+                          @php
+                            $checkInDt = $visitor->time_in ? \Carbon\Carbon::parse($visitor->time_in)->setTimezone('Asia/Manila') : null;
+                            $checkOutDt = $visitor->time_out ? \Carbon\Carbon::parse($visitor->time_out)->setTimezone('Asia/Manila') : null;
+                          @endphp
+                          @if($checkInDt)
+                            <div class="text-emerald-500 font-medium">
+                              {{ $checkInDt->format('M d, Y, h:i:s A') }}
+                            </div>
                           @else
-                            N/A
+                            <div class="text-gray-400">N/A</div>
+                          @endif
+                          @if($checkOutDt)
+                            <div class="text-orange-500 text-xs mt-1">
+                              {{ $checkOutDt->format('M d, Y, h:i:s A') }}
+                            </div>
                           @endif
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">
-                          @if($visitor->time_in)
-                            {{ \Carbon\Carbon::parse($visitor->time_in)->format('h:i A') }}
-                          @else
-                            N/A
-                          @endif
+                        @php
+                          $approvalStatus = strtoupper(
+                            $visitor->approval_status
+                              ?? ($visitor->status === 'active'
+                                    ? 'APPROVED'
+                                    : ($visitor->time_out ? 'COMPLETED' : 'PENDING'))
+                          );
+                          $statusColor = match ($approvalStatus) {
+                            'COMPLETED' => 'text-emerald-600 bg-emerald-50',
+                            'APPROVED' => 'text-emerald-600 bg-emerald-50',
+                            'REJECTED' => 'text-red-600 bg-red-50',
+                            default => 'text-amber-600 bg-amber-50'
+                          };
+                        @endphp
+                        <td class="py-3 px-4 text-center text-sm font-semibold" data-column="approval_status">
+                          <span class="px-3 py-1 rounded-full {{ $statusColor }}">{{ $approvalStatus }}</span>
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">
-                          @if($visitor->time_out)
-                            @php
-                              $checkOut = \Carbon\Carbon::parse($visitor->time_out)->setTimezone('Asia/Manila');
-                            @endphp
-                            {{ $checkOut->format('M d, Y') }}
-                          @else
-                            —
-                          @endif
-                        </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600">
-                          @if($visitor->time_out)
-                            @php
-                              $checkOut = \Carbon\Carbon::parse($visitor->time_out)->setTimezone('Asia/Manila');
-                            @endphp
-                            <span class="checkout-time-display" 
-                                  data-checkout="{{ $visitor->time_out }}"
-                                  title="{{ $checkOut->format('Y-m-d H:i:s') }} (Server: {{ \Carbon\Carbon::parse($visitor->time_out)->format('Y-m-d H:i:s') }})">
-                              {{ $checkOut->format('h:i A') }}
-                            </span>
-                          @else
-                            <span class="badge badge-success badge-sm" style="background-color: #22c55e; color: white;" title="Visitor is still in the building">Still in</span>
-                          @endif
-                        </td>
-                        <td class="py-3 px-4 text-sm text-gray-600 duration-cell">
+                        <td class="py-3 px-4 text-sm text-gray-600 duration-cell" data-column="duration">
                           @if($visitor->time_out)
                             @php
                               $checkIn = \Carbon\Carbon::parse($visitor->time_in);
@@ -570,11 +1088,24 @@
                             </div>
                           @endif
                         </td>
-                        <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono">{{ $visitor->pass_id ?? 'N/A' }}</td>
+                        <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono" data-column="id_number">{{ $visitor->pass_id ?? 'N/A' }}</td>
+                        <td class="py-3 px-4 text-center" data-column="actions">
+                          <div class="flex items-center justify-center gap-2">
+                            <button class="btn btn-ghost btn-xs" title="View details" onclick="event.stopPropagation(); viewVisitorDetails({{ $visitor->id }})">
+                              <i data-lucide="info" class="w-4 h-4"></i>
+                            </button>
+                            <button class="btn btn-ghost btn-xs" title="Print pass" onclick="event.stopPropagation(); printVisitorPass({{ $visitor->id }})">
+                              <i data-lucide="printer" class="w-4 h-4 text-emerald-600"></i>
+                            </button>
+                            <button class="checkout-icon-btn" title="Check-out" onclick="event.stopPropagation(); openCheckoutRatingModal({{ $visitor->id }})">
+                              <span class="checkout-icon"></span>
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     @empty
                       <tr>
-                        <td colspan="9" class="text-center py-12">
+                        <td colspan="8" class="text-center py-12">
                           <div class="flex flex-col items-center">
                             <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                               <i data-lucide="users" class="w-10 h-10 text-gray-400"></i>
@@ -587,10 +1118,54 @@
                     @endforelse
                   </tbody>
                 </table>
-              </x-table-card>
 
-              <!-- Pagination -->
-              <x-table-card :pagination="null"></x-table-card>
+                <div class="table-footer">
+                  <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Items per page:</span>
+                    <select 
+                      id="logs-per-page" 
+                      class="bg-transparent border-0 border-b border-gray-300 focus:border-gray-500 focus:ring-0 text-blue-600 font-medium cursor-pointer"
+                      onchange="changePerPage(this.value)"
+                    >
+                      <option value="10" {{ ($visitors->perPage() ?? 10) == 10 ? 'selected' : '' }}>10</option>
+                      <option value="20" {{ ($visitors->perPage() ?? 10) == 20 ? 'selected' : '' }}>20</option>
+                      <option value="50" {{ ($visitors->perPage() ?? 10) == 50 ? 'selected' : '' }}>50</option>
+                      <option value="100" {{ ($visitors->perPage() ?? 10) == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                  </div>
+
+                  <div class="text-sm text-gray-600 font-medium">
+                    <span id="logs-pagination-range">
+                      @if($visitors->total() > 0)
+                        {{ $visitors->firstItem() }}-{{ $visitors->lastItem() }} of {{ $visitors->total() }}
+                      @else
+                        0 of 0
+                      @endif
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-3 text-gray-500">
+                    <button 
+                      id="logs-prev-btn"
+                      onclick="goToPage({{ $visitors->currentPage() - 1 }})"
+                      class="p-1 disabled:opacity-30 disabled:cursor-not-allowed hover:text-gray-700 transition-colors"
+                      {{ $visitors->onFirstPage() ? 'disabled' : '' }}
+                      aria-label="Previous page"
+                    >
+                      <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <button 
+                      id="logs-next-btn"
+                      onclick="goToPage({{ $visitors->currentPage() + 1 }})"
+                      class="p-1 disabled:opacity-30 disabled:cursor-not-allowed hover:text-gray-700 transition-colors"
+                      {{ !$visitors->hasMorePages() ? 'disabled' : '' }}
+                      aria-label="Next page"
+                    >
+                      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              </x-table-card>
             </div>
 
 
@@ -845,9 +1420,501 @@
     </div>
   </div>
 
+  @php
+    $columnOptions = [
+      ['id' => 'visitor_name', 'label' => 'Visitor Name'],
+      ['id' => 'contact_number', 'label' => 'Contact Number'],
+      ['id' => 'purpose', 'label' => 'Purpose'],
+      ['id' => 'checkin_checkout', 'label' => 'Check-In / Check-Out'],
+      ['id' => 'approval_status', 'label' => 'Approval Status'],
+      ['id' => 'duration', 'label' => 'Duration'],
+      ['id' => 'id_number', 'label' => 'ID Number'],
+      ['id' => 'actions', 'label' => 'Action'],
+    ];
+  @endphp
+
+  <!-- Column Settings Modal -->
+  <div id="columnSettingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 px-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 class="text-lg font-semibold text-[#E0761C]">Table Columns</h3>
+        <button type="button" onclick="closeColumnSettings()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="px-6 py-4">
+        <p class="text-sm text-gray-600 mb-4">Select columns to appear in table</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="columnCheckboxContainer">
+          @foreach($columnOptions as $option)
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                class="checkbox checkbox-warning column-visibility-checkbox" 
+                data-column-id="{{ $option['id'] }}" 
+                checked
+              >
+              <span>{{ $option['label'] }}</span>
+            </label>
+          @endforeach
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeColumnSettings()">Cancel</button>
+        <button type="button" class="btn btn-sm" style="background: linear-gradient(135deg, #F7A923 0%, #E6940F 100%); color: #1f2937;" onclick="saveColumnSettings()">
+          <i data-lucide="layout" class="w-4 h-4 mr-1"></i>Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="visitorDetailsPanel" class="visitor-panel-container hidden">
+    <div class="visitor-panel-overlayVisitor"></div>
+    <div class="visitor-details-panel">
+      <div class="visitor-panel__header">
+        <h3>Visitor Details</h3>
+        <button type="button" class="visitor-panel__close" onclick="closeVisitorDetailsPanel()">&times;</button>
+      </div>
+      <div class="visitor-panel__stack">
+        <section class="visitor-panel__card visitor-panel__card--profile">
+          <div class="visitor-panel__profile-header">
+            <div class="visitor-panel__avatar" id="detailAvatar">V</div>
+            <div class="visitor-panel__profile-meta">
+              <p class="visitor-panel__profile-name" id="detailNameDisplay">Visitor Name</p>
+            </div>
+          </div>
+
+          <div class="visitor-panel__section-heading">Profile Details</div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Name</p>
+            <p class="visitor-panel__kv-value" id="detailName">Visitor Name</p>
+          </div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Email</p>
+            <p class="visitor-panel__kv-value" id="detailEmail">email@example.com</p>
+          </div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Phone Number</p>
+            <p class="visitor-panel__kv-value" id="detailPhone">+639...</p>
+          </div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Pass ID</p>
+            <p class="visitor-panel__kv-value" id="detailPassId">PASS-XXX</p>
+          </div>
+
+          <div class="visitor-panel__kv visitor-panel__kv--split">
+            <div>
+              <p class="visitor-panel__kv-label">Check-in Date &amp; Time</p>
+              <p class="visitor-panel__kv-value text-emerald-600" id="detailCheckin">N/A</p>
+            </div>
+            <div>
+              <p class="visitor-panel__kv-label">Check-out Date &amp; Time</p>
+              <p class="visitor-panel__kv-value text-orange-500" id="detailCheckout">—</p>
+            </div>
+          </div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Host</p>
+            <p class="visitor-panel__kv-value" id="detailHost">--</p>
+          </div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Purpose</p>
+            <p class="visitor-panel__kv-value" id="detailPurpose">N/A</p>
+          </div>
+
+          <div class="visitor-panel__kv">
+            <p class="visitor-panel__kv-label">Comment</p>
+            <p class="visitor-panel__kv-value" id="detailComment">—</p>
+          </div>
+
+          <div class="visitor-panel__kv visitor-panel__kv--status">
+            <p class="visitor-panel__kv-label">Approval Status</p>
+            <span id="detailStatus" class="visitor-panel__badge visitor-panel__badge--pending">Pending</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Pass / Pass Code Style Modal -->
+  <!-- Print Pass Modal -->
+  <div id="printPassModal" class="modal" onclick="closePrintPassModal()">
+    <div class="modal-box w-full max-w-lg" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Print Pass</h3>
+        <button class="text-gray-400 hover:text-gray-600" onclick="closePrintPassModal()">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Inner Pass Card -->
+      <div class="bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden">
+        <!-- Top Section - Gradient -->
+        <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 px-6 py-8 text-center">
+          <!-- Avatar -->
+          <div class="flex justify-center mb-3">
+            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white/30 bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <img id="printPassPhoto" src="" alt="Visitor photo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="w-full h-full bg-white/20 backdrop-blur-sm flex items-center justify-center hidden">
+                <i data-lucide="user" class="w-12 h-12 text-white"></i>
+              </div>
+            </div>
+          </div>
+          <!-- Name -->
+          <h4 class="text-xl font-bold text-white mb-2" id="printPassName">Visitor Name</h4>
+          <!-- Status Badge -->
+          <span id="printPassStatus" class="inline-block px-4 py-1 rounded-full text-xs font-semibold bg-red-500 text-white">EXPIRED</span>
+        </div>
+
+        <!-- Middle Section - White -->
+        <div class="px-6 py-6 space-y-4">
+          <!-- Email -->
+          <div class="flex items-center gap-3">
+            <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
+            <div>
+              <span class="text-xs text-gray-500 uppercase">Email</span>
+              <p class="text-sm font-medium text-gray-900" id="printPassEmail">visitor@example.com</p>
+            </div>
+          </div>
+
+          <!-- Phone -->
+          <div class="flex items-center gap-3">
+            <i data-lucide="phone" class="w-5 h-5 text-gray-400"></i>
+            <div>
+              <span class="text-xs text-gray-500 uppercase">Phone</span>
+              <p class="text-sm font-medium text-gray-900" id="printPassPhone">+63...</p>
+            </div>
+          </div>
+
+          <!-- Check In -->
+          <div class="flex items-center gap-3">
+            <i data-lucide="calendar" class="w-5 h-5 text-gray-400"></i>
+            <div>
+              <span class="text-xs text-gray-500 uppercase">Check In</span>
+              <p class="text-sm font-medium text-gray-900" id="printPassInviteDate">—</p>
+            </div>
+          </div>
+
+          <!-- Expires At -->
+          <div class="flex items-center gap-3">
+            <i data-lucide="clock" class="w-5 h-5 text-gray-400"></i>
+            <div>
+              <span class="text-xs text-gray-500 uppercase">Expires At</span>
+              <p class="text-sm font-medium text-gray-900" id="printPassExpiresAt">—</p>
+            </div>
+          </div>
+
+          <!-- Pass Code -->
+          <div class="flex items-center gap-3">
+            <i data-lucide="key" class="w-5 h-5 text-gray-400"></i>
+            <div>
+              <span class="text-xs text-gray-500 uppercase">Pass Code</span>
+              <p class="text-sm font-medium text-gray-900" id="printPassCode">—</p>
+            </div>
+          </div>
+
+          <!-- QR Code -->
+          <div class="flex flex-col items-center pt-4 border-t border-gray-200">
+            <img id="printPassQR" src="" alt="QR Code" class="w-32 h-32 mb-2 border-2 border-gray-200 rounded-lg">
+            <p class="text-xs text-gray-500 mb-4">Scan to verify</p>
+            <div class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center py-3 rounded-lg font-semibold text-sm">
+              Please present this pass at the reception
+            </div>
+          </div>
+
+          <!-- Show More Details Toggle -->
+          <div class="pt-4 border-t border-gray-200">
+            <button type="button" id="toggleMoreDetails" onclick="toggleMoreDetails()" class="w-full flex items-center justify-between text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <span class="font-medium">Show more details</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="moreDetailsChevron"></i>
+            </button>
+            
+            <!-- Additional Details (Hidden by default) -->
+            <div id="moreDetailsContent" class="hidden mt-4 space-y-3 pt-4 border-t border-gray-100">
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span class="text-xs text-gray-500 uppercase">Purpose</span>
+                  <p class="text-sm font-medium text-gray-900 mt-1" id="printPassPurpose">—</p>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 uppercase">Host</span>
+                  <p class="text-sm font-medium text-gray-900 mt-1" id="printPassHost">—</p>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 uppercase">Department</span>
+                  <p class="text-sm font-medium text-gray-900 mt-1" id="printPassDepartment">—</p>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 uppercase">ID Type</span>
+                  <p class="text-sm font-medium text-gray-900 mt-1" id="printPassIdType">—</p>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 uppercase">Pass ID</span>
+                  <p class="text-sm font-medium text-gray-900 mt-1 font-mono" id="printPassPassId">—</p>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 uppercase">Registered At</span>
+                  <p class="text-sm font-medium text-gray-900 mt-1" id="printPassRegisteredAt">—</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closePrintPassModal()">Skip</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="handlePrintPass()">Print</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Rating Modal -->
+  <div id="checkoutRatingModal" class="modal" onclick="closeCheckoutRatingModal()">
+    <div class="modal-box w-full max-w-xl" onclick="event.stopPropagation()">
+      <h3 class="text-lg font-semibold mb-4">Rate Visitor Experience</h3>
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+          <img id="ratingPhoto" src="" alt="Visitor photo" class="w-full h-full object-cover">
+        </div>
+        <div>
+          <p class="font-semibold" id="ratingName">Visitor Name</p>
+          <p class="text-sm text-gray-500" id="ratingPhone">+63...</p>
+        </div>
+      </div>
+
+      <div class="bg-indigo-50 rounded-2xl py-8 px-6 mb-4 flex flex-col items-center">
+        <div class="flex gap-4 mb-4" id="ratingStars">
+          <!-- stars injected by JS -->
+        </div>
+        <p class="text-sm text-gray-600" id="ratingLabel">You have rated :: 0/5</p>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Leave a comment</label>
+        <textarea id="ratingComment" class="textarea textarea-bordered w-full" rows="3" placeholder="Leave a comment"></textarea>
+      </div>
+
+      <div class="modal-action mt-2 flex justify-end gap-3">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeCheckoutRatingModal()">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitCheckoutRating()">Submit</button>
+      </div>
+    </div>
+  </div>
+
   @include('partials.soliera_js')
   
   <script>
+    const columnDefinitions = [
+      { id: 'visitor_name', label: 'Visitor Name' },
+      { id: 'contact_number', label: 'Contact Number' },
+      { id: 'purpose', label: 'Purpose' },
+      { id: 'checkin_checkout', label: 'Check-In / Check-Out' },
+      { id: 'approval_status', label: 'Approval Status' },
+      { id: 'duration', label: 'Duration' },
+      { id: 'id_number', label: 'ID Number' },
+      { id: 'actions', label: 'Action' },
+    ];
+
+    let columnVisibility = {};
+
+    function initializeColumnVisibility() {
+      try {
+        const stored = localStorage.getItem('visitorLogsColumns');
+        columnVisibility = stored ? JSON.parse(stored) : {};
+      } catch (e) {
+        columnVisibility = {};
+      }
+
+      columnDefinitions.forEach(def => {
+        if (typeof columnVisibility[def.id] === 'undefined') {
+          columnVisibility[def.id] = true;
+        }
+      });
+    }
+
+    function applyColumnVisibility() {
+      columnDefinitions.forEach(def => {
+        const isVisible = columnVisibility[def.id] !== false;
+        document.querySelectorAll(`[data-column="${def.id}"]`).forEach(el => {
+          el.classList.toggle('hidden', !isVisible);
+        });
+      });
+    }
+
+    function openColumnSettings() {
+      const modal = document.getElementById('columnSettingsModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      document.querySelectorAll('.column-visibility-checkbox').forEach(checkbox => {
+        const columnId = checkbox.getAttribute('data-column-id');
+        checkbox.checked = columnVisibility[columnId] !== false;
+      });
+    }
+
+    function closeColumnSettings() {
+      const modal = document.getElementById('columnSettingsModal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveColumnSettings() {
+      const checkboxes = document.querySelectorAll('.column-visibility-checkbox');
+      const checkedColumns = [];
+
+      checkboxes.forEach(checkbox => {
+        const columnId = checkbox.getAttribute('data-column-id');
+        const isChecked = checkbox.checked;
+        columnVisibility[columnId] = isChecked;
+        if (isChecked) checkedColumns.push(columnId);
+      });
+
+      if (checkedColumns.length === 0) {
+        alert('At least one column must be visible.');
+        return;
+      }
+
+      localStorage.setItem('visitorLogsColumns', JSON.stringify(columnVisibility));
+      applyColumnVisibility();
+      closeColumnSettings();
+    }
+
+    document.addEventListener('click', function(event) {
+      const modal = document.getElementById('columnSettingsModal');
+      if (!modal || modal.classList.contains('hidden')) return;
+      const modalContent = modal.querySelector('.bg-white');
+      if (modalContent && !modalContent.contains(event.target) && !event.target.closest('#logs-column-btn')) {
+        closeColumnSettings();
+      }
+    });
+
+    function escapeAttr(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function attachRowClickHandlers() {
+      const rows = document.querySelectorAll('.interactive-row');
+      rows.forEach(row => {
+        if (row._hasClickHandler) return;
+        row.addEventListener('click', function() {
+          const isAlreadyActive = row.classList.contains('active');
+          rows.forEach(r => r.classList.remove('active'));
+          if (isAlreadyActive) {
+            closeVisitorDetailsPanel();
+            return;
+          }
+
+          row.classList.add('active');
+          const data = {
+            name: row.dataset.name || 'Visitor',
+            email: row.dataset.email || 'N/A',
+            phone: row.dataset.phone || 'N/A',
+            host: row.dataset.host || 'N/A',
+            source: row.dataset.source || 'N/A',
+            checkin: row.dataset.checkin || '',
+            checkout: row.dataset.checkout || '',
+            purpose: row.dataset.purpose || 'N/A',
+            status: row.dataset.status || 'PENDING',
+            avatar: row.dataset.avatar || '',
+            passId: row.dataset.passId || 'N/A',
+            comment: row.dataset.comment || row.dataset.company || ''
+          };
+          openVisitorDetailsPanel(data);
+        });
+        row._hasClickHandler = true;
+      });
+    }
+
+    function openVisitorDetailsPanel(data) {
+      const panel = document.getElementById('visitorDetailsPanel');
+      if (!panel) return;
+
+      const avatarEl = document.getElementById('detailAvatar');
+      avatarEl.innerHTML = '';
+      avatarEl.className = 'visitor-panel__avatar';
+      if (data.avatar) {
+        avatarEl.innerHTML = `<img src="${data.avatar}" alt="${data.name}" class="w-14 h-14 rounded-full object-cover">`;
+      } else {
+        const initial = (data.name || 'V').charAt(0).toUpperCase();
+        avatarEl.textContent = initial;
+      }
+
+      setDetailText('detailNameDisplay', data.name || 'Visitor');
+      setDetailText('detailName', data.name || 'Visitor');
+      setDetailText('detailEmail', data.email || 'N/A');
+      setDetailText('detailPhone', data.phone || 'N/A');
+      setDetailText('detailHost', data.host || 'N/A');
+      setDetailText('detailPurpose', data.purpose || 'N/A');
+      // Only show comment when visitor has checked out; otherwise keep it empty
+      const hasCheckout = !!data.checkout;
+      setDetailText('detailComment', hasCheckout ? (data.comment || '—') : '—');
+      setDetailText('detailPassId', data.passId || 'N/A');
+      document.getElementById('detailCheckin').textContent = data.checkin ? formatDateTime(data.checkin) : 'N/A';
+      document.getElementById('detailCheckout').textContent = data.checkout ? formatDateTime(data.checkout) : '—';
+      applyStatusBadge(data.status || 'PENDING');
+
+      panel.classList.remove('hidden');
+      panel.classList.add('flex');
+      document.body.classList.add('visitor-panel-open');
+    }
+
+    function setDetailText(id, value) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = value;
+      }
+    }
+
+    function applyStatusBadge(statusText) {
+      const badge = document.getElementById('detailStatus');
+      if (!badge) return;
+      const normalized = (statusText || '').toLowerCase();
+      badge.textContent = statusText;
+      badge.className = 'visitor-panel__badge';
+      if (normalized === 'pending') {
+        badge.classList.add('visitor-panel__badge--pending');
+      } else if (normalized === 'approved' || normalized === 'completed') {
+        badge.classList.add('visitor-panel__badge--approved');
+      } else if (normalized === 'rejected') {
+        badge.classList.add('visitor-panel__badge--rejected');
+      }
+    }
+
+    function closeVisitorDetailsPanel() {
+      const panel = document.getElementById('visitorDetailsPanel');
+      if (!panel) return;
+      panel.classList.add('hidden');
+      panel.classList.remove('flex');
+      document.querySelectorAll('.interactive-row').forEach(row => row.classList.remove('active'));
+      document.body.classList.remove('visitor-panel-open');
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeVisitorDetailsPanel();
+      }
+    });
+
+    const panelOverlay = document.querySelector('#visitorDetailsPanel .visitor-panel-overlayVisitor');
+    if (panelOverlay) {
+      panelOverlay.addEventListener('click', closeVisitorDetailsPanel);
+    }
+
+    initializeColumnVisibility();
+
     // Global variables
     let currentTab = 'logs';
     let dailyTrendsChart = null;
@@ -1548,11 +2615,169 @@
       }
     }
 
+    // Search functionality
+    let searchTimeout;
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('logs-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+          clearTimeout(searchTimeout);
+          const searchTerm = e.target.value.trim();
+          searchTimeout = setTimeout(() => {
+            filterLogsBySearch(searchTerm);
+          }, 300);
+        });
+      }
+    });
+
+    function filterLogsBySearch(searchTerm) {
+      const tbody = document.getElementById('logs-table-body');
+      if (!tbody) return;
+      
+      const rows = tbody.querySelectorAll('tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const matches = searchTerm === '' || text.includes(searchTerm.toLowerCase());
+        row.style.display = matches ? '' : 'none';
+      });
+    }
+
+    // Date Range Dropdown
+    function toggleDateRangeDropdown() {
+      const dropdown = document.getElementById('logs-date-range-dropdown');
+      if (dropdown) {
+        dropdown.classList.toggle('hidden');
+      }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const btn = document.getElementById('logs-date-range-btn');
+      const dropdown = document.getElementById('logs-date-range-dropdown');
+      if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    function setDateRange(range) {
+      const today = new Date();
+      const startDateInput = document.getElementById('logs-start-date');
+      const endDateInput = document.getElementById('logs-end-date');
+      const rangeText = document.getElementById('logs-date-range-text');
+      const dropdown = document.getElementById('logs-date-range-dropdown');
+      
+      let startDate = '';
+      let endDate = '';
+      let label = 'All Time';
+      let shouldFetch = true;
+      
+      switch(range) {
+        case 'all':
+          label = 'All Time';
+          break;
+        case 'today':
+          startDate = endDate = today.toISOString().split('T')[0];
+          label = 'Today';
+          break;
+        case 'week': {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(today.getDate() - 6);
+          startDate = weekAgo.toISOString().split('T')[0];
+          endDate = today.toISOString().split('T')[0];
+          label = 'Last 7 Days';
+          break;
+        }
+        case 'month': {
+          const monthAgo = new Date(today);
+          monthAgo.setDate(today.getDate() - 29);
+          startDate = monthAgo.toISOString().split('T')[0];
+          endDate = today.toISOString().split('T')[0];
+          label = 'Last 30 Days';
+          break;
+        }
+        case 'quarter': {
+          const quarterAgo = new Date(today);
+          quarterAgo.setDate(today.getDate() - 89);
+          startDate = quarterAgo.toISOString().split('T')[0];
+          endDate = today.toISOString().split('T')[0];
+          label = 'Last 90 Days';
+          break;
+        }
+        case 'year': {
+          const yearAgo = new Date(today);
+          yearAgo.setFullYear(today.getFullYear() - 1);
+          startDate = yearAgo.toISOString().split('T')[0];
+          endDate = today.toISOString().split('T')[0];
+          label = 'Last Year';
+          break;
+        }
+        case 'custom': {
+          const start = prompt('Enter start date (YYYY-MM-DD):', startDateInput?.value || today.toISOString().split('T')[0]);
+          const end = prompt('Enter end date (YYYY-MM-DD):', endDateInput?.value || today.toISOString().split('T')[0]);
+          if (start && end) {
+            startDate = start;
+            endDate = end;
+            label = `${start} → ${end}`;
+          } else {
+            shouldFetch = false;
+          }
+          break;
+        }
+        default:
+          shouldFetch = false;
+      }
+      
+      if (startDateInput && endDateInput) {
+        startDateInput.value = startDate;
+        endDateInput.value = endDate;
+      }
+      
+      if (rangeText) {
+        rangeText.textContent = label;
+      }
+      
+      if (dropdown) {
+        dropdown.classList.add('hidden');
+      }
+      
+      if (shouldFetch) {
+        currentPage = 1;
+        fetchLogs(startDate, endDate, 1, perPage);
+      }
+    }
+
+    // Export Logs
+    function exportVisitorLogs() {
+      const startDate = document.getElementById('logs-start-date')?.value || '';
+      const endDate = document.getElementById('logs-end-date')?.value || '';
+      const searchTerm = document.getElementById('logs-search-input')?.value || '';
+      
+      // Build export URL
+      const url = new URL(`{{ route('visitor.logs.export') }}`, window.location.origin);
+      if (startDate) url.searchParams.set('start_date', startDate);
+      if (endDate) url.searchParams.set('end_date', endDate);
+      if (searchTerm) url.searchParams.set('search', searchTerm);
+      
+      // Open in new window to trigger download
+      window.open(url.toString(), '_blank');
+      
+      showNotification('Exporting visitor logs...', 'success');
+    }
+
     // Logs functions
     function loadLogsData() {
       const startDate = document.getElementById('logs-start-date')?.value || '';
       const endDate = document.getElementById('logs-end-date')?.value || '';
-      fetchLogs(startDate, endDate);
+      
+      // Initialize pagination from server-side data
+      @if(isset($visitors))
+        currentPage = {{ $visitors->currentPage() }};
+        perPage = {{ $visitors->perPage() }};
+        totalItems = {{ $visitors->total() }};
+        updatePaginationControls();
+      @endif
+      
+      fetchLogs(startDate, endDate, currentPage, perPage);
     }
 
     function formatDate(dtStr) {
@@ -1563,58 +2788,215 @@
       if (!dtStr) return '—';
       try { const d = new Date(dtStr); return d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' }); } catch { return '—'; }
     }
+    function formatDateTime(dtStr) {
+      if (!dtStr) return '';
+      try {
+        const d = new Date(dtStr);
+        return d.toLocaleString(undefined, {
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+      } catch {
+        return '';
+      }
+    }
+
+    function getStatusColorClass(status) {
+      switch (status) {
+        case 'COMPLETED':
+        case 'APPROVED':
+          return 'text-emerald-600 bg-emerald-50';
+        case 'REJECTED':
+          return 'text-red-600 bg-red-50';
+        default:
+          return 'text-amber-600 bg-amber-50';
+      }
+    }
 
     function renderLogsTable(rows = []) {
       const tbody = document.getElementById('logs-table-body');
       if (!tbody) return;
       if (!Array.isArray(rows) || rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-12">No Visitor Logs Found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-12">No Visitor Logs Found</td></tr>';
         return;
       }
       const html = rows.map(v => {
-        const stillIn = !v.time_out;
+        const idNumberEl = document.createElement('div');
+        idNumberEl.innerHTML = v.pass_id ?? 'N/A';
+        const idNumberText = idNumberEl.textContent.trim() || 'N/A';
+        const checkInText = formatDateTime(v.time_in);
+        const checkOutText = formatDateTime(v.time_out);
+        const approvalStatus = (
+          v.approval_status
+            || (v.status === 'active'
+                  ? 'APPROVED'
+                  : (v.time_out ? 'COMPLETED' : 'PENDING'))
+        ).toUpperCase();
+        const statusColor = getStatusColorClass(approvalStatus);
+        const initial = (v.name || 'V').charAt(0).toUpperCase();
+        const avatarHtml = v.profile_photo_url
+          ? `<div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white shadow"><img src="${escapeAttr(v.profile_photo_url)}" alt="${escapeAttr(v.name ?? 'Visitor')}" class="object-cover w-full h-full"></div>`
+          : `<div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-white font-semibold ring-2 ring-white shadow">${initial}</div>`;
         return `
-          <tr class="hover:bg-gray-50 transition-colors">
-            <td class="py-3 px-4">
+          <tr class="hover:bg-gray-50 transition-colors interactive-row"
+            data-id="${v.id}"
+            data-name="${escapeAttr(v.name ?? 'Visitor')}"
+            data-email="${escapeAttr(v.email ?? 'N/A')}"
+            data-phone="${escapeAttr(v.contact ?? 'N/A')}"
+            data-host="${escapeAttr(v.host_employee ?? v.host ?? 'N/A')}"
+            data-source="${escapeAttr(v.source ?? 'N/A')}"
+            data-checkin="${escapeAttr(v.time_in ?? '')}"
+            data-checkout="${escapeAttr(v.time_out ?? '')}"
+            data-purpose="${escapeAttr(v.purpose ?? 'N/A')}"
+            data-status="${escapeAttr(approvalStatus)}"
+            data-avatar="${escapeAttr(v.profile_photo_url ?? '')}"
+            data-pass-id="${escapeAttr(idNumberText)}"
+            data-company="${escapeAttr(v.company ?? '')}"
+            data-comment="${escapeAttr(v.rating_comment ?? v.special_instructions ?? v.company ?? '')}"
+          >
+            <td class="py-3 px-4" data-column="visitor_name">
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center">
-                  <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                <div class="relative">
+                  ${avatarHtml}
                 </div>
                 <div><div class="font-medium text-gray-900">${v.name ?? ''}</div></div>
               </div>
             </td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600">${v.contact ?? 'N/A'}</td>
-            <td class="py-3 px-4 text-center"><span class="badge badge-outline badge-sm">${v.purpose ?? 'N/A'}</span></td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600">${formatDate(v.time_in)}</td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600">${formatTime(v.time_in)}</td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600">${formatDate(v.time_out)}</td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600">${stillIn ? '<span class="badge badge-success badge-sm" style="background-color: #22c55e; color: white;">Still in</span>' : formatTime(v.time_out)}</td>
-            <td class="py-3 px-4 text-sm text-gray-600 duration-cell">—</td>
-            <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono">${v.pass_id ?? 'N/A'}</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600" data-column="contact_number">${v.contact ?? 'N/A'}</td>
+            <td class="py-3 px-4 text-center" data-column="purpose"><span class="badge badge-outline badge-sm">${v.purpose ?? 'N/A'}</span></td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600" data-column="checkin_checkout">
+              ${checkInText ? `<div class="text-emerald-500 font-medium">${checkInText}</div>` : '<div class="text-gray-400">N/A</div>'}
+              ${v.time_out ? `<div class="text-orange-500 text-xs mt-1">${checkOutText}</div>` : ''}
+            </td>
+            <td class="py-3 px-4 text-center text-sm font-semibold" data-column="approval_status">
+              <span class="px-3 py-1 rounded-full ${statusColor}">${approvalStatus}</span>
+            </td>
+            <td class="py-3 px-4 text-sm text-gray-600 duration-cell" data-column="duration">—</td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono" data-column="id_number">${v.pass_id ?? 'N/A'}</td>
+            <td class="py-3 px-4 text-center" data-column="actions">
+              <div class="flex items-center justify-center gap-2">
+                <button class="btn btn-ghost btn-xs" title="View details" onclick="event.stopPropagation(); viewVisitorDetails(${v.id})">
+                  <i data-lucide="info" class="w-4 h-4"></i>
+                </button>
+                <button class="btn btn-ghost btn-xs" title="Print pass" onclick="event.stopPropagation(); printVisitorPass(${v.id})">
+                  <i data-lucide="printer" class="w-4 h-4 text-emerald-600"></i>
+                </button>
+                <button class="checkout-icon-btn" title="Check-out" onclick="event.stopPropagation(); openCheckoutRatingModal(${v.id})">
+                  <span class="checkout-icon"></span>
+                </button>
+              </div>
+            </td>
           </tr>
         `;
       }).join('');
       tbody.innerHTML = html;
       if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+      applyColumnVisibility();
+      attachRowClickHandlers();
     }
 
-    function fetchLogs(startDate, endDate) {
+    // Pagination state
+    let currentPage = 1;
+    let perPage = 10;
+    let totalItems = 0;
+
+    function fetchLogs(startDate, endDate, page = 1, itemsPerPage = null) {
       const url = new URL(`{{ route('visitor.logs.logs') }}` , window.location.origin);
       if (startDate) url.searchParams.set('start_date', startDate);
       if (endDate) url.searchParams.set('end_date', endDate);
+      url.searchParams.set('page', page);
+      if (itemsPerPage) {
+        url.searchParams.set('per_page', itemsPerPage);
+      } else {
+        url.searchParams.set('per_page', perPage);
+      }
+      
       fetch(url.toString(), { headers: { 'Accept':'application/json' } })
         .then(r => r.json())
         .then(data => {
           const rows = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
           renderLogsTable(rows);
+          
+          // Update pagination state
+          if (data.current_page) {
+            currentPage = data.current_page;
+            totalItems = data.total || 0;
+            perPage = data.per_page || 10;
+            updatePaginationControls();
+          }
         })
-        .catch(() => { renderLogsTable([]); });
+        .catch(() => { 
+          renderLogsTable([]);
+          updatePaginationControls();
+        });
+    }
+
+    function changePerPage(newPerPage) {
+      perPage = parseInt(newPerPage);
+      currentPage = 1;
+      const startDate = document.getElementById('logs-start-date')?.value || '';
+      const endDate = document.getElementById('logs-end-date')?.value || '';
+      fetchLogs(startDate, endDate, 1, perPage);
+    }
+
+    function goToPage(page) {
+      if (page < 1) return;
+      currentPage = page;
+      const startDate = document.getElementById('logs-start-date')?.value || '';
+      const endDate = document.getElementById('logs-end-date')?.value || '';
+      fetchLogs(startDate, endDate, page, perPage);
+    }
+
+    function updatePaginationControls() {
+      // Update per page selector
+      const perPageSelect = document.getElementById('logs-per-page');
+      if (perPageSelect) {
+        perPageSelect.value = perPage;
+      }
+      
+      // Update range display
+      const rangeDisplay = document.getElementById('logs-pagination-range');
+      if (rangeDisplay && totalItems > 0) {
+        const start = ((currentPage - 1) * perPage) + 1;
+        const end = Math.min(currentPage * perPage, totalItems);
+        rangeDisplay.textContent = `${start}-${end} of ${totalItems}`;
+      } else if (rangeDisplay) {
+        rangeDisplay.textContent = '0 of 0';
+      }
+      
+      // Update navigation buttons
+      const prevBtn = document.getElementById('logs-prev-btn');
+      const nextBtn = document.getElementById('logs-next-btn');
+      
+      if (prevBtn) {
+        prevBtn.disabled = currentPage <= 1;
+        if (currentPage <= 1) {
+          prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+          prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
+      
+      if (nextBtn) {
+        const totalPages = Math.ceil(totalItems / perPage);
+        nextBtn.disabled = currentPage >= totalPages;
+        if (currentPage >= totalPages) {
+          nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+          nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
     }
 
     function applyLogsFilters() {
       const startDate = document.getElementById('logs-start-date').value;
       const endDate = document.getElementById('logs-end-date').value;
-      fetchLogs(startDate, endDate);
+      currentPage = 1; // Reset to first page when filters change
+      fetchLogs(startDate, endDate, 1, perPage);
     }
 
     // Reports functions
@@ -1962,6 +3344,296 @@
       console.log('Viewing visitor details:', visitorId);
     }
 
+    async function printVisitorPass(visitorId) {
+      const row = document.querySelector(`tr[data-id="${visitorId}"]`);
+      if (!row) {
+        showNotification('Unable to load visitor info for printing.', 'error');
+        return;
+      }
+
+      const modal = document.getElementById('printPassModal');
+      if (!modal) return;
+
+      // Show loading state
+      modal.classList.add('modal-open');
+      document.body.classList.add('modal-open');
+
+      try {
+        // Fetch full visitor details
+        const response = await fetch(`{{ url('/visitor') }}/${visitorId}/details`, {
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error('Failed to load visitor details');
+        const visitor = await response.json();
+
+        // Populate modal fields
+        const photoEl = document.getElementById('printPassPhoto');
+        const nameEl = document.getElementById('printPassName');
+        const emailEl = document.getElementById('printPassEmail');
+        const phoneEl = document.getElementById('printPassPhone');
+        const inviteDateEl = document.getElementById('printPassInviteDate');
+        const expiresAtEl = document.getElementById('printPassExpiresAt');
+        const passCodeEl = document.getElementById('printPassCode');
+        const qrEl = document.getElementById('printPassQR');
+        const statusEl = document.getElementById('printPassStatus');
+
+        // Photo
+        if (photoEl) {
+          if (visitor.profile_photo_url) {
+            photoEl.src = visitor.profile_photo_url;
+            photoEl.style.display = 'block';
+            const fallback = photoEl.nextElementSibling;
+            if (fallback) fallback.style.display = 'none';
+          } else {
+            photoEl.src = '';
+            photoEl.style.display = 'none';
+            const fallback = photoEl.nextElementSibling;
+            if (fallback) fallback.style.display = 'flex';
+          }
+        }
+
+        // Name
+        if (nameEl) nameEl.textContent = visitor.name || 'Visitor';
+
+        // Email
+        if (emailEl) emailEl.textContent = visitor.email || '—';
+
+        // Phone
+        if (phoneEl) phoneEl.textContent = visitor.contact || visitor.phone || '—';
+
+        // Invite Date (check-in time or registered_at)
+        if (inviteDateEl) {
+          const inviteDate = visitor.time_in || visitor.registered_at;
+          inviteDateEl.textContent = inviteDate ? formatDateTime(inviteDate) : '—';
+        }
+
+        // Expires At
+        if (expiresAtEl) {
+          const expiresAt = visitor.pass_valid_until || visitor.expected_time_out;
+          if (expiresAt) {
+            expiresAtEl.textContent = formatDateTime(expiresAt);
+          } else {
+            expiresAtEl.textContent = '—';
+          }
+        }
+
+        // Pass Code (access_code)
+        if (passCodeEl) {
+          passCodeEl.textContent = visitor.access_code || '—';
+        }
+
+        // QR Code
+        if (qrEl) {
+          if (visitor.qr_code) {
+            qrEl.src = visitor.qr_code;
+            qrEl.style.display = 'block';
+          } else {
+            qrEl.style.display = 'none';
+          }
+        }
+
+        // Status Badge
+        if (statusEl) {
+          const now = new Date();
+          const expires = visitor.pass_valid_until ? new Date(visitor.pass_valid_until) : null;
+          const isExpired = expires && expires < now;
+          const isActive = visitor.status === 'active' && !visitor.time_out;
+
+          if (isExpired) {
+            statusEl.textContent = 'EXPIRED';
+            statusEl.className = 'inline-block px-4 py-1 rounded-full text-xs font-semibold bg-red-500 text-white';
+          } else if (isActive) {
+            statusEl.textContent = 'ACTIVE';
+            statusEl.className = 'inline-block px-4 py-1 rounded-full text-xs font-semibold bg-green-500 text-white';
+          } else {
+            statusEl.textContent = 'PENDING';
+            statusEl.className = 'inline-block px-4 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white';
+          }
+        }
+
+        // Additional Details
+        const purposeEl = document.getElementById('printPassPurpose');
+        const hostEl = document.getElementById('printPassHost');
+        const deptEl = document.getElementById('printPassDepartment');
+        const idTypeEl = document.getElementById('printPassIdType');
+        const passIdEl = document.getElementById('printPassPassId');
+        const registeredEl = document.getElementById('printPassRegisteredAt');
+
+        if (purposeEl) purposeEl.textContent = visitor.purpose || '—';
+        if (hostEl) hostEl.textContent = visitor.host_employee || visitor.host || '—';
+        if (deptEl) deptEl.textContent = visitor.department || (visitor.facility?.name || '—');
+        if (idTypeEl) {
+          const idType = visitor.id_type || '';
+          idTypeEl.textContent = idType ? idType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '—';
+        }
+        if (passIdEl) passIdEl.textContent = visitor.pass_id || '—';
+        if (registeredEl) {
+          registeredEl.textContent = visitor.registered_at ? formatDateTime(visitor.registered_at) : '—';
+        }
+
+        // Reset more details section
+        const moreDetailsContent = document.getElementById('moreDetailsContent');
+        if (moreDetailsContent) {
+          moreDetailsContent.classList.add('hidden');
+        }
+        const chevron = document.getElementById('moreDetailsChevron');
+        if (chevron) {
+          chevron.style.transform = 'rotate(0deg)';
+        }
+
+        // Re-initialize Lucide icons
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
+      } catch (error) {
+        console.error('Error loading visitor details:', error);
+        showNotification('Failed to load visitor details for printing.', 'error');
+        closePrintPassModal();
+      }
+    }
+
+    function closePrintPassModal() {
+      const modal = document.getElementById('printPassModal');
+      if (modal) {
+        modal.classList.remove('modal-open');
+      }
+      document.body.classList.remove('modal-open');
+    }
+
+    function handlePrintPass() {
+      window.print();
+    }
+
+    function toggleMoreDetails() {
+      const content = document.getElementById('moreDetailsContent');
+      const chevron = document.getElementById('moreDetailsChevron');
+      
+      if (content && chevron) {
+        const isHidden = content.classList.contains('hidden');
+        if (isHidden) {
+          content.classList.remove('hidden');
+          chevron.style.transform = 'rotate(180deg)';
+        } else {
+          content.classList.add('hidden');
+          chevron.style.transform = 'rotate(0deg)';
+        }
+        
+        // Re-initialize Lucide icons
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
+      }
+    }
+
+    // ---------- Checkout Rating ----------
+    let currentRatingVisitorId = null;
+    let currentRatingValue = 0;
+
+    function openCheckoutRatingModal(visitorId) {
+      currentRatingVisitorId = visitorId;
+      currentRatingValue = 0;
+
+      const row = document.querySelector(`tr[data-id="${visitorId}"]`);
+      if (!row) return;
+
+      const name = row.dataset.name || 'Visitor';
+      const phone = row.dataset.phone || '';
+      const avatar = row.dataset.avatar || '';
+
+      document.getElementById('ratingName').textContent = name;
+      document.getElementById('ratingPhone').textContent = phone;
+      const photoEl = document.getElementById('ratingPhoto');
+      if (photoEl) {
+        photoEl.src = avatar || '';
+      }
+
+      buildRatingStars();
+      updateRatingLabel();
+
+      const modal = document.getElementById('checkoutRatingModal');
+      modal.classList.add('modal-open');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeCheckoutRatingModal() {
+      const modal = document.getElementById('checkoutRatingModal');
+      if (modal) modal.classList.remove('modal-open');
+      document.body.classList.remove('modal-open');
+      currentRatingVisitorId = null;
+      currentRatingValue = 0;
+    }
+
+    function buildRatingStars() {
+      const container = document.getElementById('ratingStars');
+      if (!container) return;
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'text-4xl px-1 transition-transform';
+        btn.innerHTML = '★';
+        btn.style.color = i <= currentRatingValue ? '#f97316' : '#d1d5db';
+        btn.addEventListener('mouseenter', () => highlightStars(i));
+        btn.addEventListener('mouseleave', () => highlightStars(currentRatingValue));
+        btn.addEventListener('click', () => {
+          currentRatingValue = i;
+          highlightStars(currentRatingValue);
+          updateRatingLabel();
+        });
+        container.appendChild(btn);
+      }
+    }
+
+    function highlightStars(value) {
+      const container = document.getElementById('ratingStars');
+      if (!container) return;
+      [...container.children].forEach((child, index) => {
+        child.style.color = (index + 1) <= value ? '#f97316' : '#d1d5db';
+      });
+    }
+
+    function updateRatingLabel() {
+      const label = document.getElementById('ratingLabel');
+      if (!label) return;
+      label.textContent = `You have rated :: ${currentRatingValue}/5`;
+    }
+
+    function submitCheckoutRating() {
+      if (!currentRatingVisitorId) return;
+      const comment = document.getElementById('ratingComment').value || '';
+
+      fetch(`{{ url('/visitor') }}/${currentRatingVisitorId}/rate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          rating: currentRatingValue || null,
+          comment: comment || null
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success) throw new Error(data.message || 'Unable to save rating');
+          closeCheckoutRatingModal();
+          showNotification('Feedback saved successfully.', 'success');
+          // Reload logs to reflect checkout/comment
+          loadLogsData();
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification('Error saving feedback. Please try again.', 'error');
+        });
+    }
+
+    function goToVisitorRequest(visitorId) {
+      console.log('Navigating to visitor request:', visitorId);
+      showNotification('Opening visitor request...', 'info');
+    }
+
     function exportVisitorLog(visitorId) {
       // Export individual visitor log
       console.log('Exporting visitor log:', visitorId);
@@ -2228,19 +3900,8 @@
       if (applyCustomBtn) {
         applyCustomBtn.addEventListener('click', applyCustomRange);
       }
-      // Auto-apply From/To filters in Detailed Logs when date changes
-      const fromInput = document.getElementById('logs-start-date');
-      const toInput = document.getElementById('logs-end-date');
-      const debounced = (fn, d=300) => { let t; return (...a) => { clearTimeout(t); t=setTimeout(()=>fn(...a), d); }; };
-      const onChange = debounced(() => applyLogsFilters(), 250);
-      if (fromInput) { fromInput.addEventListener('change', onChange); fromInput.addEventListener('input', onChange); }
-      if (toInput) { toInput.addEventListener('change', onChange); toInput.addEventListener('input', onChange); }
-      
-      // Report form submission
-      const reportForm = document.getElementById('report-form');
-      if (reportForm) {
-        reportForm.addEventListener('submit', handleReportSubmission);
-      }
+      // Date inputs are now hidden but still used for filtering via date range selector
+      // No need for change listeners since they're set programmatically
       
       // Tab switching - load analytics when analytics tab is clicked
       const analyticsTabBtn = document.querySelector('[data-tab="analytics"]');
@@ -2263,6 +3924,16 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Set up event listeners first
       setupEventListeners();
+      attachRowClickHandlers();
+      applyColumnVisibility();
+      
+      // Initialize pagination state from server-side data
+      @if(isset($visitors))
+        currentPage = {{ $visitors->currentPage() }};
+        perPage = {{ $visitors->perPage() }};
+        totalItems = {{ $visitors->total() }};
+        updatePaginationControls();
+      @endif
       
       // Load initial data with a small delay to ensure DOM is ready
       setTimeout(() => {
@@ -2281,6 +3952,13 @@
       if (window.lucide && window.lucide.createIcons) {
         window.lucide.createIcons();
       }
+      
+      // Re-initialize icons after a short delay to ensure all dynamic elements are rendered
+      setTimeout(() => {
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
+      }, 500);
 
       // Start live duration updates (respect reduced motion)
       updateLiveDurations();

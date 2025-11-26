@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Safeguard in case the table was created manually or by a previous migration
+        if (Schema::hasTable('violation_reports')) {
+            return;
+        }
+
         Schema::create('violation_reports', function (Blueprint $table) {
             $table->id();
             $table->string('report_id')->unique(); // VIO-2025-XXXXX format

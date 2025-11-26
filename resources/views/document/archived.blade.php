@@ -352,94 +352,59 @@
               </table>
             </x-table-card>
             
-            <!-- Compact Pagination -->
-            @if($documents->hasPages())
-              <div class="mt-4 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm text-gray-700">
-                    Showing <span class="font-medium">{{ $documents->firstItem() }}</span> to 
-                    <span class="font-medium">{{ $documents->lastItem() }}</span> of 
-                    <span class="font-medium">{{ $documents->total() }}</span> results
+            <!-- Pagination Controls -->
+            <div class="mt-4 bg-white rounded-xl border border-gray-100 shadow-lg px-6 py-4">
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Items per page -->
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-gray-600">Items per page:</span>
+                  <div class="relative">
+                    <select 
+                      id="archived-per-page" 
+                      class="appearance-none bg-white border border-gray-300 rounded-md px-3 py-1.5 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                      onchange="changeArchivedPerPage(this.value)"
+                    >
+                      <option value="10" {{ ($documents->perPage() ?? 10) == 10 ? 'selected' : '' }}>10</option>
+                      <option value="20" {{ ($documents->perPage() ?? 10) == 20 ? 'selected' : '' }}>20</option>
+                      <option value="50" {{ ($documents->perPage() ?? 10) == 50 ? 'selected' : '' }}>50</option>
+                      <option value="100" {{ ($documents->perPage() ?? 10) == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                      <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Current range display -->
+                <div class="text-sm text-gray-600">
+                  <span id="archived-pagination-range">
+                    @if($documents->total() > 0)
+                      {{ $documents->firstItem() }}-{{ $documents->lastItem() }} of {{ $documents->total() }}
+                    @else
+                      0 of 0
+                    @endif
                   </span>
                 </div>
-                
-                <nav class="flex items-center gap-1" aria-label="Pagination">
-                  <!-- Previous Button -->
-                  @if($documents->onFirstPage())
-                    <span class="px-3 py-1.5 text-sm font-medium text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
-                      Previous
-                    </span>
-                  @else
-                    <a href="{{ $documents->previousPageUrl() }}" 
-                       class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                      Previous
-                    </a>
-                  @endif
-                  
-                  <!-- Page Numbers -->
-                  @php
-                    $currentPage = $documents->currentPage();
-                    $lastPage = $documents->lastPage();
-                    $startPage = max(1, $currentPage - 2);
-                    $endPage = min($lastPage, $currentPage + 2);
-                    
-                    // Adjust if we're near the start
-                    if ($currentPage <= 3) {
-                      $endPage = min(5, $lastPage);
-                    }
-                    // Adjust if we're near the end
-                    if ($currentPage >= $lastPage - 2) {
-                      $startPage = max(1, $lastPage - 4);
-                    }
-                  @endphp
-                  
-                  @if($startPage > 1)
-                    <a href="{{ $documents->url(1) }}" 
-                       class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                      1
-                    </a>
-                    @if($startPage > 2)
-                      <span class="px-2 py-1.5 text-sm text-gray-500">…</span>
-                    @endif
-                  @endif
-                  
-                  @for($i = $startPage; $i <= $endPage; $i++)
-                    @if($i == $currentPage)
-                      <span class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md cursor-default">
-                        {{ $i }}
-                      </span>
-                    @else
-                      <a href="{{ $documents->url($i) }}" 
-                         class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                        {{ $i }}
-                      </a>
-                    @endif
-                  @endfor
-                  
-                  @if($endPage < $lastPage)
-                    @if($endPage < $lastPage - 1)
-                      <span class="px-2 py-1.5 text-sm text-gray-500">…</span>
-                    @endif
-                    <a href="{{ $documents->url($lastPage) }}" 
-                       class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                      {{ $lastPage }}
-                    </a>
-                  @endif
-                  
-                  <!-- Next Button -->
-                  @if($documents->hasMorePages())
-                    <a href="{{ $documents->nextPageUrl() }}" 
-                       class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                      Next
-                    </a>
-                  @else
-                    <span class="px-3 py-1.5 text-sm font-medium text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
-                      Next
-                    </span>
-                  @endif
-                </nav>
+
+                <!-- Navigation arrows -->
+                <div class="flex items-center gap-2">
+                  <a 
+                    href="{{ $documents->previousPageUrl() }}"
+                    id="archived-prev-btn"
+                    class="p-2 rounded-md border border-gray-300 text-gray-400 hover:text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors {{ $documents->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
+                  >
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                  </a>
+                  <a 
+                    href="{{ $documents->nextPageUrl() }}"
+                    id="archived-next-btn"
+                    class="p-2 rounded-md border border-gray-300 text-gray-400 hover:text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors {{ !$documents->hasMorePages() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
+                  >
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                  </a>
+                </div>
               </div>
-            @endif
+            </div>
           </div>
         </div>
 
@@ -842,6 +807,14 @@
       if (window.lucide && window.lucide.createIcons) {
         window.lucide.createIcons();
       }
+    }
+
+    // Pagination function
+    function changeArchivedPerPage(newPerPage) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('per_page', newPerPage);
+      url.searchParams.set('page', '1'); // Reset to first page
+      window.location.href = url.toString();
     }
 
     document.addEventListener('DOMContentLoaded', function(){

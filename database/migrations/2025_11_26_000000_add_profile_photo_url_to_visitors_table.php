@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('visitors', 'id_document_path')) {
-            Schema::table('visitors', function (Blueprint $table) {
-                $table->string('id_document_path')->nullable()->after('id_number');
-            });
-        }
+        Schema::table('visitors', function (Blueprint $table) {
+            // Store the URL/path of the captured visitor profile photo
+            $table->string('profile_photo_url')->nullable()->after('access_code');
+        });
     }
 
     /**
@@ -24,7 +23,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('visitors', function (Blueprint $table) {
-            $table->dropColumn('id_document_path');
+            $table->dropColumn('profile_photo_url');
         });
     }
 };
+
+

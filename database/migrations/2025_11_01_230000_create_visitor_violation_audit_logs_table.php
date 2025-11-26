@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip if table already exists (e.g., created manually earlier)
+        if (Schema::hasTable('visitor_violation_audit_logs')) {
+            return;
+        }
+
         Schema::create('visitor_violation_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('violation_id');
