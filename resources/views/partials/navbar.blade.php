@@ -380,23 +380,58 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Function to show notification messages
-    function showNotification(message, type = 'info') {
+    // Use global showNotification with progress bar if available
+    if (typeof window.showNotification === 'undefined' || window.showNotification.toString().indexOf('progressBar') === -1) {
+      window.showNotification = function(message, type = 'info', duration = 3000) {
+        if (!document.getElementById('notification-progress-style')) {
+          const style = document.createElement('style');
+          style.id = 'notification-progress-style';
+          style.textContent = `
+            @keyframes progressBar {
+              from { width: 100%; }
+              to { width: 0%; }
+            }
+            @keyframes slideInRight {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[200] ${
-            type === 'success' ? 'bg-green-500' : 
-            type === 'error' ? 'bg-red-500' : 
-            'bg-blue-500'
-        } text-white`;
-        notification.textContent = message;
+        const alertType = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+        notification.className = `alert alert-${alertType} fixed bottom-4 right-4 z-[9999] max-w-sm shadow-lg relative overflow-hidden`;
+        notification.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; max-width: 24rem; animation: slideInRight 0.3s ease-out;';
+        
+        const iconMap = { 'success': 'check-circle', 'error': 'alert-circle', 'warning': 'alert-triangle', 'info': 'info' };
+        const icon = iconMap[type] || 'info';
+        
+        notification.innerHTML = `
+          <div class="flex items-center gap-2 px-4 py-3">
+            <i data-lucide="${icon}" class="w-5 h-5"></i>
+            <span>${message}</span>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+            <div class="notification-progress h-full bg-white/50" style="width: 100%; animation: progressBar ${duration}ms linear forwards;"></div>
+          </div>
+        `;
+        
         document.body.appendChild(notification);
+        notification.offsetHeight;
+        
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
         
         setTimeout(() => {
-            notification.style.transition = 'opacity 0.3s ease-out';
-            notification.style.opacity = '0';
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
+          notification.style.opacity = '0';
+          notification.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            if (notification.parentNode) notification.remove();
+          }, 300);
+        }, duration);
+      };
     }
     
     // Auto-refresh notification count every 2 seconds

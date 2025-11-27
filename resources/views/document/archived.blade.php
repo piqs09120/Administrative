@@ -374,16 +374,16 @@
                     </div>
                   </div>
                 </div>
-
+                
                 <!-- Current range display -->
                 <div class="text-sm text-gray-600">
                   <span id="archived-pagination-range">
                     @if($documents->total() > 0)
                       {{ $documents->firstItem() }}-{{ $documents->lastItem() }} of {{ $documents->total() }}
-                    @else
+                  @else
                       0 of 0
-                    @endif
-                  </span>
+                  @endif
+                      </span>
                 </div>
 
                 <!-- Navigation arrows -->
@@ -402,7 +402,7 @@
                   >
                     <i data-lucide="chevron-right" class="w-5 h-5"></i>
                   </a>
-                </div>
+              </div>
               </div>
             </div>
           </div>

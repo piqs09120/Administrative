@@ -950,73 +950,70 @@
     }
 
     
-    // Enhanced toast notification function
+    // Enhanced toast notification function - uses global showNotification with progress bar
     function showEnhancedToast(title, type = 'info', icon = 'info', description = '') {
-      // Create toast container if it doesn't exist
-      let toastContainer = document.getElementById('toastContainer');
-      if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'fixed bottom-4 right-4 z-50 space-y-3';
-        document.body.appendChild(toastContainer);
+      // Use global showNotification if available, otherwise use local implementation with progress bar
+      const message = description ? `${title}: ${description}` : title;
+      const duration = type === 'error' ? 6000 : 4000;
+      
+      if (typeof window.showNotification !== 'undefined' && window.showNotification.toString().indexOf('progressBar') !== -1) {
+        window.showNotification(message, type, duration);
+        return;
       }
       
-      // Create toast element
-      const toast = document.createElement('div');
-      toast.className = `alert alert-${type} shadow-xl max-w-sm transform transition-all duration-500 translate-x-full opacity-0`;
+      // Fallback to local implementation with progress bar
+      if (!document.getElementById('notification-progress-style')) {
+        const style = document.createElement('style');
+        style.id = 'notification-progress-style';
+        style.textContent = `
+          @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+          @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      const notification = document.createElement('div');
+      const alertType = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+      notification.className = `alert alert-${alertType} fixed bottom-4 right-4 z-[9999] max-w-sm shadow-lg relative overflow-hidden`;
+      notification.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; max-width: 24rem; animation: slideInRight 0.3s ease-out;';
       
-      // Set icon based on type
-      const iconMap = {
-        'success': 'check-circle',
-        'error': 'alert-circle',
-        'warning': 'alert-triangle',
-        'info': 'info'
-      };
-      
+      const iconMap = { 'success': 'check-circle', 'error': 'alert-circle', 'warning': 'alert-triangle', 'info': 'info' };
       const finalIcon = icon || iconMap[type] || 'info';
       
-      toast.innerHTML = `
-        <div class="flex items-start gap-3">
-          <div class="flex-shrink-0">
-            <i data-lucide="${finalIcon}" class="w-6 h-6"></i>
+      notification.innerHTML = `
+        <div class="flex items-center gap-2 px-4 py-3">
+          <i data-lucide="${finalIcon}" class="w-5 h-5"></i>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">${title}</div>
+            ${description ? `<div class="text-xs opacity-90 mt-1">${description}</div>` : ''}
           </div>
-          <div class="flex-1 min-w-0">
-            <h4 class="font-semibold text-sm">${title}</h4>
-            ${description ? `<p class="text-xs opacity-90 mt-1">${description}</p>` : ''}
-          </div>
-          <button onclick="this.parentElement.parentElement.remove()" class="btn btn-ghost btn-xs p-1">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+          <div class="notification-progress h-full bg-white/50" style="width: 100%; animation: progressBar ${duration}ms linear forwards;"></div>
         </div>
       `;
       
-      // Add to container
-      toastContainer.appendChild(toast);
+      document.body.appendChild(notification);
+      notification.offsetHeight;
       
-      // Recreate Lucide icons
       if (typeof lucide !== 'undefined') {
         lucide.createIcons();
       }
       
-      // Animate in
       setTimeout(() => {
-        if (toast && toast.classList) {
-          toast.classList.remove('translate-x-full', 'opacity-0');
-          toast.classList.add('translate-x-0', 'opacity-100');
-        }
-      }, 100);
-      
-      // Auto remove after duration
-      const duration = type === 'error' ? 6000 : 4000;
-      setTimeout(() => {
-        if (toast && toast.parentNode && toast.classList) {
-          toast.classList.add('translate-x-full', 'opacity-0');
-          setTimeout(() => {
-            if (toast && toast.parentNode) {
-              toast.parentNode.removeChild(toast);
-            }
-          }, 500);
-        }
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s ease-out';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 300);
       }, duration);
     }
 

@@ -143,7 +143,7 @@
                         <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: rgba(255, 255, 255, 0.2); color: white; font-size: 36px; font-weight: bold;">
                             {{ strtoupper(substr($visitor->name, 0, 1)) }}
                         </div>
-                    @endif
+@endif
                 </div>
                 <h2 class="visitor-name">{{ $visitor->name }}</h2>
                 <span class="status-badge">ACTIVE</span>
@@ -211,7 +211,7 @@
                     @if($qrCode)
                         <img src="{{ $qrCode }}" alt="QR Code" class="qr-code">
                         <p class="qr-text">Scan to verify</p>
-                    @endif
+@endif
                     <div class="banner">
                         Please present this pass at the reception
                     </div>
@@ -226,7 +226,7 @@
             <p>We look forward to seeing you. Please present this email or your QR code at the entrance.</p>
             <p style="margin-top: 20px; color: #9ca3af; font-size: 12px;">
                 Thanks,<br>
-                {{ config('app.name') }} Team
+{{ config('app.name') }} Team
             </p>
         </div>
     </div>

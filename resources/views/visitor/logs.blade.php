@@ -935,7 +935,6 @@
                     <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="purpose">Purpose</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="checkin_checkout">Check-In / Check-Out</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="approval_status">Approval Status</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-700 duration-column" data-column="duration">Duration</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="id_number">ID Number</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-700" data-column="actions">Action</th>
                     </tr>
@@ -1019,80 +1018,11 @@
                         <td class="py-3 px-4 text-center text-sm font-semibold" data-column="approval_status">
                           <span class="px-3 py-1 rounded-full {{ $statusColor }}">{{ $approvalStatus }}</span>
                         </td>
-                        <td class="py-3 px-4 text-sm text-gray-600 duration-cell" data-column="duration">
-                          @if($visitor->time_out)
-                            @php
-                              $checkIn = \Carbon\Carbon::parse($visitor->time_in);
-                              $checkOut = \Carbon\Carbon::parse($visitor->time_out);
-                              
-                              // Check for data error (check out before check in)
-                              if ($checkOut->lt($checkIn)) {
-                                $durationMinutes = 0;
-                                $isDataError = true;
-                              } else {
-                                $durationMinutes = $checkIn->diffInMinutes($checkOut);
-                                $isDataError = false;
-                              }
-                              
-                              // Calculate human-readable format
-                              if ($isDataError) {
-                                $displayText = '—';
-                                $tooltipText = 'Data error: Check out before check in';
-                                $colorClass = 'badge-error';
-                              } else {
-                                $days = floor($durationMinutes / (24 * 60));
-                                $hours = floor(($durationMinutes % (24 * 60)) / 60);
-                                $mins = $durationMinutes % 60;
-                                
-                                // Build compact display
-                                $parts = [];
-                                if ($days > 0) $parts[] = $days . 'd';
-                                if ($hours > 0) $parts[] = $hours . 'h';
-                                if ($mins > 0) $parts[] = $mins . 'm';
-                                
-                                $displayText = empty($parts) ? '0m' : implode(' ', $parts);
-                                
-                                // Build verbose tooltip
-                                $tooltipParts = [];
-                                if ($days > 0) $tooltipParts[] = $days . ' day' . ($days > 1 ? 's' : '');
-                                if ($hours > 0) $tooltipParts[] = $hours . ' hour' . ($hours > 1 ? 's' : '');
-                                if ($mins > 0) $tooltipParts[] = $mins . ' minute' . ($mins > 1 ? 's' : '');
-                                
-                                $tooltipText = empty($tooltipParts) ? '0 minutes' : implode(', ', $tooltipParts);
-                                
-                                // Determine color class based on duration
-                                if ($durationMinutes < 8 * 60) {
-                                  $colorClass = 'badge-success'; // < 8h
-                                } elseif ($durationMinutes < 72 * 60) {
-                                  $colorClass = 'badge-warning'; // 8h-72h
-                                } else {
-                                  $colorClass = 'badge-error'; // > 72h
-                                }
-                              }
-                            @endphp
-                            <div class="duration-display" 
-                                 data-duration-minutes="{{ $durationMinutes }}"
-                                 data-tooltip="{{ $tooltipText }}"
-                                 title="{{ $tooltipText }}"
-                                 aria-label="{{ $tooltipText }}">
-                              <span class="duration-pill duration-pill--{{ $durationMinutes < 480 ? 'short' : ($durationMinutes < 4320 ? 'medium' : 'long') }}">{{ $displayText }}</span>
-                            </div>
-                          @else
-                            <div class="live-duration" 
-                                 data-checkin="{{ $visitor->time_in }}" 
-                                 data-visitor-id="{{ $visitor->id }}"
-                                 data-duration-minutes="0"
-                                 title="Still in building - duration being calculated"
-                                 aria-label="Still in building - duration being calculated">
-                              <span class="duration-pill duration-pill--short">Still in</span>
-                            </div>
-                          @endif
-                        </td>
                         <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono" data-column="id_number">{{ $visitor->pass_id ?? 'N/A' }}</td>
                         <td class="py-3 px-4 text-center" data-column="actions">
                           <div class="flex items-center justify-center gap-2">
-                            <button class="btn btn-ghost btn-xs" title="View details" onclick="event.stopPropagation(); viewVisitorDetails({{ $visitor->id }})">
-                              <i data-lucide="info" class="w-4 h-4"></i>
+                            <button class="btn btn-ghost btn-xs" title="Report violation" onclick="event.stopPropagation(); reportViolation({{ $visitor->id }})">
+                              <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
                             </button>
                             <button class="btn btn-ghost btn-xs" title="Print pass" onclick="event.stopPropagation(); printVisitorPass({{ $visitor->id }})">
                               <i data-lucide="printer" class="w-4 h-4 text-emerald-600"></i>
@@ -1427,7 +1357,6 @@
       ['id' => 'purpose', 'label' => 'Purpose'],
       ['id' => 'checkin_checkout', 'label' => 'Check-In / Check-Out'],
       ['id' => 'approval_status', 'label' => 'Approval Status'],
-      ['id' => 'duration', 'label' => 'Duration'],
       ['id' => 'id_number', 'label' => 'ID Number'],
       ['id' => 'actions', 'label' => 'Action'],
     ];
@@ -1707,6 +1636,110 @@
     </div>
   </div>
 
+  <!-- Report Violation Modal -->
+  <div id="reportViolationModal" class="modal" onclick="closeReportViolationModal()">
+    <div class="modal-box w-full max-w-2xl" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-900">Report Violation</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeReportViolationModal()">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="violationReportForm" onsubmit="submitViolationReport(event)">
+        <input type="hidden" id="violationVisitorId" name="visitor_id">
+        
+        <!-- Visitor Info Display -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              <img id="violationVisitorPhoto" src="" alt="Visitor photo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="w-full h-full bg-blue-900 flex items-center justify-center text-white font-semibold hidden" id="violationVisitorInitial">
+                V
+              </div>
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900" id="violationVisitorName">Visitor Name</p>
+              <p class="text-sm text-gray-500" id="violationVisitorContact">Contact Number</p>
+              <p class="text-xs text-gray-400 mt-1" id="violationVisitorPassId">Pass ID: —</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Violation Type -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Violation Type <span class="text-red-500">*</span>
+          </label>
+          <select id="violationType" name="violation_type" class="select select-bordered w-full" required>
+            <option value="">Select violation type</option>
+            <option value="unauthorized_access">Unauthorized Access</option>
+            <option value="trespassing">Trespassing</option>
+            <option value="disruptive_behavior">Disruptive Behavior</option>
+            <option value="security_breach">Security Breach</option>
+            <option value="policy_violation">Policy Violation</option>
+            <option value="suspicious_activity">Suspicious Activity</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <!-- Priority -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Priority <span class="text-red-500">*</span>
+          </label>
+          <select id="violationPriority" name="priority" class="select select-bordered w-full" required>
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        <!-- Incident Date & Time -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Incident Date <span class="text-red-500">*</span>
+            </label>
+            <input type="date" id="incidentDate" name="incident_date" class="input input-bordered w-full" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Incident Time <span class="text-red-500">*</span>
+            </label>
+            <input type="time" id="incidentTime" name="incident_time" class="input input-bordered w-full" required>
+          </div>
+        </div>
+
+        <!-- Incident Location -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Incident Location
+          </label>
+          <input type="text" id="incidentLocation" name="incident_location" class="input input-bordered w-full" placeholder="e.g., Main Lobby, Building A, Floor 3">
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Description <span class="text-red-500">*</span>
+          </label>
+          <textarea id="violationDescription" name="description" class="textarea textarea-bordered w-full" rows="5" placeholder="Provide a detailed description of the violation..." required></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="closeReportViolationModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="submitViolationBtn">
+            <span id="submitViolationText">Submit Report</span>
+            <span id="submitViolationLoading" class="hidden loading loading-spinner loading-sm"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   @include('partials.soliera_js')
   
   <script>
@@ -1716,7 +1749,6 @@
       { id: 'purpose', label: 'Purpose' },
       { id: 'checkin_checkout', label: 'Check-In / Check-Out' },
       { id: 'approval_status', label: 'Approval Status' },
-      { id: 'duration', label: 'Duration' },
       { id: 'id_number', label: 'ID Number' },
       { id: 'actions', label: 'Action' },
     ];
@@ -1785,6 +1817,7 @@
       localStorage.setItem('visitorLogsColumns', JSON.stringify(columnVisibility));
       applyColumnVisibility();
       closeColumnSettings();
+      showNotification('Updated', 'success');
     }
 
     document.addEventListener('click', function(event) {
@@ -2875,12 +2908,11 @@
             <td class="py-3 px-4 text-center text-sm font-semibold" data-column="approval_status">
               <span class="px-3 py-1 rounded-full ${statusColor}">${approvalStatus}</span>
             </td>
-            <td class="py-3 px-4 text-sm text-gray-600 duration-cell" data-column="duration">—</td>
             <td class="py-3 px-4 text-center text-sm text-gray-600 font-mono" data-column="id_number">${v.pass_id ?? 'N/A'}</td>
             <td class="py-3 px-4 text-center" data-column="actions">
               <div class="flex items-center justify-center gap-2">
-                <button class="btn btn-ghost btn-xs" title="View details" onclick="event.stopPropagation(); viewVisitorDetails(${v.id})">
-                  <i data-lucide="info" class="w-4 h-4"></i>
+                <button class="btn btn-ghost btn-xs" title="Report violation" onclick="event.stopPropagation(); reportViolation(${v.id})">
+                  <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
                 </button>
                 <button class="btn btn-ghost btn-xs" title="Print pass" onclick="event.stopPropagation(); printVisitorPass(${v.id})">
                   <i data-lucide="printer" class="w-4 h-4 text-emerald-600"></i>
@@ -3339,10 +3371,6 @@
 
 
     // Utility functions
-    function viewVisitorDetails(visitorId) {
-      // Open visitor details modal or redirect to details page
-      console.log('Viewing visitor details:', visitorId);
-    }
 
     async function printVisitorPass(visitorId) {
       const row = document.querySelector(`tr[data-id="${visitorId}"]`);
@@ -3629,6 +3657,134 @@
         });
     }
 
+    // Report Violation Functions
+    let currentViolationVisitorId = null;
+
+    function reportViolation(visitorId) {
+      currentViolationVisitorId = visitorId;
+
+      // Get visitor data from table row data attributes (faster and more reliable)
+      const row = document.querySelector(`tr[data-id="${visitorId}"]`);
+      if (!row) {
+        showNotification('Visitor data not found. Please refresh the page.', 'error');
+        return;
+      }
+
+      const visitor = {
+        name: row.dataset.name || 'Visitor',
+        contact: row.dataset.phone || 'N/A',
+        pass_id: row.dataset.passId || 'N/A',
+        avatar: row.dataset.avatar || ''
+      };
+      
+      // Populate visitor info
+      document.getElementById('violationVisitorId').value = visitorId;
+      document.getElementById('violationVisitorName').textContent = visitor.name;
+      document.getElementById('violationVisitorContact').textContent = visitor.contact;
+      document.getElementById('violationVisitorPassId').textContent = `Pass ID: ${visitor.pass_id}`;
+
+      // Set photo or initial
+      const photoEl = document.getElementById('violationVisitorPhoto');
+      const initialEl = document.getElementById('violationVisitorInitial');
+      if (visitor.avatar) {
+        photoEl.src = visitor.avatar;
+        photoEl.style.display = 'block';
+        initialEl.style.display = 'none';
+      } else {
+        photoEl.style.display = 'none';
+        initialEl.style.display = 'flex';
+        initialEl.textContent = (visitor.name || 'V').charAt(0).toUpperCase();
+      }
+
+      // Set default incident date/time to now
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().slice(0, 5);
+      document.getElementById('incidentDate').value = dateStr;
+      document.getElementById('incidentTime').value = timeStr;
+
+      // Open modal
+      const modal = document.getElementById('reportViolationModal');
+      if (modal) {
+        modal.classList.add('modal-open');
+        document.body.classList.add('modal-open');
+      }
+
+      // Reinitialize Lucide icons
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function closeReportViolationModal() {
+      const modal = document.getElementById('reportViolationModal');
+      if (modal) modal.classList.remove('modal-open');
+      document.body.classList.remove('modal-open');
+      
+      // Reset form
+      const form = document.getElementById('violationReportForm');
+      if (form) form.reset();
+      currentViolationVisitorId = null;
+    }
+
+    function submitViolationReport(event) {
+      event.preventDefault();
+      
+      if (!currentViolationVisitorId) {
+        showNotification('Invalid visitor ID. Please try again.', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitViolationBtn');
+      const submitText = document.getElementById('submitViolationText');
+      const submitLoading = document.getElementById('submitViolationLoading');
+      
+      // Disable button and show loading
+      submitBtn.disabled = true;
+      submitText.classList.add('hidden');
+      submitLoading.classList.remove('hidden');
+
+      const formData = {
+        visitor_id: currentViolationVisitorId,
+        violation_type: document.getElementById('violationType').value,
+        priority: document.getElementById('violationPriority').value,
+        incident_date: document.getElementById('incidentDate').value,
+        incident_time: document.getElementById('incidentTime').value,
+        incident_location: document.getElementById('incidentLocation').value || null,
+        description: document.getElementById('violationDescription').value
+      };
+
+      fetch(`{{ url('/visitor') }}/${currentViolationVisitorId}/report-violation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success) throw new Error(data.message || 'Unable to submit violation report');
+          
+          closeReportViolationModal();
+          showNotification('Violation report submitted successfully. Legal case created.', 'success');
+          
+          // Optionally reload logs
+          // loadLogsData();
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification(err.message || 'Error submitting violation report. Please try again.', 'error');
+        })
+        .finally(() => {
+          // Re-enable button
+          submitBtn.disabled = false;
+          submitText.classList.remove('hidden');
+          submitLoading.classList.add('hidden');
+        });
+    }
+
     function goToVisitorRequest(visitorId) {
       console.log('Navigating to visitor request:', visitorId);
       showNotification('Opening visitor request...', 'info');
@@ -3799,23 +3955,91 @@
 
 
 
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.className = `alert alert-${type === 'error' ? 'error' : type === 'success' ? 'success' : 'info'} fixed bottom-4 right-4 z-50 max-w-sm`;
-      notification.innerHTML = `
-        <i data-lucide="${type === 'error' ? 'alert-circle' : type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5"></i>
-        <span>${message}</span>
-      `;
-      
-      document.body.appendChild(notification);
-      
-      if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-      }
-      
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
+    // Use global showNotification from soliera_js if available, otherwise define local one
+    if (typeof window.showNotification === 'undefined') {
+      window.showNotification = function(message, type = 'info', duration = 3000) {
+        // Remove any existing notification progress style if it exists
+        if (!document.getElementById('notification-progress-style')) {
+          const style = document.createElement('style');
+          style.id = 'notification-progress-style';
+          style.textContent = `
+            @keyframes progressBar {
+              from {
+                width: 100%;
+              }
+              to {
+                width: 0%;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        const alertType = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+        notification.className = `alert alert-${alertType} fixed bottom-4 right-4 z-[9999] max-w-sm shadow-lg relative overflow-hidden`;
+        notification.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; max-width: 24rem; animation: slideInRight 0.3s ease-out;';
+        
+        // Set icon based on type
+        const iconMap = {
+          'success': 'check-circle',
+          'error': 'alert-circle',
+          'warning': 'alert-triangle',
+          'info': 'info'
+        };
+        const icon = iconMap[type] || 'info';
+        
+        notification.innerHTML = `
+          <div class="flex items-center gap-2 px-4 py-3">
+            <i data-lucide="${icon}" class="w-5 h-5"></i>
+            <span>${message}</span>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+            <div class="notification-progress h-full bg-white/50" style="width: 100%; animation: progressBar ${duration}ms linear forwards;"></div>
+          </div>
+        `;
+        
+        // Add slide-in animation if not exists
+        if (!document.getElementById('notification-slide-style')) {
+          const slideStyle = document.createElement('style');
+          slideStyle.id = 'notification-slide-style';
+          slideStyle.textContent = `
+            @keyframes slideInRight {
+              from {
+                transform: translateX(100%);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0);
+                opacity: 1;
+              }
+            }
+          `;
+          document.head.appendChild(slideStyle);
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Force reflow to ensure animation starts
+        notification.offsetHeight;
+        
+        // Initialize Lucide icons
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
+        
+        // Auto remove after duration
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          notification.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 300);
+        }, duration);
+      };
     }
 
     // Live duration calculation for visitors still in building

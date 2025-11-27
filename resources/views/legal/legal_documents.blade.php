@@ -2016,46 +2016,62 @@
        });
      }
      
-     // Toast notification function
-     function showToast(message, type = 'info', duration = 5000) {
-       const toastContainer = document.getElementById('toastContainer');
-       if (!toastContainer) return;
+     // Toast notification function - uses global showNotification with progress bar
+     function showToast(message, type = 'info', duration = 3000) {
+       // Use global showNotification if available (has progress bar), otherwise use local implementation
+       if (typeof window.showNotification !== 'undefined' && window.showNotification.toString().indexOf('progressBar') !== -1) {
+         window.showNotification(message, type, duration);
+         return;
+       }
        
-       const toast = document.createElement('div');
-       toast.className = `alert alert-${type} shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+       // Fallback to local implementation with progress bar
+       if (!document.getElementById('notification-progress-style')) {
+         const style = document.createElement('style');
+         style.id = 'notification-progress-style';
+         style.textContent = `
+           @keyframes progressBar {
+             from { width: 100%; }
+             to { width: 0%; }
+           }
+           @keyframes slideInRight {
+             from { transform: translateX(100%); opacity: 0; }
+             to { transform: translateX(0); opacity: 1; }
+           }
+         `;
+         document.head.appendChild(style);
+       }
+
+       const notification = document.createElement('div');
+       const alertType = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+       notification.className = `alert alert-${alertType} fixed bottom-4 right-4 z-[9999] max-w-sm shadow-lg relative overflow-hidden`;
+       notification.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; max-width: 24rem; animation: slideInRight 0.3s ease-out;';
        
-       // Set icon based on type
-       let icon = 'info';
-       if (type === 'success') icon = 'check-circle';
-       if (type === 'error') icon = 'alert-circle';
-       if (type === 'warning') icon = 'alert-triangle';
+       const iconMap = { 'success': 'check-circle', 'error': 'alert-circle', 'warning': 'alert-triangle', 'info': 'info' };
+       const icon = iconMap[type] || 'info';
        
-       toast.innerHTML = `
-         <i data-lucide="${icon}" class="text-xl md:text-2xl lg:text-3xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-         <span>${message}</span>
-         <button onclick="this.parentElement.remove()" class="btn btn-ghost btn-xs">
-           <i data-lucide="x" class="text-lg md:text-xl lg:text-2xl transition-all duration-300 ease-in-out hover:text-accent cursor-pointer"></i>
-         </button>
+       notification.innerHTML = `
+         <div class="flex items-center gap-2 px-4 py-3">
+           <i data-lucide="${icon}" class="w-5 h-5"></i>
+           <span>${message}</span>
+         </div>
+         <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+           <div class="notification-progress h-full bg-white/50" style="width: 100%; animation: progressBar ${duration}ms linear forwards;"></div>
+         </div>
        `;
        
-       toastContainer.appendChild(toast);
-       lucide.createIcons();
+       document.body.appendChild(notification);
+       notification.offsetHeight;
        
-       // Animate in
-       setTimeout(() => {
-         toast.classList.remove('translate-x-full');
-       }, 100);
+       if (window.lucide && window.lucide.createIcons) {
+         window.lucide.createIcons();
+       }
        
-       // Auto remove after duration
        setTimeout(() => {
-         if (toast.parentNode) {
-           toast.classList.add('translate-x-full');
-           setTimeout(() => {
-             if (toast.parentNode) {
-               toast.parentNode.removeChild(toast);
-             }
-           }, 300);
-         }
+         notification.style.opacity = '0';
+         notification.style.transition = 'opacity 0.3s ease-out';
+         setTimeout(() => {
+           if (notification.parentNode) notification.remove();
+         }, 300);
        }, duration);
      }
      

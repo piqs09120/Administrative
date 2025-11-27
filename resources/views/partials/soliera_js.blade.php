@@ -188,6 +188,94 @@ setInterval(displayPhilippineTime, 1000);
 // Add event listener to ensure the function runs after DOM is loaded
  // Initialize when DOM loads
  document.addEventListener('DOMContentLoaded', initSidebar);
+
+ // Global Notification Function with Progress Bar Animation
+ // This function is available across all pages that include soliera_js
+ if (typeof window.showNotification === 'undefined') {
+   window.showNotification = function(message, type = 'info', duration = 3000) {
+     // Remove any existing notification progress style if it exists
+     if (!document.getElementById('notification-progress-style')) {
+       const style = document.createElement('style');
+       style.id = 'notification-progress-style';
+       style.textContent = `
+         @keyframes progressBar {
+           from {
+             width: 100%;
+           }
+           to {
+             width: 0%;
+           }
+         }
+       `;
+       document.head.appendChild(style);
+     }
+
+     // Create notification element
+     const notification = document.createElement('div');
+     const alertType = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+     notification.className = `alert alert-${alertType} fixed bottom-4 right-4 z-[9999] max-w-sm shadow-lg relative overflow-hidden`;
+     notification.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; max-width: 24rem; animation: slideInRight 0.3s ease-out;';
+     
+     // Set icon based on type
+     const iconMap = {
+       'success': 'check-circle',
+       'error': 'alert-circle',
+       'warning': 'alert-triangle',
+       'info': 'info'
+     };
+     const icon = iconMap[type] || 'info';
+     
+     notification.innerHTML = `
+       <div class="flex items-center gap-2 px-4 py-3">
+         <i data-lucide="${icon}" class="w-5 h-5"></i>
+         <span>${message}</span>
+       </div>
+       <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+         <div class="notification-progress h-full bg-white/50" style="width: 100%; animation: progressBar ${duration}ms linear forwards;"></div>
+       </div>
+     `;
+     
+     // Add slide-in animation if not exists
+     if (!document.getElementById('notification-slide-style')) {
+       const slideStyle = document.createElement('style');
+       slideStyle.id = 'notification-slide-style';
+       slideStyle.textContent = `
+         @keyframes slideInRight {
+           from {
+             transform: translateX(100%);
+             opacity: 0;
+           }
+           to {
+             transform: translateX(0);
+             opacity: 1;
+           }
+         }
+       `;
+       document.head.appendChild(slideStyle);
+     }
+     
+     document.body.appendChild(notification);
+     
+     // Force reflow to ensure animation starts
+     notification.offsetHeight;
+     
+     // Initialize Lucide icons
+     if (window.lucide && window.lucide.createIcons) {
+       window.lucide.createIcons();
+     }
+     
+     // Auto remove after duration
+     setTimeout(() => {
+       notification.style.opacity = '0';
+       notification.style.transition = 'opacity 0.3s ease-out';
+       setTimeout(() => {
+         if (notification.parentNode) {
+           notification.remove();
+         }
+       }, 300);
+     }, duration);
+   };
+ }
 </script>
 
 {{-- Legal Consent Modal Component (hidden across Legal Management pages) --}}

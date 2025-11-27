@@ -6,6 +6,8 @@ use App\Models\Visitor;
 use App\Models\Facility;
 use App\Models\User;
 use App\Models\VisitorCheckinLog;
+use App\Models\LegalCase;
+use App\Models\CaseActivity;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Maatwebsite\Excel\Facades\Excel;
@@ -320,7 +322,7 @@ class VisitorController extends Controller
     {
         try {
             $accessCode = $this->ensureAccessCode($visitor);
-
+            
             // Send email
             Mail::to($visitor->email)->send(new \App\Mail\ScheduledVisitorMail($visitor, $accessCode));
             
@@ -1463,6 +1465,86 @@ class VisitorController extends Controller
             'message' => 'Thank you for your feedback!',
             'visitor' => $visitor,
         ]);
+    }
+
+    /**
+     * Report violation for a visitor - creates a Legal Case
+     */
+    public function reportViolation(Request $request, $id): JsonResponse
+    {
+        $visitor = Visitor::findOrFail($id);
+
+        $data = $request->validate([
+            'violation_type' => 'required|string|max:255',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'incident_date' => 'required|date',
+            'incident_time' => 'required|string',
+            'incident_location' => 'nullable|string|max:255',
+            'description' => 'required|string|max:5000',
+        ]);
+
+        try {
+            // Combine incident date and time
+            $incidentDateTime = \Carbon\Carbon::parse($data['incident_date'] . ' ' . $data['incident_time']);
+
+            // Create Legal Case
+            $legalCase = LegalCase::create([
+                'case_title' => "Visitor Violation – {$visitor->name}",
+                'case_description' => $data['description'],
+                'case_type' => 'visitor_violation',
+                'priority' => $data['priority'],
+                'status' => 'pending',
+                'workflow_stage' => 'filing',
+                'source' => 'VISITOR_SYSTEM',
+                'visitor_id' => $visitor->id,
+                'created_by' => auth()->user()->Dept_no ?? null,
+                'incident_date' => $incidentDateTime,
+                'incident_location' => $data['incident_location'] ?? null,
+                'metadata' => [
+                    'violation_type' => $data['violation_type'],
+                    'visitor_name' => $visitor->name,
+                    'visitor_email' => $visitor->email,
+                    'visitor_contact' => $visitor->contact ?? $visitor->phone,
+                    'visitor_pass_id' => $visitor->pass_id,
+                    'reported_by' => auth()->user()->Fname . ' ' . auth()->user()->Lname ?? 'System',
+                    'reported_at' => now()->toIso8601String(),
+                ],
+            ]);
+
+            // Log initial activity
+            CaseActivity::log(
+                $legalCase->id,
+                'case_created',
+                'Violation reported from Visitor Log',
+                [
+                    'visitor_id' => $visitor->id,
+                    'visitor_name' => $visitor->name,
+                    'violation_type' => $data['violation_type'],
+                    'priority' => $data['priority'],
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Violation report submitted successfully. Legal case created.',
+                'legal_case' => [
+                    'id' => $legalCase->id,
+                    'case_number' => $legalCase->case_number,
+                    'case_title' => $legalCase->case_title,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating legal case from violation report', [
+                'visitor_id' => $visitor->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating legal case. Please try again.',
+            ], 500);
+        }
     }
     
     /**

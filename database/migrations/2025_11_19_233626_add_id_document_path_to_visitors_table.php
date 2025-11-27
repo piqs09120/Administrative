@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         if (!Schema::hasColumn('visitors', 'id_document_path')) {
-            Schema::table('visitors', function (Blueprint $table) {
-                $table->string('id_document_path')->nullable()->after('id_number');
-            });
+        Schema::table('visitors', function (Blueprint $table) {
+            $table->string('id_document_path')->nullable()->after('id_number');
+        });
         }
     }
 

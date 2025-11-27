@@ -43,6 +43,8 @@ class LegalCase extends Model
         'resolved_at',
         'stage_changed_at',
         'days_in_current_stage',
+        'source',
+        'visitor_id',
     ];
 
     protected $casts = [
@@ -110,6 +112,14 @@ class LegalCase extends Model
     public function investigator()
     {
         return $this->belongsTo(DeptAccount::class, 'investigator_id', 'Dept_no');
+    }
+
+    /**
+     * Get the visitor associated with this case (if created from visitor violation)
+     */
+    public function visitor()
+    {
+        return $this->belongsTo(Visitor::class, 'visitor_id');
     }
 
     /**
